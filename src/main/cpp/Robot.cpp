@@ -23,6 +23,37 @@ void Robot::RobotPeriodic()
     // Run the command scheduler
     frc2::CommandScheduler::GetInstance().Run();
 
+    std::string gameData;
+    gameData = frc::DriverStation::GetGameSpecificMessage();
+
+    if(gameData.length() > 0)
+    {
+        switch (gameData[0])
+        {
+            case 'B':
+            {
+                //Blue case code
+                break;
+            }
+
+            case 'R':
+            {
+                //Red case code
+                break;
+            }
+
+            default:
+            {
+                //This is corrupt data
+                break;
+            } 
+        }
+    }
+    else 
+    {
+        //Code for no data received yet
+    }
+
     // Process camera results for both cameras
     m_robotContainer->ProcessCameraResults(m_robotContainer->GetRightCamera(), "Right");
     m_robotContainer->ProcessCameraResults(m_robotContainer->GetLeftCamera(),  "Left");

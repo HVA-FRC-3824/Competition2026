@@ -72,7 +72,7 @@ namespace motor
 
                 // Configure the closed loop controller
                 sparkMaxConfig.closedLoop
-                    .SetFeedbackSensor(rev::spark::ClosedLoopConfig::FeedbackSensor::kPrimaryEncoder)
+                    .SetFeedbackSensor(rev::spark::FeedbackSensor::kPrimaryEncoder)
                     .Pid(config.P, config.I, config.D);
 
                 // Write the configuration to the motor controller

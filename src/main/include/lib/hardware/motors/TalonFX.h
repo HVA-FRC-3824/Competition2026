@@ -14,7 +14,6 @@
 #include <frc/system/plant/LinearSystemId.h>
 
 #include <ctre/phoenix6/TalonFX.hpp>
-#include <ctre/phoenix6/configs/Configs.hpp>
 
 #include "lib/hardware/motors/Motor.h"
 
