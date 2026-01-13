@@ -2,7 +2,7 @@
 
 #include "GyroBase.h"
 
-#include "studica/AHRS.h"
+#include <studica/AHRS.h>
 
 #include <frc/RobotBase.h>
 #include <frc/geometry/Rotation3d.h>

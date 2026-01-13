@@ -34,6 +34,9 @@ class RobotContainer
 
     private:
 
+        // Static pointer to singleton instance
+        static RobotContainer              *m_robotContainer;
+
         // Private class constructor to configure the robot and SmartDashboard configuration
         RobotContainer();
 

@@ -1,7 +1,9 @@
 #pragma once
 
 #include <hal/FRCUsageReporting.h>
+
 #include <frc/TimedRobot.h>
+#include <frc/DriverStation.h>
 
 #include "lib/Logging.h"
 #include "RobotContainer.h"
