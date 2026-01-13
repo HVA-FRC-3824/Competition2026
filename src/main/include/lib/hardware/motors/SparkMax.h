@@ -72,7 +72,7 @@ namespace motor
 
                 // Configure the closed loop controller
                 sparkMaxConfig.closedLoop
-                    .SetFeedbackSensor(rev::spark::ClosedLoopConfig::FeedbackSensor::kPrimaryEncoder)
+                    .SetFeedbackSensor(rev::spark::FeedbackSensor::kPrimaryEncoder)
                     .Pid(config.P, config.I, config.D);
 
                 // Write the configuration to the motor controller
@@ -96,17 +96,17 @@ namespace motor
             inline void SetReferenceState(double motorInput) override
             {
                 // Set duty cycle output [-1, 1]
-                m_turnClosedLoopController.SetReference(motorInput, 
+                m_turnClosedLoopController.SetSetpoint(motorInput, 
                                                         rev::spark::SparkMax::ControlType::kDutyCycle,
                                                         rev::spark::ClosedLoopSlot::kSlot0, 
-                                                        m_feedforward.Calculate(0_tps).value(),
+                                                        m_feedforward.Calculate(0_tps).value(), // TODO: make this work with V and A
                                                         rev::spark::SparkClosedLoopController::ArbFFUnits::kVoltage);
             }
 
             inline void SetReferenceState(units::turns_per_second_t motorInput) override
             {
                 // Set velocity control with feedforward
-                m_turnClosedLoopController.SetReference(motorInput.value(), 
+                m_turnClosedLoopController.SetSetpoint(motorInput.value(), 
                                                         rev::spark::SparkMax::ControlType::kVelocity,
                                                         rev::spark::ClosedLoopSlot::kSlot0, 
                                                         m_feedforward.Calculate(motorInput).value(),
@@ -116,7 +116,7 @@ namespace motor
             inline void SetReferenceState(units::volt_t motorInput) override
             {
                 // Set voltage control with static friction compensation
-                m_turnClosedLoopController.SetReference(motorInput.value() + m_feedforward.Calculate(0_tps).value(),
+                m_turnClosedLoopController.SetSetpoint(motorInput.value() + m_feedforward.Calculate(0_tps).value(),
                                                         rev::spark::SparkMax::ControlType::kVoltage);
             }
 
@@ -136,7 +136,7 @@ namespace motor
                 //                                         rev::spark::SparkClosedLoopController::ArbFFUnits::kVoltage);
                 
                 // Use standard position control
-                m_turnClosedLoopController.SetReference(motorInput.value(), 
+                m_turnClosedLoopController.SetSetpoint(motorInput.value(), 
                                                         rev::spark::SparkMax::ControlType::kPosition,
                                                         rev::spark::ClosedLoopSlot::kSlot0, 
                                                         m_feedforward.Calculate(currentVelocity).value(),

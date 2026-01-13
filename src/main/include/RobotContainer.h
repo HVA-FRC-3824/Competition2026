@@ -13,10 +13,8 @@
 #include <photon/PhotonCamera.h>
 
 #include "subsystems/Chassis.h"
-#include "subsystems/Volcano.h"
 
 #include "commands/ChassisCommands.h"
-#include "commands/VolcanoCommands.h"
 
 #include "Constants.h"
 #pragma endregion
@@ -43,6 +41,8 @@ class RobotContainer
 
         double                              GetExponentialValue(double joystickValue, double exponent);
 
+        static RobotContainer*              m_robotContainer;
+
         frc::XboxController                 m_driveController{constants::controller::DrivePort};
 
         frc::SlewRateLimiter<units::scalar> m_flywheelLimiter{1.0 / 0.1_s};  // Full throttle change in 0.5 seconds
@@ -51,7 +51,6 @@ class RobotContainer
 
         // Instantiate the robot subsystems
         Chassis                             m_chassis;
-        Volcano                             m_volcano;
 
         photon::PhotonCamera cameraRight{"CameraRight"};
         photon::PhotonCamera cameraLeft{"CameraLeft"};

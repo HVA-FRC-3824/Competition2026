@@ -29,7 +29,7 @@ namespace hardware
         {
             units::ampere_t CurrentLimit;
             bool   breakMode;
-            double conversionFactor; // Multiply when apply, divide when recieve
+            double conversionFactor; // Multiply when apply ((input type) => turns/turns per second), divide when recieve (turns/turns per second => (input type))
             double P;
             double I;
             double D;

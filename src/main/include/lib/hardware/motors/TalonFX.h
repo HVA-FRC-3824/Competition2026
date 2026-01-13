@@ -14,7 +14,6 @@
 #include <frc/system/plant/LinearSystemId.h>
 
 #include <ctre/phoenix6/TalonFX.hpp>
-#include <ctre/phoenix6/configs/Configs.hpp>
 
 #include "lib/hardware/motors/Motor.h"
 
@@ -29,7 +28,7 @@ namespace motor
         
         public:
 
-            inline TalonFX(CANid_t CANid, MotorConfiguration config, frc::DCMotor motorModel, units::kilogram_square_meter_t simMomentOfInertia = 0.001_kg_sq_m) 
+            inline TalonFX(CANid_t CANid, MotorConfiguration config, frc::DCMotor motorModel = frc::DCMotor::Falcon500(), units::kilogram_square_meter_t simMomentOfInertia = 0.001_kg_sq_m) 
                 : Motor{frc::sim::DCMotorSim(
                     frc::LinearSystemId::DCMotorSystem(
                         motorModel,

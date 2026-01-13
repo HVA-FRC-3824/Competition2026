@@ -50,7 +50,7 @@ namespace constants
             0.0, 0.0, 0.0                          // S, V, A
         };
 
-        // These need to be tuned istg
+        // TODO: these need to be tuned
         constexpr hardware::motor::MotorConfiguration turnMotorConfig
         {
             30_A,                          // Current Limit
@@ -76,60 +76,71 @@ namespace constants
     }
     #pragma endregion
 
-    #pragma region Volcano
-    namespace volcano
+    #pragma region Flywheel
+    namespace flywheel
     {
-        // CAN IDs
-        constexpr CANid_t flywheelMotorCANid      = 40;
-        constexpr CANid_t firstIndexerMotorCANid  = 41;
-        constexpr CANid_t secondIndexerMotorCANid = 42;
-        constexpr CANid_t kickerMotorCANid        = 43;
-
-        constexpr int     ballSensorDIOPort       =  0;
-
-        // Motor Configurations
-        constexpr hardware::motor::MotorConfiguration flywheelMotorConfig
+        // TODO: these need to be tuned
+        constexpr hardware::motor::MotorConfiguration flywheelConfig
         {
             30_A,           // Current Limit
             false,          // Brake Mode
-            1,              // Conversion factor
-            5.0, 0.0, 0.0,  // P, I , D
-            0.0, 2.0, 0.0   // S, V, A
+            10,             // Conversion factor
+            1.0, 0.01, 0.0, // P, I , D 
+            0.0, 0.0, 0.0   // S, V, A  
         };
 
-        constexpr hardware::motor::MotorConfiguration indexerMotorConfig
-        {
-            30_A,           // Current Limit
-            true,           // Brake Mode
-            1,              // Conversion factor
-            1.0, 0.0, 0.0,  // P, I , D
-            0.0, 0.0, 0.0   // S, V, A
-        };
-
-        constexpr hardware::motor::MotorConfiguration kickMotorConfig
-        {
-            30_A,           // Current Limit
-            true,           // Brake Mode
-            1,              // Conversion factor
-            1.0, 0.0, 0.0,  // P, I , D
-            0.0, 0.0, 0.0   // S, V, A
-        };
-
-        constexpr double flywheelTolerancePercent = 0.05; // 5% tolerance
-
-        // Target Speeds TODO: TEST AND TUNE
-        constexpr units::turns_per_second_t targetFlywheelSpeed{1000};
-        constexpr units::turns_per_second_t targetIndexerSpeed{20};
-        constexpr units::turns_per_second_t targetKickerSpeed{40};
+        constexpr CANid_t motorID = 0; // TODO: update this to real or realistic
     }
     #pragma endregion
 
-    #pragma region LED
-    namespace led
+    #pragma region Hood
+    namespace hood
     {
-        constexpr int length = 60U;
+        // These may not be needed, but I think a PID controller is required
+        // TODO: tuning
+        constexpr double P = 0;
+        constexpr double I = 0;
+        constexpr double D = 0;
 
-        constexpr int port   = 0;
+        constexpr CANid_t motorID = 0; // TODO: update this to real or realistic
+    }
+    #pragma endregion
+
+    #pragma region Indexer
+    namespace indexer
+    {
+        // I'm not sure how the indexer is going to be designed, multiple configs may be needed
+
+        // TODO: these need to be tuned
+        constexpr hardware::motor::MotorConfiguration indexerWheelConfig
+        {
+            30_A,           // Current Limit
+            false,          // Brake Mode
+            10,             // Conversion factor
+            1.0, 0.01, 0.0, // P, I , D 
+            0.0, 0.0, 0.0   // S, V, A  
+        };
+
+        constexpr size_t numMotors = 4U;
+
+        constexpr std::array<CANid_t, numMotors> motorIDs = {0, 0, 0, 0}; // TODO: update this to real or realistic
+    }
+    #pragma endregion
+
+    #pragma region Turret
+    namespace turret
+    {
+        // TODO: these need to be tuned
+        constexpr hardware::motor::MotorConfiguration turretConfig
+        {
+            30_A,           // Current Limit
+            false,          // Brake Mode
+            10,             // Conversion factor
+            1.0, 0.01, 0.0, // P, I , D 
+            0.0, 0.0, 0.0   // S, V, A  
+        };
+
+        constexpr CANid_t motorID = 0; // TODO: update this to real or realistic
     }
     #pragma endregion
 
@@ -137,7 +148,7 @@ namespace constants
     namespace controller
     {
         // Drive Input Configurations
-        constexpr int    DrivePort           =    0;
+        constexpr int    DrivePort           = 0;
 
         constexpr double TranslationDeadZone = 0.06;
         constexpr double RotateDeadZone      = 0.06;
