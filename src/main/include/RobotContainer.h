@@ -44,8 +44,6 @@ class RobotContainer
 
         double                              GetExponentialValue(double joystickValue, double exponent);
 
-        static RobotContainer*              m_robotContainer;
-
         frc::XboxController                 m_driveController{constants::controller::DrivePort};
 
         frc::SlewRateLimiter<units::scalar> m_flywheelLimiter{1.0 / 0.1_s};  // Full throttle change in 0.5 seconds
