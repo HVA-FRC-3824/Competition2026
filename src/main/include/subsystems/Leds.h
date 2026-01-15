@@ -7,7 +7,6 @@
 #include <frc/LEDPattern.h>
 
 #include "Constants.h"
-
 #pragma region LedConstants
 namespace LedConstants
 {
@@ -37,6 +36,16 @@ enum LedMode
     Rainbow
 };
 
+/// @brief Robot status for LED, add more as needed
+enum RobotStatus 
+{
+    Idle,
+    Climbing,
+    Shooting,
+    Driving
+};
+
+
 class Leds : public frc2::SubsystemBase
 {
     public:
@@ -56,6 +65,7 @@ class Leds : public frc2::SubsystemBase
         void ShootingAnimation();
 
         LedMode             m_ledMode;            // The LED mode
+        RobotStatus m_robotStatus;
 
         int                 m_firstPixelHue = 0;  // Store the hue of the first pixel for rainbow mode
         int                 m_cycleCounter  = 0;  // Counter for dynamic LED modes

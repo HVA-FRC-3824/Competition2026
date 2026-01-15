@@ -24,6 +24,7 @@ Leds::Leds()
 /// @brief This method will be called once periodically.
 void Leds::Periodic()
 {
+    /*
     switch (m_ledMode)
     {
         case LedMode::Off:
@@ -52,6 +53,23 @@ void Leds::Periodic()
             m_scrollingRainbow.ApplyTo(m_ledBuffer);
             break;
         }
+            
+    }
+    */
+
+    // Switch based on robot status
+    switch (m_robotStatus)
+    {
+        case RobotStatus::Idle:
+            m_scrollingRainbow.ApplyTo(m_ledBuffer);
+            break;
+        case RobotStatus::Climbing:
+            break;
+        case RobotStatus::Driving:
+            break;
+        case RobotStatus::Shooting:
+            break;
+
     }
 
     // Set the LEDs
