@@ -53,10 +53,6 @@ void Robot::RobotPeriodic()
     {
         //Code for no data received yet
     }
-
-    // Process camera results for both cameras
-    m_robotContainer->ProcessCameraResults(m_robotContainer->GetRightCamera(), "Right");
-    m_robotContainer->ProcessCameraResults(m_robotContainer->GetLeftCamera(),  "Left");
 }
 #pragma endregion
 

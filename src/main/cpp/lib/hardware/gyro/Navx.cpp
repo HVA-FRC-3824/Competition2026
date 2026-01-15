@@ -36,7 +36,6 @@ void Navx::ResetYaw()
 {
     // Reset the gyro yaw angle
     m_gyro.Reset();
-    m_simYaw = 0_rad;
 }
 #pragma endregion
 
@@ -47,19 +46,5 @@ void Navx::SetOffset(frc::Rotation3d offset)
 {
     // Set the offset rotation
     m_offset = offset;
-}
-#pragma endregion
-
-#pragma region SimPeriodic
-/// @brief Method to simulate the gyro in simulation.
-/// @param rate The rate of change in radians per second.
-void Navx::SimPeriodic(units::radians_per_second_t rate)
-{
-    // Update the simulated yaw angle
-    m_simRate = rate;
-    m_simYaw += units::radian_t{m_simRate.value()}; // assuming 20ms loop time
-
-    // Update the offset to match the simulated yaw
-    SetOffset(frc::Rotation3d{m_simYaw, 0_rad, 0_rad});
 }
 #pragma endregion

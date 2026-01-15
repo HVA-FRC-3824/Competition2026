@@ -1,7 +1,10 @@
 #include "subsystems/Chassis.h"
 
 #pragma region Chassis
-Chassis::Chassis()
+Chassis::Chassis() :
+    m_gyro{frc::RobotBase::IsSimulation() ? 
+        (hardware::gyro::GyroBase) hardware::gyro::SimGyro() : 
+        (hardware::gyro::GyroBase) hardware::gyro::Navx()}
 {
     // Set the swerve modules to their forward angles
     ResetWheelAnglesToZero();
@@ -13,6 +16,7 @@ Chassis::Chassis()
 /// @param speeds The desired chassis speeds.
 void Chassis::Drive(const frc::ChassisSpeeds& speeds)
 {
+    // This isn't needed
     frc::SmartDashboard::PutNumber("Drive X",     speeds.vx.value());
     frc::SmartDashboard::PutNumber("Drive Y",     speeds.vy.value());
     frc::SmartDashboard::PutNumber("Drive Omega", speeds.omega.value()); 
@@ -30,8 +34,8 @@ void Chassis::Drive(const frc::ChassisSpeeds& speeds)
     m_swerveModules[3].SetDesiredState(m_desiredStates[3]);
 
     // Simulate the gyro in simulation
-    // if (frc::RobotBase::IsSimulation())
-    //    m_gyro.SimPeriodic(speeds.omega);
+    if (frc::RobotBase::IsSimulation())
+       m_gyro.Update(speeds.omega, 0.02_s);
 }
 #pragma endregion
 

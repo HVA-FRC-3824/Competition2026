@@ -76,8 +76,8 @@ namespace constants
     }
     #pragma endregion
 
-    #pragma region Flywheel
-    namespace flywheel
+    #pragma region Tower
+    namespace tower
     {
         // TODO: these need to be tuned
         constexpr hardware::motor::MotorConfiguration flywheelConfig
@@ -89,20 +89,36 @@ namespace constants
             0.0, 0.0, 0.0   // S, V, A  
         };
 
-        constexpr CANid_t motorID = 0; // TODO: update this to real or realistic
-    }
-    #pragma endregion
+        constexpr CANid_t flywheelMotorID = 0; // TODO: update this to real or realistic
+    
 
-    #pragma region Hood
-    namespace hood
-    {
-        // These may not be needed, but I think a PID controller is required
-        // TODO: tuning
-        constexpr double P = 0;
-        constexpr double I = 0;
-        constexpr double D = 0;
+        constexpr CANid_t actuatorID = 0; // TODO: update this to real or realistic
+    
+        // TODO: test these angles
+        constexpr units::degree_t MinAngle = 0_deg;
+        constexpr units::degree_t MaxAngle = 50_deg;
+    
+        // TODO: test these angles
+        // I got these from team 102 from 2022, they used the same actuator
+        // These may not be correct for our specific use case
+        constexpr units::inch_t   MaxLength = 14.336_in;
+        constexpr units::inch_t   MinLength = 8.946_in;
 
-        constexpr CANid_t motorID = 0; // TODO: update this to real or realistic
+        // TODO: also test, but these should be fine (should is a very bad word in these sort of things)
+        constexpr double          ActuatorLowerBound = -0.95;
+        constexpr double          ActuatorUpperBound =  0.95;
+
+        // TODO: these need to be tuned
+        constexpr hardware::motor::MotorConfiguration turretConfig
+        {
+            30_A,           // Current Limit
+            false,          // Brake Mode
+            10,             // Conversion factor
+            1.0, 0.01, 0.0, // P, I , D 
+            0.0, 0.0, 0.0   // S, V, A  
+        };
+
+        constexpr CANid_t turretMotorID = 0; // TODO: update this to real or realistic
     }
     #pragma endregion
 
@@ -125,24 +141,6 @@ namespace constants
 
         constexpr std::array<CANid_t, numMotors> motorIDs = {0, 0, 0, 0}; // TODO: update this to real or realistic
     }
-    #pragma endregion
-
-    #pragma region Turret
-    namespace turret
-    {
-        // TODO: these need to be tuned
-        constexpr hardware::motor::MotorConfiguration turretConfig
-        {
-            30_A,           // Current Limit
-            false,          // Brake Mode
-            10,             // Conversion factor
-            1.0, 0.01, 0.0, // P, I , D 
-            0.0, 0.0, 0.0   // S, V, A  
-        };
-
-        constexpr CANid_t motorID = 0; // TODO: update this to real or realistic
-    }
-    #pragma endregion
 
     #pragma region Controller
     namespace controller

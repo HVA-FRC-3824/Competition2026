@@ -25,13 +25,9 @@ namespace hardware
                 frc::Rotation3d GetOffset()   override;                         // Get the offset of the gyro
                 void            ResetYaw()    override;                         // Reset the yaw of the gyro
 
-                void            SetOffset(frc::Rotation3d offset);              // Set the offset of the gyro
-                void            SimPeriodic(units::radians_per_second_t rate);  // updates in sim
+                void            SetOffset(frc::Rotation3d offset) override;     // Set the offset of the gyro
 
-            protected:
-
-                units::radian_t             m_simYaw{0.0};                      // Simulated yaw angle
-                units::radians_per_second_t m_simRate{0.0};                     // Simulated rate of change
+                void            Update(units::radians_per_second_t omegaRadiansPerSec, units::second_t dt) override {}
 
             private:
 

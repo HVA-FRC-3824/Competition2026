@@ -25,17 +25,12 @@ class RobotContainer
     public:
 
         // Method that returns a pointer to the singleton instance of the RobotContainer class
-        static RobotContainer *GetInstance();
-
-        photon::PhotonCamera &GetRightCamera() { return cameraRight; }
-        photon::PhotonCamera &GetLeftCamera()  { return cameraLeft;  }
-
-        void ProcessCameraResults(photon::PhotonCamera& camera, const std::string& cameraName);
+        static RobotContainer* GetInstance();
 
     private:
 
         // Static pointer to singleton instance
-        static RobotContainer              *m_robotContainer;
+        static RobotContainer*              m_robotContainer;
 
         // Private class constructor to configure the robot and SmartDashboard configuration
         RobotContainer();
@@ -52,7 +47,4 @@ class RobotContainer
 
         // Instantiate the robot subsystems
         Chassis                             m_chassis;
-
-        photon::PhotonCamera cameraRight{"CameraRight"};
-        photon::PhotonCamera cameraLeft{"CameraLeft"};
 };

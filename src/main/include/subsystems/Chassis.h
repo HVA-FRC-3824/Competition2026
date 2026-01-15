@@ -17,6 +17,8 @@
 
 #include "lib/Logging.h"
 #include "lib/hardware/gyro/Navx.h"
+#include "lib/hardware/gyro/SimGyro.h"
+#include "lib/hardware/gyro/GyroBase.h"
 #include "lib/hardware/vision/PhotonVision.h"
 #include "lib/subsystem/SwerveModule.h"
 
@@ -98,7 +100,7 @@ class Chassis : public frc2::SubsystemBase
             
         bool                                  m_isFieldRelative = true;
     
-        hardware::gyro::Navx                  m_gyro{};
+        hardware::gyro::GyroBase              m_gyro;
 
         PhotonVision m_vision
         {

@@ -77,8 +77,8 @@ namespace motor
 
                 // Write the configuration to the motor controller
                 auto status = m_motor.Configure(sparkMaxConfig, 
-                                               rev::spark::SparkMax::ResetMode::kResetSafeParameters, 
-                                               rev::spark::SparkMax::PersistMode::kPersistParameters);
+                                               rev::ResetMode::kResetSafeParameters, 
+                                               rev::PersistMode::kPersistParameters);
 
                 // Report configuration status
                 if (status != rev::REVLibError::kOk)

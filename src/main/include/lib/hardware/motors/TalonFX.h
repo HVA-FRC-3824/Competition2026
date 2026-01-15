@@ -37,7 +37,7 @@ namespace motor
                     ),
                     motorModel
                     )},
-                m_motor{CANid, "rio"}
+                m_motor{CANid}
             {
                 ConfigureMotor(config);
             }

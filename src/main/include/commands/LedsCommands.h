@@ -7,8 +7,6 @@
 
 #include "subsystems/Leds.h"
 
-
-frc2::CommandPtr SetLeds(Leds* leds)
-{
-    return frc2::InstantCommand{[&]() { leds->SetMode(LedMode::Rainbow); }, {leds}}.ToPtr();
-}
+#pragma region SetLeds
+frc2::CommandPtr SetLeds(Leds* leds);
+#pragma endregion
