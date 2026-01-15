@@ -7,6 +7,8 @@
 
 #include "subsystems/Leds.h"
 
-#pragma region SetLeds
-frc2::CommandPtr SetLeds(Leds* leds);
-#pragma endregion
+/// @brief Command to set robot status for status LEDs
+/// @param leds The LED subsystem
+/// @param robotStatus The status to set the leds to
+/// @return Command that sets the LEDs to the desired state
+frc2::CommandPtr SetRobotStatus(Leds* leds, RobotStatus robotStatus);

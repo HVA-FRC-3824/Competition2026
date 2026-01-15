@@ -64,12 +64,14 @@ void Leds::Periodic()
             m_scrollingRainbow.ApplyTo(m_ledBuffer);
             break;
         case RobotStatus::Climbing:
+            m_climbing.ApplyTo(m_ledBuffer);
             break;
         case RobotStatus::Driving:
+            m_driving.ApplyTo(m_ledBuffer);
             break;
         case RobotStatus::Shooting:
+            m_shooting.ApplyTo(m_ledBuffer);
             break;
-
     }
 
     // Set the LEDs
@@ -116,6 +118,16 @@ void Leds::SetMode(LedMode ledMode)
 
     // Set the LEDs
     m_led.SetData(m_ledBuffer);
+}
+#pragma endregion
+
+#pragma region SetStatus
+/// @brief  Set the status of the robot
+/// @param robotStatus Robotstatus enum
+void Leds::SetStatus(RobotStatus robotStatus)
+{
+    // Remember the robotstatus
+    m_robotStatus = robotStatus;
 }
 #pragma endregion
 

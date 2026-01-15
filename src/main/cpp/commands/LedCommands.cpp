@@ -1,9 +1,6 @@
 #include "commands/LedsCommands.h"
 
-
-#pragma region SetLeds
-frc2::CommandPtr SetLeds(Leds* leds)
+frc2::CommandPtr SetRobotStatus(Leds* leds, RobotStatus robotStatus)
 {
-    return frc2::InstantCommand{[&]() { leds->SetMode(LedMode::Rainbow); }, {leds}}.ToPtr();
+    return frc2::InstantCommand{[&]() { leds->SetStatus(robotStatus); }, {leds}}.ToPtr();
 }
-#pragma endregion
