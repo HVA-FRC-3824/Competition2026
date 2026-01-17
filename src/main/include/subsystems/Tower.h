@@ -17,7 +17,7 @@
 #include "Constants.h"
 #pragma endregion
 
-#pragma StateStructures
+#pragma region StateStructures
 struct TowerState
 {
     double flyWheelSpeed;

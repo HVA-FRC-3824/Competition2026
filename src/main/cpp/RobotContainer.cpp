@@ -73,8 +73,8 @@ std::function<frc::ChassisSpeeds()> RobotContainer::GetChassisSpeeds()
     {
         // Return the chassis speeds based on joystick inputs
         return frc::ChassisSpeeds{
-            -constants::swerve::maxSpeed           * frc::ApplyDeadband(-m_driveController.GetRawAxis(1), constants::controller::TranslationDeadZone),
-            -constants::swerve::maxSpeed           * frc::ApplyDeadband(-m_driveController.GetRawAxis(0), constants::controller::TranslationDeadZone),
+            -constants::swerve::maxSpeed           * frc::ApplyDeadband( m_driveController.GetRawAxis(1), constants::controller::TranslationDeadZone),
+            -constants::swerve::maxSpeed           * frc::ApplyDeadband( m_driveController.GetRawAxis(0), constants::controller::TranslationDeadZone),
              constants::swerve::maxAngularVelocity * frc::ApplyDeadband(-m_driveController.GetRawAxis(4), constants::controller::RotateDeadZone)
         };
     };

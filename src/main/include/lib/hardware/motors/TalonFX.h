@@ -49,7 +49,7 @@ namespace motor
                 
                 // Create the TalonFX configuration
                 ctre::phoenix6::configs::TalonFXConfiguration talonFXConfiguration{};
-                
+
                 // Configure Motor Output settings
                 ctre::phoenix6::configs::MotorOutputConfigs &motorOutputConfigs = talonFXConfiguration.MotorOutput;
                 motorOutputConfigs.NeutralMode = config.breakMode
@@ -104,6 +104,13 @@ namespace motor
                     std::cout << "TalonFX motor (CAN ID: " << m_motor.GetDeviceID() 
                               << ") configured successfully." << std::endl;
                 }
+
+                auto& talonFXSim = m_motor.GetSimState();
+                talonFXSim.Orientation = ctre::phoenix6::sim::ChassisReference::CounterClockwise_Positive;
+                talonFXSim.SetMotorType(ctre::phoenix6::sim::TalonFXSimState::MotorType::KrakenX60);
+
+                if (frc::RobotBase::IsSimulation())
+                    m_config.conversionFactor = 1;
             }
 
             inline void SetReferenceState(double motorInput, MotorInput inputType) override
@@ -114,44 +121,36 @@ namespace motor
                         // Set the motor duty cycle [-1, 1]
                         m_motor.Set(motorInput);
 
-                        // In simulation, apply the voltage to the motor model
-                        if (frc::RobotBase::IsSimulation())
-                        {
-                            m_motorSim.SetInputVoltage(motorInput * frc::RobotController::GetBatteryVoltage());
-                        }
+                        // Not sure if modeled by simulation
+                        break;
                 
                     case MotorInput::VELOCITY:
                     
                         // Set the motor velocity using closed-loop control
-                        m_motor.SetControl(ctre::phoenix6::controls::VelocityDutyCycle(units::turns_per_second_t{motorInput}));
+                        m_motor.SetControl(ctre::phoenix6::controls::VelocityDutyCycle(units::turns_per_second_t{motorInput * m_config.conversionFactor}));
 
-                        // In simulation, we can't directly set velocity - the physics sim will handle it
-                        // But we can estimate the voltage needed for this velocity and apply it
                         if (frc::RobotBase::IsSimulation())
                         {
-                            // Simple feedforward estimation: voltage ≈ kV * velocity
-                            // The actual closed-loop controller would adjust this, but for sim this is reasonable
-                            auto estimatedVoltage = motorInput * m_slot0Configs.kV.value();
-                            m_motorSim.SetInputVoltage(units::volt_t{estimatedVoltage});
+                            m_motorSim.SetAngularVelocity(units::radians_per_second_t{motorInput * 2 * std::numbers::pi});
                         }
+                        break;
                 
                     case MotorInput::VOLTAGE:
                         // Set the motor voltage directly
                         m_motor.SetVoltage(units::volt_t{motorInput});
 
-                        // In simulation, apply the voltage to the motor model
-                        if (frc::RobotBase::IsSimulation())
-                            m_motorSim.SetInputVoltage(units::volt_t{motorInput});
+                        // In simulation... hope it works?
                         break;
                     
                     case MotorInput::POSITION:
                         // Set the motor position using MotionMagic
-                        m_motor.SetControl(m_motionMagicVoltage.WithPosition(units::turn_t{motorInput}).WithSlot(0));
+                        m_motor.SetControl(m_motionMagicVoltage.WithPosition(units::turn_t{motorInput * m_config.conversionFactor}).WithSlot(0));
 
                         // In simulation, the position control will be handled by SimPeriodic
                         // We don't directly set position here to maintain realistic physics
                         if (frc::RobotBase::IsSimulation())
                             m_motorSim.SetAngle(units::radian_t{motorInput * 2 * std::numbers::pi});
+                        break;
                 }
             }
 
@@ -162,7 +161,7 @@ namespace motor
                     // Convert radians to turns
                     return m_motorSim.GetAngularPosition().value() / (2.0 * std::numbers::pi);
                 }
-                return m_motor.GetPosition().GetValue().value();
+                return m_motor.GetPosition().GetValue().value() / m_config.conversionFactor;
             }
 
             inline double GetVelocity() override
@@ -172,12 +171,12 @@ namespace motor
                     // Convert radians per second to turns per second
                     return m_motorSim.GetAngularVelocity().value() / (2.0 * std::numbers::pi);
                 }
-                return m_motor.GetVelocity().GetValue().value();
+                return m_motor.GetVelocity().GetValue().value() / m_config.conversionFactor;
             }
 
             inline void OffsetEncoder(double offset) override
             {
-                m_motor.SetPosition(units::turn_t{offset});
+                m_motor.SetPosition(units::turn_t{offset * m_config.conversionFactor});
                 
                 if (frc::RobotBase::IsSimulation())
                 {

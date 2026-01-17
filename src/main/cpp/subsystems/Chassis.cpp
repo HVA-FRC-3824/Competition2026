@@ -73,6 +73,7 @@ void Chassis::DriveRobotRelative(const frc::ChassisSpeeds& speeds)
     // Simulate the gyro in simulation
     if (frc::RobotBase::IsSimulation())
        m_gyro.Update(speeds.omega, 0.02_s);
+       Log("Sim Angular Velocity ", speeds.omega.value());
 }
 #pragma endregion
 
@@ -224,6 +225,7 @@ void Chassis::Periodic()
     Log("Actual Chassis Speeds ",  m_kinematics.ToChassisSpeeds(GetModuleStates()));
 
     Log("Robot Pose ", GetPose());
+    Log("Gyro ", (m_gyro.GetRotation().Angle().value() / (2 * std::numbers::pi)) * 360);
 
     Log("field relative ", m_isFieldRelative);
 }

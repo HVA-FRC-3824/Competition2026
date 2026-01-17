@@ -16,7 +16,9 @@ namespace gyro
     class SimGyro : public GyroBase
     {
         public:
-            SimGyro() {
+            SimGyro() 
+            {
+                
             }
 
             void ResetYaw() override
@@ -26,12 +28,12 @@ namespace gyro
 
             frc::Rotation3d GetRotation() override
             {
-                return frc::Rotation3d{m_yawRadians};
+                return frc::Rotation3d{frc::Rotation2d{m_yawRadians}};
             }
 
             frc::Rotation3d GetOffset() override
             {
-                return frc::Rotation3d{0_rad, 0_rad, m_yawRadians};
+                return frc::Rotation3d{m_yawRadians};
             }
 
             void SetOffset(frc::Rotation3d offset) override
@@ -40,7 +42,7 @@ namespace gyro
             } 
 
             // Integrate chassis angular velocity (rad/s) over dt seconds
-            void Update(units::radians_per_second_t omegaRadiansPerSec = 0_rad_per_s, units::second_t dt = 0_s) override
+            void Update(units::radians_per_second_t omegaRadiansPerSec, units::second_t dt) override
             {
                 m_angularVelocity = omegaRadiansPerSec;
                 m_yawRadians += omegaRadiansPerSec * dt;
