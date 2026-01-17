@@ -45,22 +45,26 @@ namespace constants
         // PID, feedforward, and other configurations for the motors
         constexpr hardware::motor::MotorConfiguration driveMotorConfig
         {
-            40_A,                                  // Current Limit
-            true,                                  // Brake Mode
-            6.75, // Conversion factor
-            0.1, 0.02, 0.0,                        // P, I , D
-            0.0, 0.0, 0.0                          // S, V, A
+            40_A, // Current Limit
+            true, // Brake Mode
+            6.75,         // Conversion factor
+            0.0, 0.0, 0.0,  // P, I , D
+            0.0, 0.0, 0.0,  // S, V, A
+            0.0, 0.0
         };
 
         // TODO: these need to be tuned
         constexpr hardware::motor::MotorConfiguration turnMotorConfig
         {
-            30_A,                          // Current Limit
-            true,                          // Brake Mode
-            150 / 7, // Conversion factor
-            1.0, 0.0, 0.2,                 // P, I , D 
-            0.0, 0.0, 0.0                  // S, V, A  
+            30_A, // Current Limit
+            true, // Brake Mode
+            150 / 7,       // Conversion factor
+            5, 0.5, 0.0,   // P, I , D 
+            0.0, 0.0, 0.0, // S, V, A
+            120, 1200,     // Speed and Acceleration Limits
         };
+
+        // NOTE absolute encoder is 0.5 to -0.5
 
         // All encoders are going to be slightly off, this corrects that
         constexpr units::turn_t frontRightForwardAngle{-0.193604};

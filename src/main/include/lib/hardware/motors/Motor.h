@@ -36,6 +36,8 @@ namespace hardware
             double S; // add your G term to this
             double V;
             double A;
+            double velocityLimit;
+            double accelerationLimit;
         };
 
         enum MotorInput

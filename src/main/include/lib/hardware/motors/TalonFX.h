@@ -75,9 +75,9 @@ namespace motor
 
                 // Configure MotionMagic parameters
                 ctre::phoenix6::configs::MotionMagicConfigs &motionMagicConfigs = talonFXConfiguration.MotionMagic;
-                motionMagicConfigs.MotionMagicCruiseVelocity = units::turns_per_second_t{config.S};
-                motionMagicConfigs.MotionMagicAcceleration = units::turns_per_second_squared_t{config.V};
-                motionMagicConfigs.MotionMagicJerk = units::turns_per_second_cubed_t{config.A};
+                motionMagicConfigs.MotionMagicCruiseVelocity = units::turns_per_second_t{config.velocityLimit};
+                motionMagicConfigs.MotionMagicAcceleration = units::turns_per_second_squared_t{config.accelerationLimit};
+                motionMagicConfigs.MotionMagicJerk = units::turns_per_second_cubed_t{0.0};
 
                 // Try to apply the configuration with retries
                 ctre::phoenix::StatusCode status = ctre::phoenix::StatusCode::StatusCodeNotInitialized;

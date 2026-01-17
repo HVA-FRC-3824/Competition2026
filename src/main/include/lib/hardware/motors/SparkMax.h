@@ -75,6 +75,10 @@ namespace motor
                 sparkMaxConfig.closedLoop
                     .SetFeedbackSensor(rev::spark::FeedbackSensor::kPrimaryEncoder)
                     .Pid(config.P, config.I, config.D);
+                    
+                sparkMaxConfig.closedLoop.maxMotion
+                        .MaxVelocity(config.velocityLimit)
+                        .MaxAcceleration(config.accelerationLimit);
 
                 // Write the configuration to the motor controller
                 auto status = m_motor.Configure(sparkMaxConfig, 
