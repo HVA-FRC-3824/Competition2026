@@ -18,6 +18,9 @@
 /// @return A CommandPtr that resets the gyro yaw to zero.
 frc2::CommandPtr ChassisZeroHeading(Chassis* chassis);
 
+/// @brief A command that toggles in and out of X mode
+frc2::CommandPtr ChassisXMode(Chassis* chassis);
+
  /// @brief Creates a command to drive the chassis using the provided speeds supplier.
 ///  @param chassis A pointer to the chassis subsystem.
 ///  @param chassisSpeedsSupplier A function that supplies the desired chassis speeds.

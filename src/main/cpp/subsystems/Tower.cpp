@@ -26,7 +26,7 @@ TowerState Tower::GetState()
 // This is arbitary since its 
 void Tower::SetFlywheel(double input)
 {
-    m_flywheelMotor.SetReferenceState(input);
+    m_flywheelMotor.SetReferenceState(input, hardware::motor::MotorInput::ARBITRARY);
 }
 
 // Input 0-1
@@ -41,6 +41,7 @@ void Tower::SetActuator(double position)
     // range: -1, 1
     position -= 1;
 
+    // Although this says SetSpeed, this actually does position
 	m_hoodActuator.SetSpeed(std::clamp(position, constants::tower::ActuatorLowerBound, constants::tower::ActuatorUpperBound));
 }
 

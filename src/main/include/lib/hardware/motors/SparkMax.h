@@ -48,7 +48,8 @@ namespace motor
                 m_feedforward{config.S * 1_V, config.V * 1_V * 1_s / 1_tr, config.A * 1_V * 1_s * 1_s / 1_tr},
 
                 m_motorModel{motorModel},
-                m_sparkSim{&m_motor, &m_motorModel}
+                m_sparkSim{&m_motor, &m_motorModel},
+                m_config{config}
             {
                 ConfigureMotor(config);
             }
@@ -93,86 +94,71 @@ namespace motor
                 }
             }
 
-            inline void SetReferenceState(double motorInput) override
-            {
-                // Set duty cycle output [-1, 1]
-                m_turnClosedLoopController.SetSetpoint(motorInput, 
-                                                        rev::spark::SparkMax::ControlType::kDutyCycle,
-                                                        rev::spark::ClosedLoopSlot::kSlot0, 
-                                                        m_feedforward.Calculate(0_tps).value(), // TODO: make this work with V and A
-                                                        rev::spark::SparkClosedLoopController::ArbFFUnits::kVoltage);
+            inline void SetReferenceState(double motorInput, MotorInput inputType) override
+            {   
+                switch (inputType)
+                {
+                    case MotorInput::ARBITRARY:
+                        // Set duty cycle output [-1, 1]
+                        m_turnClosedLoopController.SetSetpoint(motorInput, 
+                                                                rev::spark::SparkMax::ControlType::kDutyCycle,
+                                                                rev::spark::ClosedLoopSlot::kSlot0, 
+                                                                m_feedforward.Calculate(0_tps).value(), // TODO: make this work with V and A
+                                                                rev::spark::SparkClosedLoopController::ArbFFUnits::kVoltage);
+                        break;
+
+                    case MotorInput::VELOCITY:
+                        // Set velocity control with feedforward
+                        m_turnClosedLoopController.SetSetpoint(motorInput, 
+                                                                rev::spark::SparkMax::ControlType::kVelocity,
+                                                                rev::spark::ClosedLoopSlot::kSlot0, 
+                                                                m_feedforward.Calculate(0_tps).value(),
+                                                                rev::spark::SparkClosedLoopController::ArbFFUnits::kVoltage);
+                        break;
+
+                    case MotorInput::VOLTAGE:
+                        // Set voltage control with static friction compensation
+                        m_turnClosedLoopController.SetSetpoint(motorInput + m_feedforward.Calculate(0_tps).value(),
+                                                                rev::spark::SparkMax::ControlType::kVoltage);
+                        break;
+
+                    case MotorInput::POSITION:
+                        // Use standard position control
+                        m_turnClosedLoopController.SetSetpoint(motorInput, 
+                                                                rev::spark::SparkMax::ControlType::kPosition,
+                                                                rev::spark::ClosedLoopSlot::kSlot0, 
+                                                                m_feedforward.Calculate(0_tps).value(),
+                                                                rev::spark::SparkClosedLoopController::ArbFFUnits::kVoltage);
+                        break;
+                }
             }
 
-            inline void SetReferenceState(units::turns_per_second_t motorInput) override
-            {
-                // Set velocity control with feedforward
-                m_turnClosedLoopController.SetSetpoint(motorInput.value(), 
-                                                        rev::spark::SparkMax::ControlType::kVelocity,
-                                                        rev::spark::ClosedLoopSlot::kSlot0, 
-                                                        m_feedforward.Calculate(motorInput).value(),
-                                                        rev::spark::SparkClosedLoopController::ArbFFUnits::kVoltage);
-            }
-
-            inline void SetReferenceState(units::volt_t motorInput) override
-            {
-                // Set voltage control with static friction compensation
-                m_turnClosedLoopController.SetSetpoint(motorInput.value() + m_feedforward.Calculate(0_tps).value(),
-                                                        rev::spark::SparkMax::ControlType::kVoltage);
-            }
-
-            inline void SetReferenceState(units::turn_t motorInput) override
-            {
-                // Calculate velocity-based feedforward for position control
-                // Note: This uses current velocity as a simple approximation
-                // For better results, consider using a trajectory follower
-                auto currentVelocity = GetVelocity();
-                
-                // Add support later
-                // // Use Smart Motion for smoother position control
-                // m_turnClosedLoopController.SetReference(motorInput.value(), 
-                //                                         rev::spark::SparkMax::ControlType::kSmartMotion,
-                //                                         rev::spark::ClosedLoopSlot::kSlot0, 
-                //                                         m_feedforward.Calculate(currentVelocity).value(),
-                //                                         rev::spark::SparkClosedLoopController::ArbFFUnits::kVoltage);
-                
-                // Use standard position control
-                m_turnClosedLoopController.SetSetpoint(motorInput.value(), 
-                                                        rev::spark::SparkMax::ControlType::kPosition,
-                                                        rev::spark::ClosedLoopSlot::kSlot0, 
-                                                        m_feedforward.Calculate(currentVelocity).value(),
-                                                        rev::spark::SparkClosedLoopController::ArbFFUnits::kVoltage);
-            }
-
-            inline units::turn_t GetPosition() override
+            inline double GetPosition() override
             {
                 if (frc::RobotBase::IsSimulation())
-                {
-                    // Convert radians to turns
-                    return units::turn_t{m_motorSim.GetAngularPosition().value()};
-                }
-                return units::turn_t{m_angleEncoder.GetPosition()};
+                    return m_motorSim.GetAngularPosition().value() / (2 * std::numbers::pi);
+                
+                return m_angleEncoder.GetPosition();
             }
 
-            inline units::turns_per_second_t GetVelocity() override
+            inline double GetVelocity() override
             {
                 if (frc::RobotBase::IsSimulation())
-                {
-                    // Convert radians per second to turns per second
-                    return units::turns_per_second_t{m_motorSim.GetAngularVelocity().value()};
-                }
+                    return m_motorSim.GetAngularVelocity().value() / (2 * std::numbers::pi);
+
                 // REV encoder returns velocity in RPM by default, convert to turns per second
-                return units::turns_per_second_t{m_angleEncoder.GetVelocity() / 60.0};
+                return m_angleEncoder.GetVelocity() / 60.0;
             }
 
-            inline void OffsetEncoder(units::turn_t offset) override
+            inline void OffsetEncoder(double offset) override
             {
-                m_angleEncoder.SetPosition(offset.value());
-                
                 if (frc::RobotBase::IsSimulation())
                 {
-                    // Convert turns to radians for the simulation
-                    m_motorSim.SetState(units::radian_t{offset.value()}, 
-                                       m_motorSim.GetAngularVelocity());
+                    m_motorSim.SetAngle(units::radian_t{offset * 2 * std::numbers::pi});
+                } else
+                {
+                    offset *= m_config.conversionFactor;
+                    m_angleEncoder.SetPosition(offset);
                 }
             }
 
@@ -230,6 +216,8 @@ namespace motor
 
             frc::DCMotor                              m_motorModel;
             rev::spark::SparkMaxSim                   m_sparkSim;
+
+            MotorConfiguration                        m_config;
 
     };
 

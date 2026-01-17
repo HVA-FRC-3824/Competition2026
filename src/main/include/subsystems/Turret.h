@@ -33,7 +33,7 @@ class Turret : public frc2::SubsystemBase
 {
     public:
 
-        Turret();
+        explicit Turret();
 
         void        SetState(TurretState newState);
 

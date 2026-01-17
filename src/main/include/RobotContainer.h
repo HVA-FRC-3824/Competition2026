@@ -13,8 +13,17 @@
 #include <photon/PhotonCamera.h>
 
 #include "subsystems/Chassis.h"
+#include "subsystems/Indexer.h"
+#include "subsystems/Leds.h"
+#include "subsystems/Tower.h"
+#include "subsystems/Turret.h"
 
 #include "commands/ChassisCommands.h"
+#include "commands/IndexerCommands.h"
+#include "commands/LedsCommands.h"
+#include "commands/IntakeCommands.h"
+#include "commands/TowerCommands.h"
+#include "commands/TurretCommands.h"
 
 #include "Constants.h"
 #pragma endregion
@@ -25,12 +34,12 @@ class RobotContainer
     public:
 
         // Method that returns a pointer to the singleton instance of the RobotContainer class
-        static RobotContainer* GetInstance();
+        static RobotContainer *GetInstance();
 
     private:
 
         // Static pointer to singleton instance
-        static RobotContainer*              m_robotContainer;
+        static RobotContainer              *m_robotContainer;
 
         // Private class constructor to configure the robot and SmartDashboard configuration
         RobotContainer();
@@ -41,10 +50,14 @@ class RobotContainer
 
         frc::XboxController                 m_driveController{constants::controller::DrivePort};
 
-        frc::SlewRateLimiter<units::scalar> m_flywheelLimiter{1.0 / 0.1_s};  // Full throttle change in 0.5 seconds
-
-        bool                                m_isManualFlywheelControl = false;
-
         // Instantiate the robot subsystems
-        Chassis                             m_chassis;
+        Chassis                             m_chassis{};
+        Indexer                             m_indexer{};
+        Leds                                m_leds{};
+        Tower                               m_tower{};
+        Turret                              m_turret{};
+
+        // Instantiate subsystem states
+        TowerState                          m_manualTowerState {0.0, 0.0};
+        TurretState                         m_manualTurretState{TurretMode::MANUAL, 0_deg};
 };

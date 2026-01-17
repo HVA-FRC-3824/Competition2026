@@ -3,7 +3,14 @@
 #pragma region Includes
 #include <wpi/array.h>
 
+#include <frc/DriverStation.h>
 #include <frc2/command/SubsystemBase.h>
+
+#include <pathplanner/lib/auto/AutoBuilder.h>
+#include <pathplanner/lib/config/RobotConfig.h>
+#include <pathplanner/lib/controllers/PPHolonomicDriveController.h>
+
+#include <frc/geometry/Pose2d.h>
 
 #include <frc/geometry/Rotation2d.h>
 #include <frc/geometry/Translation2d.h>
@@ -32,6 +39,9 @@ class Chassis : public frc2::SubsystemBase
         explicit                                 Chassis();
 
         void                                     Drive(const frc::ChassisSpeeds& speeds);
+        void                                     DriveRobotRelative(const frc::ChassisSpeeds& speeds);
+
+        void                                     SetModuleStates(wpi::array<frc::SwerveModuleState, 4> states);
 
         void                                     ZeroHeading();
     
@@ -42,6 +52,8 @@ class Chassis : public frc2::SubsystemBase
         wpi::array<frc::SwerveModulePosition, 4> GetModulePositions();
     
         void                                     FlipFieldCentric();
+        bool                                     GetXMode();
+        void                                     SetXMode(bool isXMode);
 
         frc::Rotation2d                          GetHeading();
         frc::Pose2d                              GetPose();
@@ -99,6 +111,8 @@ class Chassis : public frc2::SubsystemBase
         };
             
         bool                                  m_isFieldRelative = true;
+
+        bool                                  m_isXMode = false;
     
         hardware::gyro::GyroBase              m_gyro;
 

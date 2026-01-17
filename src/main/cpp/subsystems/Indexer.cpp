@@ -15,6 +15,6 @@ Indexer::Indexer() :
 void Indexer::SetMotors(double input)
 {
     for (auto& motor : m_motors) {
-        motor.SetReferenceState(input);
+        motor.SetReferenceState(input, hardware::motor::MotorInput::ARBITRARY);
     }
 }

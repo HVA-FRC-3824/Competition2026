@@ -15,7 +15,7 @@ class Indexer : public frc2::SubsystemBase
 {
     public:
         
-        Indexer();
+        explicit Indexer();
 
         // Sets the indexing motors
         void SetMotors(double input);

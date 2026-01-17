@@ -1,5 +1,10 @@
 #include "subsystems/Turret.h"
 
+Turret::Turret()
+{
+    
+}
+
 void Turret::SetState(TurretState newState)
 {
     // TODO: Either change the way calculations are done for aiming
@@ -45,9 +50,8 @@ void Turret::SetTurret(units::degree_t angle)
 {
     // Do not allow turret to move past 360 degrees either way
     angle = (units::degree_t) fmod(angle.value(), 360.0);
-    if (angle.value() < 0) {
+    while (angle.value() < 0) 
         angle += 360.0_deg;
-    }
 
-    m_turretMotor.SetReferenceState(units::turn_t{angle});
+    m_turretMotor.SetReferenceState(angle.value() / 360, hardware::motor::MotorInput::POSITION);
 }

@@ -37,6 +37,15 @@ namespace hardware
             double V;
             double A;
         };
+
+        enum MotorInput
+        {
+            ARBITRARY,
+            VOLTAGE,
+            VELOCITY,
+            POSITION,
+
+        };
     
         // This class is used to abstract the motor controller interface
         // EVERYTHING is in motor-side turns. Conversions happen in implementation, until we implement gear ratios.
@@ -52,15 +61,12 @@ namespace hardware
                 // OVERRIDE THESE IN YOUR IMPLEMENTATION
     
                 // Call this in your implementation periodic loop when its in simulation
-                virtual void                      SimPeriodic()                                           = 0;
-                virtual void                      ConfigureMotor(MotorConfiguration config)               = 0;
-                virtual void                      SetReferenceState(double motorInput)                    = 0;
-                virtual void                      SetReferenceState(units::volt_t motorInput)             = 0;
-                virtual void                      SetReferenceState(units::turns_per_second_t motorInput) = 0;
-                virtual void                      SetReferenceState(units::turn_t motorInput)             = 0;
-                virtual units::turn_t             GetPosition()                                           = 0;
-                virtual units::turns_per_second_t GetVelocity()                                           = 0;
-                virtual void                      OffsetEncoder(units::turn_t offset)                     = 0;
+                virtual void                      SimPeriodic()                                              = 0;
+                virtual void                      ConfigureMotor(MotorConfiguration config)                  = 0;
+                virtual void                      SetReferenceState(double motorInput, MotorInput inputType) = 0;
+                virtual double                    GetPosition()                                              = 0;
+                virtual double                    GetVelocity()                                              = 0;
+                virtual void                      OffsetEncoder(double offset)                               = 0;
     
             protected:
     

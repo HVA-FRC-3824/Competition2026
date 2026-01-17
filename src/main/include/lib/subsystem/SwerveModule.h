@@ -29,8 +29,9 @@
 #include "lib/hardware/encoders/CANCoder.h"
 #include "lib/hardware/motors/TalonFX.h"
 #include "lib/hardware/motors/SparkMax.h"
-
 #include "lib/hardware/motors/Motor.h"
+
+#include "Constants.h"
 #pragma endregion
 
 namespace subsystem
@@ -52,11 +53,11 @@ namespace subsystem
             void                       SetWheelAngleToForward(units::angle::radian_t desiredAngle);
 
         private:
-
+        
             units::angle::radian_t     GetAbsoluteEncoderAngle();
 
             hardware::motor::TalonFX    m_driveMotor;
-            hardware::motor::SparkMax   m_angleMotor;
+            hardware::motor::TalonFX   m_angleMotor;
             hardware::encoder::CANCoder m_angleAbsoluteEncoder;
     };
 }

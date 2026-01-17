@@ -27,11 +27,17 @@ RobotContainer::RobotContainer()
     // // Configure the chassis default command
     m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetChassisSpeeds()));
 
+    // ******************* //
+    // * DRIVER CONTROLS * //
+    // ******************* //
+
     // Array of run-once controls, organized like this for simplicity and readability
     std::pair<Button, frc2::CommandPtr> runOnceControls[] =
     {
         {constants::controller::A,           ChassisZeroHeading(&m_chassis)},
         {constants::controller::B,           FlipFieldCentricity(&m_chassis)},
+        {constants::controller::X,           ChassisXMode(&m_chassis)}, // Toggle
+        {constants::controller::LeftBumper,  frc2::WaitCommand{1_s}.ToPtr()}, // When pressed, shoot one ball
     };
 
     // Configure the run-once controls
@@ -39,6 +45,16 @@ RobotContainer::RobotContainer()
     {
         frc2::JoystickButton(&m_driveController, int(button)).OnTrue(std::move(command));
     }
+
+    // ********************* //
+    // * OPERATOR CONTROLS * //
+    // ********************* //
+
+
+
+    // ********** //
+    // * CAMERA * //
+    // ********** //
 
     cs::UsbCamera camera = frc::CameraServer::StartAutomaticCapture();
 

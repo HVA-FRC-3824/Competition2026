@@ -6,8 +6,37 @@ Chassis::Chassis() :
         (hardware::gyro::GyroBase) hardware::gyro::SimGyro() : 
         (hardware::gyro::GyroBase) hardware::gyro::Navx()}
 {
-    // Set the swerve modules to their forward angles
-    ResetWheelAnglesToZero();
+    // TODO: do the gui settings
+    pathplanner::RobotConfig config = pathplanner::RobotConfig::fromGUISettings();
+
+    // Configure the AutoBuilder
+    pathplanner::AutoBuilder::configure(
+        [this](){ return GetPose(); }, // Robot pose supplier
+        [this](frc::Pose2d pose){ m_poseEstimator.ResetPose(pose); }, // Method to reset odometry (will be called if your auto has a starting pose)
+        [this](){ return m_desiredSpeeds; }, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+        [this](auto speeds, auto feedforwards){ DriveRobotRelative(speeds); }, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+        std::make_shared<pathplanner::PPHolonomicDriveController>( // PPHolonomicController is the built in path following controller for holonomic drive trains
+            // TODO: magic numbers, test these
+            pathplanner::PIDConstants(1.0, 0.0, 0.0), // Translation PID constants
+            pathplanner::PIDConstants(1.0, 0.0, 0.0) // Rotation PID constants
+        ),
+        config, // The robot configuration
+        []() {
+            // Boolean supplier that controls when the path will be mirrored for the red alliance
+            // This will flip the path being followed to the red side of the field.
+            // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+            // THIS MEANS TO DESIGN ALL AUTOS AS BEING ON THE BLUE SIDE!!!!
+
+            auto alliance = frc::DriverStation::GetAlliance();
+            if (alliance) {
+                return alliance.value() == frc::DriverStation::Alliance::kRed;
+            }
+            return false;
+        },
+        this // Reference to this subsystem to set requirements
+    );
+
 }
 #pragma endregion
 
@@ -16,26 +45,44 @@ Chassis::Chassis() :
 /// @param speeds The desired chassis speeds.
 void Chassis::Drive(const frc::ChassisSpeeds& speeds)
 {
-    // This isn't needed
-    frc::SmartDashboard::PutNumber("Drive X",     speeds.vx.value());
-    frc::SmartDashboard::PutNumber("Drive Y",     speeds.vy.value());
-    frc::SmartDashboard::PutNumber("Drive Omega", speeds.omega.value()); 
+    DriveRobotRelative(m_isFieldRelative ? frc::ChassisSpeeds::FromFieldRelativeSpeeds(speeds, GetHeading()) : speeds);
+}
+#pragma endregion
 
-    // Log the desired speeds
+#pragma region Drive
+/// @brief Method to drive the chassis with the specified speeds.
+/// @param speeds The desired chassis speeds.
+void Chassis::DriveRobotRelative(const frc::ChassisSpeeds& speeds)
+{
+    // If we're in x mode, we want to stay in x mode, 
+    // unless we're not in x mode, then we don't want to be in x mode
+    if (m_isXMode)
+    {
+        return;
+    }
+
+    // Save the desired speeds for logging later
     m_desiredSpeeds = speeds;
 
-    // Set the module states
+    // Save the desired states for use and logging later
     m_desiredStates = m_kinematics.ToSwerveModuleStates(m_isFieldRelative ? frc::ChassisSpeeds::FromFieldRelativeSpeeds(speeds, GetHeading()) : speeds);
 
     // Set the desired state for each swerve module
-    m_swerveModules[0].SetDesiredState(m_desiredStates[0]);
-    m_swerveModules[1].SetDesiredState(m_desiredStates[1]);
-    m_swerveModules[2].SetDesiredState(m_desiredStates[2]);
-    m_swerveModules[3].SetDesiredState(m_desiredStates[3]);
+    SetModuleStates(m_desiredStates);
 
     // Simulate the gyro in simulation
     if (frc::RobotBase::IsSimulation())
        m_gyro.Update(speeds.omega, 0.02_s);
+}
+#pragma endregion
+
+#pragma region SetModuleStates
+void Chassis::SetModuleStates(wpi::array<frc::SwerveModuleState, 4> states)
+{
+    m_swerveModules[0].SetDesiredState(states[0]);
+    m_swerveModules[1].SetDesiredState(states[1]);
+    m_swerveModules[2].SetDesiredState(states[2]);
+    m_swerveModules[3].SetDesiredState(states[3]);
 }
 #pragma endregion
 
@@ -113,6 +160,20 @@ void Chassis::FlipFieldCentric()
 }
 #pragma endregion
 
+#pragma region GetXMode
+bool Chassis::GetXMode()
+{
+    return m_isXMode;
+}
+#pragma endregion
+
+#pragma region SetXMode
+void Chassis::SetXMode(bool isXMode)
+{
+    m_isXMode = isXMode;
+}
+#pragma endregion
+
 #pragma region GetHeading
 /// @brief Method to get the robot heading.
 /// @return The robot heading.
@@ -164,6 +225,6 @@ void Chassis::Periodic()
 
     Log("Robot Pose ", GetPose());
 
-    Log("Nearest Tag Pose ", GetNearestTag());
+    Log("field relative ", m_isFieldRelative);
 }
 #pragma endregion

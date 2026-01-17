@@ -64,7 +64,7 @@ void Leds::Periodic()
             m_scrollingRainbow.ApplyTo(m_ledBuffer);
             break;
         case RobotStatus::Climbing:
-            m_climbing.ApplyTo(m_ledBuffer);
+            SetMode(LedMode::SolidRed);
             break;
         case RobotStatus::Driving:
             m_driving.ApplyTo(m_ledBuffer);

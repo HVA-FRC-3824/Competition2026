@@ -42,7 +42,7 @@ class Tower : public frc2::SubsystemBase
 {
     public:
         
-        Tower();
+        explicit Tower();
 
         void        SetState(TowerState newState);
 
