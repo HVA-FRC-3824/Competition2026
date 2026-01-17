@@ -26,6 +26,7 @@ RobotContainer::RobotContainer()
 {
     // // Configure the chassis default command
     m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetChassisSpeeds()));
+    SetRobotStatus(&m_leds, [&]() { return m_robotStatus;});
 
     // ******************* //
     // * DRIVER CONTROLS * //
@@ -36,6 +37,7 @@ RobotContainer::RobotContainer()
     {
         {constants::controller::A,           ChassisZeroHeading(&m_chassis)},
         {constants::controller::B,           FlipFieldCentricity(&m_chassis)},
+        {constants::controller::Y,           frc2::InstantCommand{ [&]() {m_robotStatus = RobotStatus::Shooting;}, {&m_leds} }.ToPtr()},
         {constants::controller::X,           ChassisXMode(&m_chassis)}, // Toggle
         {constants::controller::LeftBumper,  frc2::WaitCommand{1_s}.ToPtr()}, // When pressed, shoot one ball
     };

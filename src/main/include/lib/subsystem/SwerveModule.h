@@ -31,6 +31,8 @@
 #include "lib/hardware/motors/SparkMax.h"
 #include "lib/hardware/motors/Motor.h"
 
+#include "lib/Logging.h"
+
 #include "Constants.h"
 #pragma endregion
 

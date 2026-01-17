@@ -11,4 +11,4 @@
 /// @param leds The LED subsystem
 /// @param robotStatus The status to set the leds to
 /// @return Command that sets the LEDs to the desired state
-frc2::CommandPtr SetRobotStatus(Leds* leds, RobotStatus robotStatus);
+frc2::CommandPtr SetRobotStatus(Leds* leds, std::function<RobotStatus()> robotStatus);

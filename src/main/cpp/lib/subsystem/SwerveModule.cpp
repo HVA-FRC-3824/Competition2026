@@ -45,6 +45,8 @@ void SwerveModule::SetDesiredState(frc::SwerveModuleState& desiredState)
     // Set the motor reference states
     m_driveMotor.SetReferenceState(desiredState.speed.value() /*/ frc::RobotBase::IsSimulation() ? 1.0 : constants::swerve::wheelCircumference.value()*/, hardware::motor::MotorInput::VELOCITY);
     m_angleMotor.SetReferenceState(desiredState.angle.Radians().value() /* / (std::numbers::pi / 2) */, hardware::motor::MotorInput::POSITION);
+
+    Log("Absolute Encoder ", m_angleAbsoluteEncoder.GetTurns().value());
 }
 #pragma endregion
 

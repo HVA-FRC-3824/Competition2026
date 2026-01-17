@@ -60,4 +60,6 @@ class RobotContainer
         // Instantiate subsystem states
         TowerState                          m_manualTowerState {0.0, 0.0};
         TurretState                         m_manualTurretState{TurretMode::MANUAL, 0_deg};
+
+        RobotStatus                         m_robotStatus = RobotStatus::Idle;
 };
