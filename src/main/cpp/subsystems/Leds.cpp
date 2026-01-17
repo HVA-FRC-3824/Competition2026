@@ -60,8 +60,8 @@ void Leds::Periodic()
     // Switch based on robot status
     switch (m_robotStatus)
     {
+        // TODO: Create & assign functions to each status
         case RobotStatus::Idle:
-            m_scrollingRainbow.ApplyTo(m_ledBuffer);
             break;
         case RobotStatus::Climbing:
             SetMode(LedMode::SolidRed);
