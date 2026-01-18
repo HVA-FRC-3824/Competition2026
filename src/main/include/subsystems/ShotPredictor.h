@@ -2,8 +2,6 @@
 
 #include <frc/geometry/Translation2d.h>
 
-#include "lib/math/QuarticSolver.h"
-
 struct Result 
 {
     double ShotSpeed;
@@ -45,7 +43,7 @@ class ShotPredictor
 
             double guess = (verticalVelocity + std::sqrt(std::pow(verticalVelocity, 2) - 2 * gravity * targetDistance.value() * tansq.value())) / (-gravity) + 2;
 
-            auto quarticResult = SolveP5(
+            auto quarticResult = SolveNewtonRaphson(
                 guess,
                 0.25 * std::pow(gravity, 2),
                 verticalVelocity * gravity,
@@ -122,5 +120,21 @@ class ShotPredictor
             }
 
             return cache[finalAngle];
+        }
+
+        // https://www.geeksforgeeks.org/dsa/program-for-newton-raphson-method/
+        static std::optional<double> SolveNewtonRaphson(double x, double a, double b, double c, double d, double e)
+        {
+            double h = (a * std::pow(x,4) + b * std::pow(x,3) + c * std::pow(x,2) + d * x + e) / 
+                    (a * 4 * std::pow(x,3) + b * 3 * std::pow(x,2) + c * 2 * x + d);
+                    
+            for (int i = 0; i < NewtonRepetitions; i++)
+            {
+                h = (a * std::pow(x,4) + b * std::pow(x,3) + c * std::pow(x,2) + d * x + e) / 
+                    (a * 4 * std::pow(x,3) + b * 3 * std::pow(x,2) + c * 2 * x + d);
+        
+                // x(i+1) = x(i) - f(x) / f'(x)  
+                x = x - h;
+            }
         }
 };
