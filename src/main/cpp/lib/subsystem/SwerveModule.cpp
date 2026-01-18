@@ -43,8 +43,8 @@ void SwerveModule::SetDesiredState(frc::SwerveModuleState& desiredState)
     }
 
     // Set the motor reference states
-    m_driveMotor.SetReferenceState(desiredState.speed.value() /*/ frc::RobotBase::IsSimulation() ? 1.0 : constants::swerve::wheelCircumference.value()*/, hardware::motor::MotorInput::VELOCITY);
-    m_angleMotor.SetReferenceState(desiredState.angle.Radians().value() /* / (std::numbers::pi / 2) */, hardware::motor::MotorInput::POSITION);
+    m_driveMotor.SetReferenceState(desiredState.speed.value() / constants::swerve::wheelCircumference.value(), hardware::motor::MotorInput::VELOCITY);
+    m_angleMotor.SetReferenceState(desiredState.angle.Radians().value() / (2 * std::numbers::pi), hardware::motor::MotorInput::POSITION);
 
     Log("Absolute Encoder ", m_angleAbsoluteEncoder.GetTurns().value() * 360);
 }
@@ -55,9 +55,15 @@ void SwerveModule::SetDesiredState(frc::SwerveModuleState& desiredState)
 /// @return The swerve module speed and angle state.
 frc::SwerveModuleState SwerveModule::GetState()
 {   
+    if (frc::RobotBase::IsSimulation())
+        return {
+            1_mps * m_driveMotor.GetVelocity().value(),
+            1_rad * m_angleMotor.GetPosition().value()
+        };
+
     // Determine the module wheel velocity 
-    units::meters_per_second_t driveVelocity = units::meters_per_second_t{m_driveMotor.GetVelocity() /* * frc::RobotBase::IsSimulation() ? 1.0 : constants::swerve::wheelCircumference.value() */};
-    units::radian_t            anglePosition = units::radian_t{m_angleMotor.GetPosition() /* * 2 * std::numbers::pi */};
+    units::meters_per_second_t driveVelocity{m_driveMotor.GetVelocity().value() * constants::swerve::wheelCircumference.value()};
+    units::radian_t            anglePosition{m_angleMotor.GetPosition().value() * 2 * std::numbers::pi};
         
     // Return the swerve module state
     return {driveVelocity, anglePosition};
@@ -68,12 +74,15 @@ frc::SwerveModuleState SwerveModule::GetState()
 /// @brief Method to retrieve the swerve module position.
 frc::SwerveModulePosition SwerveModule::GetPosition()
 {
-    units::meter_t  drivePosition{0};
-    units::radian_t anglePosition{0};
+    if (frc::RobotBase::IsSimulation())
+        return {
+            1_m   * m_driveMotor.GetVelocity().value(),
+            1_rad * m_angleMotor.GetPosition().value()
+        };
     
     // Determine the module wheel position
-    drivePosition = units::meter_t {m_driveMotor.GetPosition() /* * frc::RobotBase::IsSimulation() ? 1.0 : constants::swerve::wheelCircumference.value() */};
-    anglePosition = units::radian_t{m_angleMotor.GetPosition() /* * 2 * std::numbers::pi */};
+    units::meter_t  drivePosition{m_driveMotor.GetPosition().value() * constants::swerve::wheelCircumference.value()};
+    units::radian_t anglePosition{m_angleMotor.GetPosition().value() * 2 * std::numbers::pi};
 
     // Return the swerve module position
     return {drivePosition, anglePosition};

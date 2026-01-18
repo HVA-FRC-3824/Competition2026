@@ -4,7 +4,6 @@
 #include <functional>
 
 #include <frc2/command/SubsystemBase.h>
-#include <unistd.h>
 
 #include "Constants.h"
 #pragma endregion

@@ -66,8 +66,8 @@ namespace hardware
                 virtual void                      SimPeriodic()                                              = 0;
                 virtual void                      ConfigureMotor(MotorConfiguration config)                  = 0;
                 virtual void                      SetReferenceState(double motorInput, MotorInput inputType) = 0;
-                virtual double                    GetPosition()                                              = 0;
-                virtual double                    GetVelocity()                                              = 0;
+                virtual units::turn_t             GetPosition()                                              = 0;
+                virtual units::turns_per_second_t GetVelocity()                                              = 0;
                 virtual void                      OffsetEncoder(double offset)                               = 0;
     
             protected:

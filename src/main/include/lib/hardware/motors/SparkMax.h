@@ -137,21 +137,21 @@ namespace motor
                 }
             }
 
-            inline double GetPosition() override
+            inline units::turn_t GetPosition() override
             {
                 if (frc::RobotBase::IsSimulation())
-                    return m_motorSim.GetAngularPosition().value() / (2 * std::numbers::pi);
+                    return 1_tr * m_motorSim.GetAngularPosition().value() / (2 * std::numbers::pi);
                 
-                return m_angleEncoder.GetPosition();
+                return 1_tr * m_angleEncoder.GetPosition();
             }
 
-            inline double GetVelocity() override
+            inline units::turns_per_second_t GetVelocity() override
             {
                 if (frc::RobotBase::IsSimulation())
-                    return m_motorSim.GetAngularVelocity().value() / (2 * std::numbers::pi);
+                    return 1_tps * m_motorSim.GetAngularVelocity().value() / (2 * std::numbers::pi);
 
                 // REV encoder returns velocity in RPM by default, convert to turns per second
-                return m_angleEncoder.GetVelocity() / 60.0;
+                return 1_tps * m_angleEncoder.GetVelocity() / 60.0;
             }
 
             inline void OffsetEncoder(double offset) override

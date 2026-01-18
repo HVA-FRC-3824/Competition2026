@@ -154,24 +154,24 @@ namespace motor
                 }
             }
 
-            inline double GetPosition() override
+            inline units::turn_t GetPosition() override
             {
                 if (frc::RobotBase::IsSimulation())
                 {
                     // Convert radians to turns
-                    return m_motorSim.GetAngularPosition().value() / (2.0 * std::numbers::pi);
+                    return 1_tr * m_motorSim.GetAngularPosition().value() / (2.0 * std::numbers::pi);
                 }
-                return m_motor.GetPosition().GetValue().value() / m_config.conversionFactor;
+                return 1_tr * m_motor.GetPosition().GetValue().value() / m_config.conversionFactor;
             }
 
-            inline double GetVelocity() override
+            inline units::turns_per_second_t GetVelocity() override
             {
                 if (frc::RobotBase::IsSimulation())
                 {
                     // Convert radians per second to turns per second
-                    return m_motorSim.GetAngularVelocity().value() / (2.0 * std::numbers::pi);
+                    return 1_tps * m_motorSim.GetAngularVelocity().value() / (2.0 * std::numbers::pi);
                 }
-                return m_motor.GetVelocity().GetValue().value() / m_config.conversionFactor;
+                return 1_tps * m_motor.GetVelocity().GetValue().value() / m_config.conversionFactor;
             }
 
             inline void OffsetEncoder(double offset) override
