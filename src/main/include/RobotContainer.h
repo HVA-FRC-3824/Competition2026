@@ -17,6 +17,8 @@
 #include "subsystems/Leds.h"
 #include "subsystems/Tower.h"
 #include "subsystems/Turret.h"
+#include "subsystems/Climb.h"
+#include "subsystems/Intake.h"
 
 #include "commands/ChassisCommands.h"
 #include "commands/IndexerCommands.h"
@@ -24,6 +26,8 @@
 #include "commands/IntakeCommands.h"
 #include "commands/TowerCommands.h"
 #include "commands/TurretCommands.h"
+#include "commands/IntakeCommands.h"
+#include "commands/ClimbCommands.h"
 
 #include "Constants.h"
 #pragma endregion
@@ -56,6 +60,8 @@ class RobotContainer
         Leds                                m_leds{};
         Tower                               m_tower{};
         Turret                              m_turret{};
+        Climb                               m_climb{};
+        Intake                              m_intake{};
 
         // Instantiate subsystem states
         TowerState                          m_manualTowerState {0.0, 0.0};

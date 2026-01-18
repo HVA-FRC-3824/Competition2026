@@ -149,6 +149,35 @@ namespace constants
     }
     #pragma endregion
 
+    #pragma region Intake
+    namespace intake
+    {
+        // TODO: These need to be tuned
+        // Config for motor that will angle the intake between 0 and 90 degrees
+        constexpr CANid_t intakeTurnMotorId = 0;// TODO: Update to the real motor
+        constexpr hardware::motor::MotorConfiguration intakeTurnMotorConfig
+        {
+            30_A,           // Current Limit
+            false,          // Brake Mode
+            10,             // Conversion factor
+            1.0, 0.01, 0.0, // P, I , D 
+            0.0, 0.0, 0.0   // S, V, A  
+        };
+        
+        // TODO: These need to be tuned
+        // Config for motor that will drive the intake
+        constexpr CANid_t intakeDriveMotorId = 0; // TODO: Update to real motor
+        constexpr hardware::motor::MotorConfiguration intakeDriveMotorConfig
+        {
+            30_A,           // Current Limit
+            false,          // Brake Mode
+            10,             // Conversion factor
+            1.0, 0.01, 0.0, // P, I , D 
+            0.0, 0.0, 0.0   // S, V, A  
+        };
+    }
+    #pragma endregion
+
     #pragma region Controller
     namespace controller
     {
