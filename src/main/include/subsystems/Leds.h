@@ -7,6 +7,7 @@
 #include <frc/LEDPattern.h>
 
 #include "Constants.h"
+
 #pragma region LedConstants
 namespace LedConstants
 {
@@ -45,7 +46,6 @@ enum RobotStatus
     Driving
 };
 
-
 class Leds : public frc2::SubsystemBase
 {
     public:
@@ -66,7 +66,7 @@ class Leds : public frc2::SubsystemBase
         void ShootingAnimation();
 
         LedMode             m_ledMode;            // The LED mode
-        RobotStatus m_robotStatus;
+        RobotStatus         m_robotStatus;        // The robot status for LED indication
 
         int                 m_firstPixelHue = 0;  // Store the hue of the first pixel for rainbow mode
         int                 m_cycleCounter  = 0;  // Counter for dynamic LED modes
@@ -79,15 +79,15 @@ class Leds : public frc2::SubsystemBase
         // For a half-meter length of a 120 LED-per-meter strip, this is equivalent to scrolling at 12.5 centimeters per second.
         frc::LEDPattern     m_shooting = frc::LEDPattern::Gradient(frc::LEDPattern::kContinuous, std::array<frc::Color, 2>{frc::Color::kRed, frc::Color::kBlue}).
                                                           ScrollAtAbsoluteSpeed(0.5_mps, units::meter_t{1 / 120.0});
+
         // Create an LED pattern that blinks a red color every 0.5 seconds
         frc::LEDPattern     m_climbing = frc::LEDPattern::Solid(frc::Color::kRed).Blink(0.5_s);
+
         // Create an LED pattern that displays a brown-yellow gradient that scrolls one quarted of the LED strip's length per second.
         frc::LEDPattern     m_driving = frc::LEDPattern::Gradient(frc::LEDPattern::kContinuous, std::array<frc::Color, 2>{frc::Color::kBrown, frc::Color::kYellow}).
-                                                          ScrollAtAbsoluteSpeed(0.5_mps, units::meter_t{1 / 120.0});
+                                                         ScrollAtAbsoluteSpeed(0.5_mps, units::meter_t{1 / 120.0});
         
-
         frc::AddressableLED m_led{LedConstants::PwmPort};
 
         std::array<frc::AddressableLED::LEDData, LedConstants::Length> m_ledBuffer;  // Instatntiate the LED data buffer
-        
 };

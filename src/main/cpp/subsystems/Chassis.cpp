@@ -1,10 +1,7 @@
 #include "subsystems/Chassis.h"
 
 #pragma region Chassis
-Chassis::Chassis() :
-    m_gyro{frc::RobotBase::IsSimulation() ? 
-        (hardware::gyro::GyroBase) hardware::gyro::SimGyro() : 
-        (hardware::gyro::GyroBase) hardware::gyro::Navx()}
+Chassis::Chassis()
 {
     // TODO: do the gui settings
     pathplanner::RobotConfig config = pathplanner::RobotConfig::fromGUISettings();
@@ -70,10 +67,10 @@ void Chassis::DriveRobotRelative(const frc::ChassisSpeeds& speeds)
     // Set the desired state for each swerve module
     SetModuleStates(m_desiredStates);
 
-    // Simulate the gyro in simulation
-    if (frc::RobotBase::IsSimulation())
-       m_gyro.Update(speeds.omega, 0.02_s);
-       Log("Sim Angular Velocity ", speeds.omega.value());
+    // // Simulate the gyro in simulation
+    // if (frc::RobotBase::IsSimulation())
+    //    m_gyro.Update(speeds.omega, 0.02_s);
+    //    Log("Sim Angular Velocity ", speeds.omega.value());
 }
 #pragma endregion
 
@@ -92,7 +89,7 @@ void Chassis::SetModuleStates(wpi::array<frc::SwerveModuleState, 4> states)
 void Chassis::ZeroHeading()
 {
     // Zero the gyro heading
-    m_gyro.ResetYaw();
+    m_gyro.Reset();
 }
 #pragma endregion
 
@@ -181,7 +178,7 @@ void Chassis::SetXMode(bool isXMode)
 frc::Rotation2d Chassis::GetHeading()
 {
     // Return the gyro rotation
-    return m_gyro.GetRotation().ToRotation2d();
+    return m_gyro.GetRotation2d();
 }
 #pragma endregion
 
@@ -225,7 +222,7 @@ void Chassis::Periodic()
     Log("Actual Chassis Speeds ",  m_kinematics.ToChassisSpeeds(GetModuleStates()));
 
     Log("Robot Pose ", GetPose());
-    Log("Gyro ", (m_gyro.GetRotation().Angle().value() / (2 * std::numbers::pi)) * 360);
+    Log("Gyro ", m_gyro.GetRotation2d().Degrees().value());
 
     Log("field relative ", m_isFieldRelative);
 }

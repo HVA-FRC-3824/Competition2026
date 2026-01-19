@@ -29,11 +29,11 @@ namespace hardware
         {
             units::ampere_t CurrentLimit;
             bool   breakMode;
-            double conversionFactor; // Multiply when apply ((input type) => turns/turns per second), divide when recieve (turns/turns per second => (input type))
+            double conversionFactor;  // Multiply when apply ((input type) => turns/turns per second), divide when recieve (turns/turns per second => (input type))
             double P;
             double I;
             double D;
-            double S; // add your G term to this
+            double S;                 // add your G term to this
             double V;
             double A;
             double velocityLimit;
@@ -46,7 +46,6 @@ namespace hardware
             VOLTAGE,
             VELOCITY,
             POSITION,
-
         };
     
         // This class is used to abstract the motor controller interface

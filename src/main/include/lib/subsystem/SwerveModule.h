@@ -26,7 +26,6 @@
 #include <frc/kinematics/SwerveDriveKinematics.h>
 #include <frc/kinematics/SwerveDriveOdometry.h>
 
-#include "lib/hardware/encoders/CANCoder.h"
 #include "lib/hardware/motors/TalonFX.h"
 #include "lib/hardware/motors/SparkMax.h"
 #include "lib/hardware/motors/Motor.h"
@@ -58,8 +57,8 @@ namespace subsystem
         
             units::angle::radian_t     GetAbsoluteEncoderAngle();
 
-            hardware::motor::TalonFX    m_driveMotor;
-            hardware::motor::TalonFX   m_angleMotor;
-            hardware::encoder::CANCoder m_angleAbsoluteEncoder;
+            hardware::motor::TalonFX           m_driveMotor;
+            hardware::motor::TalonFX           m_angleMotor;
+            ctre::phoenix6::hardware::CANcoder m_angleAbsoluteEncoder;
     };
 }

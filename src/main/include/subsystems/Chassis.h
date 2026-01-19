@@ -3,6 +3,8 @@
 #pragma region Includes
 #include <wpi/array.h>
 
+#include "studica/AHRS.h"
+
 #include <frc/DriverStation.h>
 #include <frc2/command/SubsystemBase.h>
 
@@ -23,9 +25,6 @@
 #include <frc/estimator/SwerveDrivePoseEstimator.h>
 
 #include "lib/Logging.h"
-#include "lib/hardware/gyro/Navx.h"
-#include "lib/hardware/gyro/SimGyro.h"
-#include "lib/hardware/gyro/GyroBase.h"
 #include "lib/hardware/vision/PhotonVision.h"
 #include "lib/subsystem/SwerveModule.h"
 
@@ -114,7 +113,7 @@ class Chassis : public frc2::SubsystemBase
 
         bool                                  m_isXMode = false;
     
-        hardware::gyro::GyroBase              m_gyro;
+        studica::AHRS m_gyro{studica::AHRS::NavXComType::kMXP_SPI};  // The gyro sensor
 
         PhotonVision m_vision
         {

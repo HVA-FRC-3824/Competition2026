@@ -19,16 +19,15 @@
 
 namespace hardware
 {
-
 namespace motor
 {
-
     class TalonFX : public Motor
     {
-        
         public:
 
-            inline TalonFX(CANid_t CANid, MotorConfiguration config, frc::DCMotor motorModel = frc::DCMotor::Falcon500(), units::kilogram_square_meter_t simMomentOfInertia = 0.001_kg_sq_m) 
+            inline TalonFX(CANid_t CANid, MotorConfiguration config, 
+                           frc::DCMotor motorModel = frc::DCMotor::Falcon500(), 
+                           units::kilogram_square_meter_t simMomentOfInertia = 0.001_kg_sq_m) 
                 : Motor{frc::sim::DCMotorSim(
                     frc::LinearSystemId::DCMotorSystem(
                         motorModel,
@@ -58,10 +57,11 @@ namespace motor
 
                 // Configure Current Limits
                 ctre::phoenix6::configs::CurrentLimitsConfigs &currentLimitsConfigs = talonFXConfiguration.CurrentLimits;
-                currentLimitsConfigs.StatorCurrentLimit = config.CurrentLimit;
+                currentLimitsConfigs.StatorCurrentLimit       = config.CurrentLimit;
                 currentLimitsConfigs.StatorCurrentLimitEnable = true;
+
                 // Also set supply current limit for battery protection
-                currentLimitsConfigs.SupplyCurrentLimit = config.CurrentLimit;
+                currentLimitsConfigs.SupplyCurrentLimit       = config.CurrentLimit;
                 currentLimitsConfigs.SupplyCurrentLimitEnable = true;
 
                 // Configure PID and Feedforward (Slot 0)
@@ -76,8 +76,8 @@ namespace motor
                 // Configure MotionMagic parameters
                 ctre::phoenix6::configs::MotionMagicConfigs &motionMagicConfigs = talonFXConfiguration.MotionMagic;
                 motionMagicConfigs.MotionMagicCruiseVelocity = units::turns_per_second_t{config.velocityLimit};
-                motionMagicConfigs.MotionMagicAcceleration = units::turns_per_second_squared_t{config.accelerationLimit};
-                motionMagicConfigs.MotionMagicJerk = units::turns_per_second_cubed_t{0.0};
+                motionMagicConfigs.MotionMagicAcceleration   = units::turns_per_second_squared_t{config.accelerationLimit};
+                motionMagicConfigs.MotionMagicJerk           = units::turns_per_second_cubed_t{0.0};
 
                 // Try to apply the configuration with retries
                 ctre::phoenix::StatusCode status = ctre::phoenix::StatusCode::StatusCodeNotInitialized;
@@ -118,14 +118,16 @@ namespace motor
                 switch (inputType)
                 {
                     case MotorInput::ARBITRARY:
+                    {
                         // Set the motor duty cycle [-1, 1]
                         m_motor.Set(motorInput);
 
                         // Not sure if modeled by simulation
                         break;
-                
+                    }
+
                     case MotorInput::VELOCITY:
-                    
+                    {
                         // Set the motor velocity using closed-loop control
                         m_motor.SetControl(ctre::phoenix6::controls::VelocityDutyCycle(units::turns_per_second_t{motorInput * m_config.conversionFactor}));
 
@@ -134,15 +136,19 @@ namespace motor
                             m_motorSim.SetAngularVelocity(units::radians_per_second_t{motorInput * 2 * std::numbers::pi});
                         }
                         break;
-                
+                    }
+
                     case MotorInput::VOLTAGE:
+                    {
                         // Set the motor voltage directly
                         m_motor.SetVoltage(units::volt_t{motorInput});
 
                         // In simulation... hope it works?
                         break;
+                    }
                     
                     case MotorInput::POSITION:
+                    {
                         // Set the motor position using MotionMagic
                         m_motor.SetControl(m_motionMagicVoltage.WithPosition(units::turn_t{motorInput * m_config.conversionFactor}).WithSlot(0));
 
@@ -151,6 +157,7 @@ namespace motor
                         if (frc::RobotBase::IsSimulation())
                             m_motorSim.SetAngle(units::radian_t{motorInput * 2 * std::numbers::pi});
                         break;
+                    }
                 }
             }
 
@@ -211,6 +218,7 @@ namespace motor
                 {
                     return m_motorSim.GetCurrentDraw();
                 }
+
                 return m_motor.GetStatorCurrent().GetValue();
             }
 
@@ -229,10 +237,7 @@ namespace motor
             ctre::phoenix6::controls::MotionMagicVoltage  m_motionMagicVoltage{0_tr};
             ctre::phoenix6::configs::Slot0Configs         m_slot0Configs{};
 
-            MotorConfiguration                            m_config;
-            
+            MotorConfiguration                            m_config;  
     };
-
 }
-
 }

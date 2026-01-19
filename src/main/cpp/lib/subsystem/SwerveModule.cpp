@@ -14,7 +14,7 @@ using namespace subsystem;
 SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEncoderCanId, 
                            hardware::motor::MotorConfiguration driveConfig, hardware::motor::MotorConfiguration turnConfig) :
         m_driveMotor          {driveMotorCanId, driveConfig, frc::DCMotor::KrakenX60()}, // The MOI or moments of inertias for simulation, and its not accurate of the actual robot
-        m_angleMotor          {angleMotorCanId, turnConfig,  frc::DCMotor::NEO()},
+        m_angleMotor          {angleMotorCanId, turnConfig,  frc::DCMotor::KrakenX44()},
         m_angleAbsoluteEncoder{angleEncoderCanId}
 
 {
@@ -46,7 +46,7 @@ void SwerveModule::SetDesiredState(frc::SwerveModuleState& desiredState)
     m_driveMotor.SetReferenceState(desiredState.speed.value() / constants::swerve::wheelCircumference.value(), hardware::motor::MotorInput::VELOCITY);
     m_angleMotor.SetReferenceState(desiredState.angle.Radians().value() / (2 * std::numbers::pi), hardware::motor::MotorInput::POSITION);
 
-    Log("Absolute Encoder ", m_angleAbsoluteEncoder.GetTurns().value() * 360);
+    Log("Absolute Encoder ", (double) m_angleAbsoluteEncoder.GetAbsolutePosition().GetValue() * 360);
 }
 #pragma endregion
 
@@ -120,7 +120,7 @@ void SwerveModule::SetWheelAngleToForward(units::angle::radian_t forwardAngle)
 units::angle::radian_t SwerveModule::GetAbsoluteEncoderAngle()
 {
     // The GetAbsolutePosition() method returns a value from -1 to 1
-    double encoderValue = m_angleAbsoluteEncoder.GetTurns().value();
+    double encoderValue = (double) m_angleAbsoluteEncoder.GetAbsolutePosition().GetValue();
 
     // To convert to radians
     return encoderValue * (2.0_rad * std::numbers::pi);

@@ -45,28 +45,27 @@ namespace constants
         // PID, feedforward, and other configurations for the motors
         constexpr hardware::motor::MotorConfiguration driveMotorConfig
         {
-            40_A, // Current Limit
-            true, // Brake Mode
-            6.75,         // Conversion factor
+            40_A,           // Current Limit
+            true,           // Brake Mode
+            6.75,           // Conversion factor
             0.0, 0.0, 0.0,  // P, I , D
             0.0, 0.0, 0.0,  // S, V, A
-            0.0, 0.0
+            0.0, 0.0        // Speed and Acceleration Limits
         };
 
-        // TODO: these need to be tuned
         constexpr hardware::motor::MotorConfiguration turnMotorConfig
         {
-            30_A, // Current Limit
-            true, // Brake Mode
-            150 / 7,       // Conversion factor
-            5, 0.5, 0.0,   // P, I , D 
-            0.0, 0.0, 0.0, // S, V, A
-            120, 1200,     // Speed and Acceleration Limits
+            30_A,           // Current Limit
+            true,           // Brake Mode
+            150.0 / 7.0,    // Conversion factor
+            5.0, 0.5, 0.0,  // P, I , D 
+            0.0, 0.0, 0.0,  // S, V, A
+            120.0, 1200.0,  // Speed and Acceleration Limits
         };
 
-        // NOTE absolute encoder is 0.5 to -0.5
+        // NOTE: The absolute encoder range is 0.5 to -0.5
 
-        // All encoders are going to be slightly off, this corrects that
+        // These are the angles that correspond to the wheels facing "forward"
         constexpr units::turn_t frontRightForwardAngle{-0.193604};
         constexpr units::turn_t frontLeftForwardAngle {-0.422119};
         constexpr units::turn_t rearRightForwardAngle {-0.174561};
@@ -77,8 +76,8 @@ namespace constants
         constexpr units::radians_per_second_t maxAngularVelocity{2 * std::numbers::pi};
 
         // The physical dimensions of the robot
-        constexpr units::meter_t wheelBase {25};
-        constexpr units::meter_t trackWidth{25};
+        constexpr units::meter_t wheelBase {25.0};
+        constexpr units::meter_t trackWidth{25.0};
     }
     #pragma endregion
 
