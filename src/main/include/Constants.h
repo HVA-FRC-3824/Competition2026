@@ -25,23 +25,6 @@ namespace constants
     {
         constexpr units::meter_t wheelCircumference = 0.319278_m;
 
-        // Motor and encoders CAN IDs
-        constexpr CANid_t frontLeftDriveCANid    = 01;
-        constexpr CANid_t frontLeftTurnCANid     = 02;
-        constexpr CANid_t frontLeftEncoderCANid  = 03;
-
-        constexpr CANid_t frontRightDriveCANid   = 11;
-        constexpr CANid_t frontRightTurnCANid    = 12;
-        constexpr CANid_t frontRightEncoderCANid = 13;
-
-        constexpr CANid_t backLeftDriveCANid     = 31;
-        constexpr CANid_t backLeftTurnCANid      = 32;
-        constexpr CANid_t backLeftEncoderCANid   = 33;
-
-        constexpr CANid_t backRightDriveCANid    = 21;
-        constexpr CANid_t backRightTurnCANid     = 22;
-        constexpr CANid_t backRightEncoderCANid  = 23;
-
         // PID, feedforward, and other configurations for the motors
         constexpr hardware::motor::MotorConfiguration driveMotorConfig
         {
@@ -96,8 +79,7 @@ namespace constants
 
         constexpr CANid_t flywheelMotorID = 0; // TODO: update this to real or realistic
     
-
-        constexpr CANid_t actuatorID = 0; // TODO: update this to real or realistic
+        constexpr CANid_t actuatorID      = 0; // TODO: update this to real or realistic
     
         // TODO: test these angles
         constexpr units::degree_t MinAngle = 0_deg;
@@ -118,7 +100,7 @@ namespace constants
         {
             30_A,           // Current Limit
             false,          // Brake Mode
-            100/10,         // 100 teeth on turret, 10 teeth on motor
+            100.0 / 10.0,   // 100 teeth on turret, 10 teeth on motor
             1.0, 0.01, 0.0, // P, I , D 
             0.0, 0.0, 0.0   // S, V, A  
         };
@@ -137,7 +119,7 @@ namespace constants
         {
             30_A,           // Current Limit
             false,          // Brake Mode
-            10,             // Conversion factor
+            10.0,            // Conversion factor
             1.0, 0.01, 0.0, // P, I , D 
             0.0, 0.0, 0.0   // S, V, A  
         };

@@ -1,6 +1,4 @@
-#include "lib/subsystem/SwerveModule.h"
-
-using namespace subsystem;
+#include "lib/SwerveModule.h"
 
 #pragma region SwerveModule
 /// @brief Class constructor for the SwerveModule class.

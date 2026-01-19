@@ -17,9 +17,9 @@
 #include <frc/controller/PIDController.h>
 
 #include <frc/RobotBase.h>
-
-#include "lib/hardware/hardware.h"
 #pragma endregion
+
+typedef int CANid_t;
 
 namespace hardware
 {
@@ -50,7 +50,7 @@ namespace hardware
     
         // This class is used to abstract the motor controller interface
         // EVERYTHING is in motor-side turns. Conversions happen in implementation, until we implement gear ratios.
-        class Motor : Hardware
+        class Motor
         {
             public:
     

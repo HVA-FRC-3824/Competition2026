@@ -33,7 +33,6 @@ Chassis::Chassis()
         },
         this // Reference to this subsystem to set requirements
     );
-
 }
 #pragma endregion
 

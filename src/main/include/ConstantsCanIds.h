@@ -1,0 +1,25 @@
+#pragma once
+
+#pragma region ConstantsCanIds
+namespace ConstantsCanIds
+{
+    const     auto CanBus                    = "rio";
+
+    // Motor and encoders CAN IDs
+    constexpr CANid_t frontLeftDriveCANid    = 01;
+    constexpr CANid_t frontLeftTurnCANid     = 02;
+    constexpr CANid_t frontLeftEncoderCANid  = 03;
+
+    constexpr CANid_t frontRightDriveCANid   = 11;
+    constexpr CANid_t frontRightTurnCANid    = 12;
+    constexpr CANid_t frontRightEncoderCANid = 13;
+
+    constexpr CANid_t backLeftDriveCANid     = 31;
+    constexpr CANid_t backLeftTurnCANid      = 32;
+    constexpr CANid_t backLeftEncoderCANid   = 33;
+
+    constexpr CANid_t backRightDriveCANid    = 21;
+    constexpr CANid_t backRightTurnCANid     = 22;
+    constexpr CANid_t backRightEncoderCANid  = 23;
+}
+#pragma endregion

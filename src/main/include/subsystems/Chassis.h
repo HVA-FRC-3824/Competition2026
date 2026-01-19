@@ -25,11 +25,14 @@
 #include <frc/estimator/SwerveDrivePoseEstimator.h>
 
 #include "lib/Logging.h"
-#include "lib/hardware/vision/PhotonVision.h"
-#include "lib/subsystem/SwerveModule.h"
+#include "lib/PhotonVision.h"
+#include "lib/SwerveModule.h"
 
 #include "Constants.h"
+#include "ConstantsCanIds.h"
 #pragma endregion
+
+using namespace ConstantsCanIds;
 
 class Chassis : public frc2::SubsystemBase
 {
@@ -73,16 +76,16 @@ class Chassis : public frc2::SubsystemBase
         //      | 2      3 |                 |
         //   RL +----------+ RR              |
         
-        std::array<subsystem::SwerveModule, 4> m_swerveModules
+        std::array<SwerveModule, 4> m_swerveModules
         {
-            subsystem::SwerveModule{constants::swerve::frontLeftDriveCANid,  constants::swerve::frontLeftTurnCANid,  constants::swerve::frontLeftEncoderCANid,  
-                                    constants::swerve::driveMotorConfig,     constants::swerve::turnMotorConfig},
-            subsystem::SwerveModule{constants::swerve::frontRightDriveCANid, constants::swerve::frontRightTurnCANid, constants::swerve::frontRightEncoderCANid,
-                                    constants::swerve::driveMotorConfig,     constants::swerve::turnMotorConfig},
-            subsystem::SwerveModule{constants::swerve::backLeftDriveCANid,   constants::swerve::backLeftTurnCANid,   constants::swerve::backLeftEncoderCANid,
-                                    constants::swerve::driveMotorConfig,     constants::swerve::turnMotorConfig},
-            subsystem::SwerveModule{constants::swerve::backRightDriveCANid,  constants::swerve::backRightTurnCANid,  constants::swerve::backRightEncoderCANid,  
-                                    constants::swerve::driveMotorConfig,     constants::swerve::turnMotorConfig}
+            SwerveModule{frontLeftDriveCANid,  frontLeftTurnCANid,  frontLeftEncoderCANid,  
+                         constants::swerve::driveMotorConfig,     constants::swerve::turnMotorConfig},
+            SwerveModule{frontRightDriveCANid, frontRightTurnCANid, frontRightEncoderCANid,
+                         constants::swerve::driveMotorConfig,     constants::swerve::turnMotorConfig},
+            SwerveModule{backLeftDriveCANid,   backLeftTurnCANid,   backLeftEncoderCANid,
+                         constants::swerve::driveMotorConfig,     constants::swerve::turnMotorConfig},
+            SwerveModule{backRightDriveCANid,  backRightTurnCANid,  backRightEncoderCANid,  
+                         constants::swerve::driveMotorConfig,     constants::swerve::turnMotorConfig}
         };
 
         frc::SwerveDriveKinematics<4> m_kinematics

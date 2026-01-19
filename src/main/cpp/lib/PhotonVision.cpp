@@ -1,4 +1,4 @@
-#include "lib/hardware/vision/PhotonVision.h"
+#include "lib\PhotonVision.h"
 
 
 PhotonVision::PhotonVision(std::string_view           cameraName,

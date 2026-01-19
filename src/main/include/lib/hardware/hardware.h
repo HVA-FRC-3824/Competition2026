@@ -1,10 +1,13 @@
 #pragma once
 
-#include <frc2/command/SubsystemBase.h>
+#include <cstdint>
 
-typedef int CANid_t;
+/// @brief Type alias for CAN device IDs
+using CANid_t = int;
 
-class Hardware 
+/// @brief Base class for hardware components
+class Hardware
 {
-    
+public:
+    virtual ~Hardware() = default;
 };

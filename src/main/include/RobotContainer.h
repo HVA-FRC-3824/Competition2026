@@ -12,9 +12,10 @@
 
 #include <photon/PhotonCamera.h>
 
+#include "lib/Leds.h"
+
 #include "subsystems/Chassis.h"
 #include "subsystems/Indexer.h"
-#include "subsystems/Leds.h"
 #include "subsystems/Tower.h"
 #include "subsystems/Turret.h"
 #include "subsystems/Climb.h"

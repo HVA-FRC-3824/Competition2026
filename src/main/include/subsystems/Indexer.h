@@ -10,7 +10,6 @@
 #include "Constants.h"
 #pragma endregion
 
-
 class Indexer : public frc2::SubsystemBase
 {
     public:
@@ -25,5 +24,4 @@ class Indexer : public frc2::SubsystemBase
         // array of motors for the indexers, hopefully they're all the same, 4U is how many motors there are, replace with constant
         // TODO: update this to the real design
         std::array<hardware::motor::TalonFX, constants::indexer::numMotors> m_motors;
-
 };

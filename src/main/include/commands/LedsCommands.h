@@ -5,7 +5,7 @@
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/InstantCommand.h>
 
-#include "subsystems/Leds.h"
+#include "lib/Leds.h"
 
 /// @brief Command to set robot status for status LEDs
 /// @param leds The LED subsystem
