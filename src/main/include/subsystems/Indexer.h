@@ -5,10 +5,22 @@
 
 #include <frc2/command/SubsystemBase.h>
 
-#include "lib/hardware/motors/TalonFX.h"
+#include <ctre/phoenix6/TalonFX.hpp>
 
 #include "Constants.h"
+#include "ConstantsCanIds.h"
 #pragma endregion
+
+namespace IndexerConstants
+{
+    constexpr size_t numMotors = 2U;
+
+    constexpr std::array<CANid_t, numMotors> motorIDs = 
+    {
+        ConstantsCanIds::indexerMotor1ID,
+        ConstantsCanIds::indexerMotor2ID
+    };
+}
 
 class Indexer : public frc2::SubsystemBase
 {
@@ -23,5 +35,5 @@ class Indexer : public frc2::SubsystemBase
 
         // array of motors for the indexers, hopefully they're all the same, 4U is how many motors there are, replace with constant
         // TODO: update this to the real design
-        std::array<hardware::motor::TalonFX, constants::indexer::numMotors> m_motors;
+        std::array<ctre::phoenix6::hardware::TalonFX, IndexerConstants::numMotors> m_motors;
 };

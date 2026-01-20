@@ -66,6 +66,17 @@ model {
                 }
             }
 
+            // Disable unknown pragma warnings (for #pragma region)
+            binaries.all {
+                if (toolChain in Gcc) {
+                    // GCC/G++ for Linux (roboRIO)
+                    cppCompiler.args << '-Wno-unknown-pragmas'
+                } else if (toolChain in VisualCpp) {
+                    // MSVC for Windows simulation
+                    cppCompiler.args << '/wd4068'
+                }
+            }
+
             // Set deploy task to deploy this component
             deployArtifact.component = it
 

@@ -12,15 +12,14 @@
 
 #include <frc/geometry/Pose2d.h>
 
+#include <ctre/phoenix6/TalonFX.hpp>
 #include <frc/Servo.h>
 
 #include <photon/PhotonCamera.h>
 
-#include "lib/hardware/motors/TalonFX.h"
-
 #include "Constants.h"
+#include "ConstantsCanIds.h"
 #pragma endregion
-
 
 #pragma region StateStructures
 enum TowerMode
@@ -70,9 +69,9 @@ class Tower : public frc2::SubsystemBase
 
         TowerState CalculateShot(units::meter_t distance, frc::Translation2d speed);
 
-        hardware::motor::TalonFX m_turretMotor  {constants::tower::turretMotorID,   constants::tower::turretConfig,   hardware::motor::MotorType::KrakenX60};
-        hardware::motor::TalonFX m_flywheelMotor{constants::tower::flywheelMotorID, constants::tower::flywheelConfig, hardware::motor::MotorType::KrakenX60};
-        frc::Servo               m_hoodActuator {constants::tower::actuatorID};
+        ctre::phoenix6::hardware::TalonFX m_turretMotor  {ConstantsCanIds::turretMotorID};
+        ctre::phoenix6::hardware::TalonFX m_flywheelMotor{ConstantsCanIds::flywheelMotorID};
+        frc::Servo                        m_hoodActuator {ConstantsCanIds::actuatorID};
 
         // Do not use this to do pose estimatation. Because its on a turret, it is unreliable
         photon::PhotonCamera     m_turretCam{"turretCam"};

@@ -78,14 +78,10 @@ class Chassis : public frc2::SubsystemBase
         
         std::array<SwerveModule, 4> m_swerveModules
         {
-            SwerveModule{frontLeftDriveCANid,  frontLeftTurnCANid,  frontLeftEncoderCANid,  
-                         constants::swerve::driveMotorConfig,     constants::swerve::turnMotorConfig},
-            SwerveModule{frontRightDriveCANid, frontRightTurnCANid, frontRightEncoderCANid,
-                         constants::swerve::driveMotorConfig,     constants::swerve::turnMotorConfig},
-            SwerveModule{backLeftDriveCANid,   backLeftTurnCANid,   backLeftEncoderCANid,
-                         constants::swerve::driveMotorConfig,     constants::swerve::turnMotorConfig},
-            SwerveModule{backRightDriveCANid,  backRightTurnCANid,  backRightEncoderCANid,  
-                         constants::swerve::driveMotorConfig,     constants::swerve::turnMotorConfig}
+            SwerveModule{frontLeftDriveCANid,  frontLeftTurnCANid,  frontLeftEncoderCANid},
+            SwerveModule{frontRightDriveCANid, frontRightTurnCANid, frontRightEncoderCANid},
+            SwerveModule{backLeftDriveCANid,   backLeftTurnCANid,   backLeftEncoderCANid},
+            SwerveModule{backRightDriveCANid,  backRightTurnCANid,  backRightEncoderCANid} 
         };
 
         frc::SwerveDriveKinematics<4> m_kinematics

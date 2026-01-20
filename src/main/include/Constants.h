@@ -6,14 +6,14 @@
 
 #include <units/base.h>
 #include <units/angle.h>
+#include <units/angular_velocity.h>
 #include <units/velocity.h>
 #include <units/length.h>
 #include <units/voltage.h>
 
 #include <frc/geometry/Transform3d.h>
 #include <frc/apriltag/AprilTagFieldLayout.h>
-
-#include "lib/hardware/motors/Motor.h"
+#include <frc/smartdashboard/SmartDashboard.h>
 #pragma endregion
 
 typedef int Button;
@@ -31,29 +31,6 @@ namespace constants
     #pragma region Swerve
     namespace swerve
     {
-        constexpr units::meter_t wheelCircumference = 0.319278_m;
-
-        // PID, feedforward, and other configurations for the motors
-        constexpr hardware::motor::MotorConfiguration driveMotorConfig
-        {
-            40_A,           // Current Limit
-            true,           // Brake Mode
-            6.75,           // Conversion factor
-            0.0, 0.0, 0.0,  // P, I , D
-            0.0, 0.0, 0.0,  // S, V, A
-            10000.0, 10000.0 // Speed and Acceleration Limits
-        };
-
-        constexpr hardware::motor::MotorConfiguration turnMotorConfig
-        {
-            30_A,           // Current Limit
-            true,           // Brake Mode
-            150.0 / 7.0,    // Conversion factor
-            5.0, 0.5, 0.0,  // P, I , D 
-            0.0, 0.0, 0.0,  // S, V, A
-            120.0, 1200.0,  // Speed and Acceleration Limits
-        };
-
         // NOTE: The absolute encoder range is 0.5 to -0.5
 
         // These are the angles that correspond to the wheels facing "forward"
@@ -63,8 +40,8 @@ namespace constants
         constexpr units::turn_t rearLeftForwardAngle  { 0.268555};
 
         // These make sure to limit how fast the robot can go
-        constexpr units::meters_per_second_t  maxSpeed          {4};
-        constexpr units::radians_per_second_t maxAngularVelocity{2 * std::numbers::pi};
+        constexpr units::meters_per_second_t                    maxSpeed          {4};
+        constexpr units::angular_velocity::radians_per_second_t maxAngularVelocity{2 * std::numbers::pi};
 
         // The physical dimensions of the robot
         constexpr units::meter_t wheelBase {25.0};
@@ -75,22 +52,8 @@ namespace constants
     #pragma region Tower
     namespace tower
     {
-        // TODO: these need to be tuned
-        constexpr hardware::motor::MotorConfiguration flywheelConfig
-        {
-            30_A,           // Current Limit
-            false,          // Brake Mode
-            10,             // Conversion factor
-            1.0, 0.01, 0.0, // P, I , D 
-            0.0, 0.0, 0.0   // S, V, A  
-        };
-
-        constexpr CANid_t flywheelMotorID = 0; // TODO: update this to real or realistic
-
         // This is -1 to 1, really 0 to 1
         constexpr double constantFlywheelSpeed = 0.8;
-    
-        constexpr CANid_t actuatorID      = 0; // TODO: update this to real or realistic
     
         // TODO: test these angles, likely isn't correct as we have a different than the bot, team 102 in 2022, I got it from
         constexpr units::degree_t MinAngle = 0_deg;
@@ -104,39 +67,6 @@ namespace constants
         // Comes from 102 too
         constexpr double          ActuatorLowerBound = -0.95;
         constexpr double          ActuatorUpperBound =  0.95;
-
-        // TODO: these need to be tuned
-        constexpr hardware::motor::MotorConfiguration turretConfig
-        {
-            30_A,           // Current Limit
-            false,          // Brake Mode
-            100.0 / 10.0,   // 100 teeth on turret, 10 teeth on motor
-            1.0, 0.01, 0.0, // P, I , D 
-            0.0, 0.0, 0.0   // S, V, A  
-        };
-
-        constexpr CANid_t turretMotorID = 0; // TODO: update this to real or realistic
-    }
-    #pragma endregion
-
-    #pragma region Indexer
-    namespace indexer
-    {
-        // I'm not sure how the indexer is going to be designed, multiple configs may be needed
-
-        // TODO: these need to be tuned
-        constexpr hardware::motor::MotorConfiguration indexerWheelConfig
-        {
-            30_A,           // Current Limit
-            false,          // Brake Mode
-            10.0,            // Conversion factor
-            1.0, 0.01, 0.0, // P, I , D 
-            0.0, 0.0, 0.0   // S, V, A  
-        };
-
-        constexpr size_t numMotors = 2U;
-
-        constexpr std::array<CANid_t, numMotors> motorIDs = {0, 0}; // TODO: update this to real or realistic
     }
     #pragma endregion
 
@@ -145,27 +75,9 @@ namespace constants
     {
         // TODO: These need to be tuned
         // Config for motor that will angle the intake between 0 and 90 degrees
-        constexpr CANid_t intakeTurnMotorId = 0;// TODO: Update to the real motor
-        constexpr hardware::motor::MotorConfiguration intakeTurnMotorConfig
-        {
-            30_A,           // Current Limit
-            false,          // Brake Mode
-            10,             // Conversion factor
-            1.0, 0.01, 0.0, // P, I , D 
-            0.0, 0.0, 0.0   // S, V, A  
-        };
-        
+
         // TODO: These need to be tuned
         // Config for motor that will drive the intake
-        constexpr CANid_t intakeDriveMotorId = 0; // TODO: Update to real motor
-        constexpr hardware::motor::MotorConfiguration intakeDriveMotorConfig
-        {
-            30_A,           // Current Limit
-            false,          // Brake Mode
-            10,             // Conversion factor
-            1.0, 0.01, 0.0, // P, I , D 
-            0.0, 0.0, 0.0   // S, V, A  
-        };
     }
     #pragma endregion
 

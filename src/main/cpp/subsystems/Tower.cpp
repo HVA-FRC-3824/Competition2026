@@ -32,21 +32,28 @@ void Tower::Periodic()
     switch (m_state.mode) 
     {
         case TowerMode::STATIC:
+        {
             isTurretRobotRelative = true;
             m_state.turretAngle = 0_deg;
             m_state.hoodActuatorPercentInput = constants::tower::constantFlywheelSpeed;
             break;
+        }
+
         case TowerMode::HUB:
+        {
             isTurretRobotRelative = false;
             m_state = CalculateShot(
                 frc::Translation3d{m_pose.first.Translation()}.Distance(hub.Translation()), 
                 speed);
             break;
+        }
 
         case TowerMode::PASSING:
+        {
             // We want to point straight towards our alliance zone
             isTurretRobotRelative = false;
             break;
+        }
 
         default:
             break;
@@ -66,7 +73,7 @@ void Tower::Periodic()
 // Spins up the flywheel motor
 void Tower::SetFlywheel(double input)
 {
-    m_flywheelMotor.SetReferenceState(input, hardware::motor::MotorInput::ARBITRARY);
+    m_flywheelMotor.Set(input);
 }
 
 // Activates the actuator which moves linearly to move the hood by some degreesInput 0-1
@@ -93,7 +100,11 @@ void Tower::SetTurret(units::degree_t angle)
     while (angle.value() < 0) 
         angle += 360.0_deg;
 
-    m_turretMotor.SetReferenceState(angle.value() / 360, hardware::motor::MotorInput::POSITION);
+    // Convert degrees to rotations (turns) for Phoenix 6
+    units::angle::turn_t rotations{angle.value() / 360.0};
+
+    // Set the motor to the desired position
+    m_turretMotor.SetControl(ctre::phoenix6::controls::PositionDutyCycle{rotations});
 }
 
 // Sets the desired angle of the turret relative to the field

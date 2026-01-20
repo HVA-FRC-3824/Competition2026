@@ -12,8 +12,8 @@ Intake::Intake()
 void Intake::SetMotors()
 {
     // Initially zero all motors
-    m_driveMotor.SetReferenceState(0.00, hardware::motor::MotorInput::POSITION);
-    m_turnMotor.SetReferenceState(0.00, hardware::motor::MotorInput::POSITION);
+    m_driveMotor.SetPosition(0.0_tr);
+    m_turnMotor.Set(0.00);
 
     // Set values to 0
     m_intakePosition = Stowed;
@@ -28,14 +28,21 @@ void Intake::SetIntakePosition(IntakePosition position)
 {
     // Remember intake position
     m_intakePosition = position;
+
     switch (m_intakePosition)
     {
         case IntakePosition::Stowed:
-            m_turnMotor.SetReferenceState(IntakeConstants::IntakeMaxAngle, hardware::motor::MotorInput::POSITION); // set motor to turn however many rotations it needs to
+        {
+            // Use PositionDutyCycle or PositionVoltage for position control
+            m_turnMotor.SetControl(ctre::phoenix6::controls::PositionDutyCycle{IntakeConstants::IntakeMaxAngle});
             break;
+        }
+
         case IntakePosition::Deployed:
-            m_turnMotor.SetReferenceState(0.00, hardware::motor::MotorInput::POSITION); // Set motor to go to 0 rotations
+        {
+            m_turnMotor.SetControl(ctre::phoenix6::controls::PositionDutyCycle{0.00_tr}); // 0 rotations
             break;
+        }
     }
 }
 #pragma endregion
@@ -51,10 +58,10 @@ void Intake::DriveIntake(IntakeState state)
     switch (m_intakeState)
     {
         case IntakeState::Inactive:
-            m_driveMotor.SetReferenceState(0, hardware::motor::MotorInput::VOLTAGE);
+            m_driveMotor.Set(0.0);
             break;
         case IntakeState::Active:
-            m_driveMotor.SetReferenceState(IntakeConstants::IntakeDriveVoltage.value(), hardware::motor::MotorInput::VOLTAGE);
+            m_driveMotor.Set(IntakeConstants::IntakeDriveVoltage.value());
             break;
     }
 }

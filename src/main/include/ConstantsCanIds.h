@@ -1,5 +1,7 @@
 #pragma once
 
+typedef int CANid_t;
+
 #pragma region ConstantsCanIds
 namespace ConstantsCanIds
 {
@@ -21,5 +23,16 @@ namespace ConstantsCanIds
     constexpr CANid_t backRightDriveCANid    = 21;
     constexpr CANid_t backRightTurnCANid     = 22;
     constexpr CANid_t backRightEncoderCANid  = 23;
+
+    constexpr CANid_t intakeTurnMotorId      = 0;
+    constexpr CANid_t intakeDriveMotorId     = 0;
+
+    constexpr CANid_t turretMotorID          = 0;
+
+    constexpr CANid_t actuatorID             = 0;
+    constexpr CANid_t flywheelMotorID        = 0;
+
+    constexpr CANid_t indexerMotor1ID         = 0;
+    constexpr CANid_t indexerMotor2ID         = 0;
 }
 #pragma endregion

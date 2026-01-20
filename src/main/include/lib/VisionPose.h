@@ -13,15 +13,15 @@
 
 #include <frc/apriltag/AprilTagFieldLayout.h>
 #include <frc/apriltag/AprilTagFields.h>
+#include <frc/RobotBase.h>
 
 #include "Constants.h"
-
 
 class VisionPose
 {
     public:
 
-        VisionPose(std::string_view           cameraName,
+        VisionPose(std::string_view             cameraName,
                     frc::Transform3d            robotToCamPose,
                     frc::AprilTagFieldLayout    tagLayout,
                     Eigen::Matrix<double, 3, 1> singleTagStdDevs,

@@ -76,10 +76,10 @@ void Chassis::DriveRobotRelative(const frc::ChassisSpeeds& speeds)
 #pragma region SetModuleStates
 void Chassis::SetModuleStates(wpi::array<frc::SwerveModuleState, 4> states)
 {
-    m_swerveModules[0].SetDesiredState(states[0]);
-    m_swerveModules[1].SetDesiredState(states[1]);
-    m_swerveModules[2].SetDesiredState(states[2]);
-    m_swerveModules[3].SetDesiredState(states[3]);
+    m_swerveModules[0].SetDesiredState(states[0], "Front Left");
+    m_swerveModules[1].SetDesiredState(states[1], "Front Right");
+    m_swerveModules[2].SetDesiredState(states[2], "Rear Left");
+    m_swerveModules[3].SetDesiredState(states[3], "Rear Right");
 }
 #pragma endregion
 
