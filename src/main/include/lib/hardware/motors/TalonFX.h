@@ -25,9 +25,7 @@ namespace motor
     {
         public:
 
-            inline TalonFX(CANid_t CANid, MotorConfiguration config, 
-                           frc::DCMotor motorModel = frc::DCMotor::Falcon500(), 
-                           units::kilogram_square_meter_t simMomentOfInertia = 0.001_kg_sq_m) 
+            inline TalonFX(CANid_t CANid, MotorConfiguration config, MotorType type, frc::DCMotor motorModel = frc::DCMotor::Falcon500(), units::kilogram_square_meter_t simMomentOfInertia = 0.001_kg_sq_m) 
                 : Motor{frc::sim::DCMotorSim(
                     frc::LinearSystemId::DCMotorSystem(
                         motorModel,
@@ -40,6 +38,26 @@ namespace motor
                 m_config{config}
             {
                 ConfigureMotor(config);
+                
+                if (frc::RobotBase::IsSimulation())
+                {
+                    auto& talonFXSim = m_motor.GetSimState();
+                    talonFXSim.Orientation = ctre::phoenix6::sim::ChassisReference::CounterClockwise_Positive;
+                    // The only not-simple motor config
+                    // Note, Falcon 500 NOT supported by simulation, shouldnt matter but its a thing.
+                    switch (type)
+                    {
+                        case MotorType::KrakenX60:
+                            talonFXSim.SetMotorType(ctre::phoenix6::sim::TalonFXSimState::MotorType::KrakenX60);
+                            break;
+                        case MotorType::KrakenX44:
+                            talonFXSim.SetMotorType(ctre::phoenix6::sim::TalonFXSimState::MotorType::KrakenX44);
+                            break;
+                        default:
+                            talonFXSim.SetMotorType(ctre::phoenix6::sim::TalonFXSimState::MotorType::KrakenX60);
+                            break;
+                    }
+                }
             }
 
             inline void ConfigureMotor(MotorConfiguration config) override
@@ -104,10 +122,6 @@ namespace motor
                     std::cout << "TalonFX motor (CAN ID: " << m_motor.GetDeviceID() 
                               << ") configured successfully." << std::endl;
                 }
-
-                auto& talonFXSim = m_motor.GetSimState();
-                talonFXSim.Orientation = ctre::phoenix6::sim::ChassisReference::CounterClockwise_Positive;
-                talonFXSim.SetMotorType(ctre::phoenix6::sim::TalonFXSimState::MotorType::KrakenX60);
 
                 if (frc::RobotBase::IsSimulation())
                     m_config.conversionFactor = 1;

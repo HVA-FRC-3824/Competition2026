@@ -9,8 +9,14 @@
 #include "subsystems/Tower.h"
 #pragma endregion
 
+// Aim towards the hub
+frc2::CommandPtr TowerAimHub(Tower* tower);
 
-#pragma region TowerAimHub
+// This aims the tower towards a given 
+frc2::CommandPtr TowerAimPassing(Tower* tower);
+
+// This aims the tower forwards
+frc2::CommandPtr TowerAimStatic(Tower* tower);
+
 // This aims the tower to the hub based on the camera
-frc2::CommandPtr TowerAimHub(Tower* tower, std::function<units::meter_t()> distanceSupplier);
-#pragma endregion
+frc2::CommandPtr TowerAimManual(Tower* tower, std::function<TowerState()> stateSupplier);

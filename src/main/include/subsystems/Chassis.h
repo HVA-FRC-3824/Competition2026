@@ -25,7 +25,7 @@
 #include <frc/estimator/SwerveDrivePoseEstimator.h>
 
 #include "lib/Logging.h"
-#include "lib/PhotonVision.h"
+#include "lib/VisionPose.h"
 #include "lib/SwerveModule.h"
 
 #include "Constants.h"
@@ -118,7 +118,7 @@ class Chassis : public frc2::SubsystemBase
     
         studica::AHRS m_gyro{studica::AHRS::NavXComType::kMXP_SPI};  // The gyro sensor
 
-        PhotonVision m_vision
+        VisionPose m_vision
         {
             constants::vision::CameraName,
             constants::vision::RobotToCam,

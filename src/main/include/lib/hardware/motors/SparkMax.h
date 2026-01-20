@@ -30,7 +30,7 @@ namespace motor
         
         public:
 
-            inline SparkMax(CANid_t CANid, MotorConfiguration config, frc::DCMotor motorModel, units::kilogram_square_meter_t simMomentOfInertia = 0.001_kg_sq_m) 
+            inline SparkMax(CANid_t CANid, MotorConfiguration config, MotorType type, frc::DCMotor motorModel, units::kilogram_square_meter_t simMomentOfInertia = 0.001_kg_sq_m) 
             : Motor{
                 frc::sim::DCMotorSim{
                     frc::LinearSystemId::DCMotorSystem(
@@ -116,13 +116,13 @@ namespace motor
                         m_turnClosedLoopController.SetSetpoint(motorInput, 
                                                                 rev::spark::SparkMax::ControlType::kVelocity,
                                                                 rev::spark::ClosedLoopSlot::kSlot0, 
-                                                                m_feedforward.Calculate(0_tps).value(),
+                                                                m_feedforward.Calculate(0_tps).value(), // TODO: make this work with V and A
                                                                 rev::spark::SparkClosedLoopController::ArbFFUnits::kVoltage);
                         break;
 
                     case MotorInput::VOLTAGE:
                         // Set voltage control with static friction compensation
-                        m_turnClosedLoopController.SetSetpoint(motorInput + m_feedforward.Calculate(0_tps).value(),
+                        m_turnClosedLoopController.SetSetpoint(motorInput + m_feedforward.Calculate(0_tps).value(), // TODO: make this work with V and A
                                                                 rev::spark::SparkMax::ControlType::kVoltage);
                         break;
 
@@ -131,7 +131,7 @@ namespace motor
                         m_turnClosedLoopController.SetSetpoint(motorInput, 
                                                                 rev::spark::SparkMax::ControlType::kPosition,
                                                                 rev::spark::ClosedLoopSlot::kSlot0, 
-                                                                m_feedforward.Calculate(0_tps).value(),
+                                                                m_feedforward.Calculate(0_tps).value(), // TODO: make this work with V and A
                                                                 rev::spark::SparkClosedLoopController::ArbFFUnits::kVoltage);
                         break;
                 }
@@ -154,6 +154,7 @@ namespace motor
                 return 1_tps * m_angleEncoder.GetVelocity() / 60.0;
             }
 
+            // This is in turns, not sure if this is affected by any conversion factors
             inline void OffsetEncoder(double offset) override
             {
                 if (frc::RobotBase::IsSimulation())
@@ -161,7 +162,6 @@ namespace motor
                     m_motorSim.SetAngle(units::radian_t{offset * 2 * std::numbers::pi});
                 } else
                 {
-                    offset *= m_config.conversionFactor;
                     m_angleEncoder.SetPosition(offset);
                 }
             }
@@ -185,29 +185,6 @@ namespace motor
                 // Convert radians to turns
                 auto positionTurns = m_motorSim.GetAngularPosition().value() / (2.0 * std::numbers::pi);
                 m_sparkSim.SetPosition(positionTurns);
-            }
-
-            inline units::ampere_t GetCurrent()
-            {
-                if (frc::RobotBase::IsSimulation())
-                {
-                    return m_motorSim.GetCurrentDraw();
-                }
-                return units::ampere_t{m_motor.GetOutputCurrent()};
-            }
-
-            inline units::volt_t GetVoltage()
-            {
-                if (frc::RobotBase::IsSimulation())
-                {
-                    return units::volt_t{m_motorSim.GetInputVoltage().value()};
-                }
-                return units::volt_t{m_motor.GetAppliedOutput() * m_motor.GetBusVoltage()};
-            }
-
-            inline double GetTemperature()
-            {
-                return m_motor.GetMotorTemperature();
             }
 
         private:

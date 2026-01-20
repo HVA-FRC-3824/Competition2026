@@ -47,9 +47,21 @@ namespace hardware
             VELOCITY,
             POSITION,
         };
+
+        enum MotorType
+        {
+            KrakenX60,
+            KrakenX44,
+            Falcon500,
+
+            NEO550,
+            NEOv1,
+            NEOv2
+        };
     
         // This class is used to abstract the motor controller interface
-        // EVERYTHING is in motor-side turns. Conversions happen in implementation, until we implement gear ratios.
+        // Everything should be in turns (or volts or arbitrary numbers)
+        // The conversion factor makes things mechanism side turns rather than motor side turns
         class Motor
         {
             public:
@@ -58,9 +70,7 @@ namespace hardware
                 {
     
                 }
-    
-                // OVERRIDE THESE IN YOUR IMPLEMENTATION
-    
+                
                 // Call this in your implementation periodic loop when its in simulation
                 virtual void                      SimPeriodic()                                              = 0;
                 virtual void                      ConfigureMotor(MotorConfiguration config)                  = 0;

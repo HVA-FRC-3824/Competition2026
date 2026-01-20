@@ -26,7 +26,7 @@ RobotContainer::RobotContainer()
 {
     // // Configure the chassis default command
     m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetChassisSpeeds()));
-    SetRobotStatus(&m_leds, [&]() { return m_robotStatus;});
+    m_leds.SetDefaultCommand(SetRobotStatus(&m_leds, [&]() { return m_robotStatus;}));
 
     // ******************* //
     // * DRIVER CONTROLS * //

@@ -20,6 +20,14 @@ typedef int Button;
 
 namespace constants
 {
+    #pragma region Field
+    namespace field
+    {
+        constexpr frc::Pose3d blueHub{182.11_in,             158.84_in, 72_in, frc::Rotation3d(0_deg)};
+        constexpr frc::Pose3d redHub {325.61_in + 143.50_in, 158.84_in, 72_in, frc::Rotation3d(0_deg)};
+    }
+    #pragma endregion
+
     #pragma region Swerve
     namespace swerve
     {
@@ -33,7 +41,7 @@ namespace constants
             6.75,           // Conversion factor
             0.0, 0.0, 0.0,  // P, I , D
             0.0, 0.0, 0.0,  // S, V, A
-            0.0, 0.0        // Speed and Acceleration Limits
+            10000.0, 10000.0 // Speed and Acceleration Limits
         };
 
         constexpr hardware::motor::MotorConfiguration turnMotorConfig
@@ -78,20 +86,22 @@ namespace constants
         };
 
         constexpr CANid_t flywheelMotorID = 0; // TODO: update this to real or realistic
+
+        // This is -1 to 1, really 0 to 1
+        constexpr double constantFlywheelSpeed = 0.8;
     
         constexpr CANid_t actuatorID      = 0; // TODO: update this to real or realistic
     
-        // TODO: test these angles
+        // TODO: test these angles, likely isn't correct as we have a different than the bot, team 102 in 2022, I got it from
         constexpr units::degree_t MinAngle = 0_deg;
         constexpr units::degree_t MaxAngle = 50_deg;
     
-        // TODO: test these angles
+        // TODO: test these lengths, they're most likely accurate
         // I got these from team 102 from 2022, they used the same actuator
-        // These may not be correct for our specific use case
         constexpr units::inch_t   MaxLength = 14.336_in;
         constexpr units::inch_t   MinLength = 8.946_in;
 
-        // TODO: also test, but these should be fine (should is a very bad word in these sort of things)
+        // Comes from 102 too
         constexpr double          ActuatorLowerBound = -0.95;
         constexpr double          ActuatorUpperBound =  0.95;
 
@@ -124,9 +134,9 @@ namespace constants
             0.0, 0.0, 0.0   // S, V, A  
         };
 
-        constexpr size_t numMotors = 4U;
+        constexpr size_t numMotors = 2U;
 
-        constexpr std::array<CANid_t, numMotors> motorIDs = {0, 0, 0, 0}; // TODO: update this to real or realistic
+        constexpr std::array<CANid_t, numMotors> motorIDs = {0, 0}; // TODO: update this to real or realistic
     }
     #pragma endregion
 

@@ -47,13 +47,15 @@ class Intake : public frc2::SubsystemBase
         hardware::motor::TalonFX m_turnMotor 
         {
             constants::intake::intakeTurnMotorId, 
-            constants::intake::intakeTurnMotorConfig
+            constants::intake::intakeTurnMotorConfig,
+            hardware::motor::MotorType::Falcon500
         };
 
         // Motor that will drive the intake to take in fuel
         hardware::motor::TalonFX m_driveMotor
         {
             constants::intake::intakeDriveMotorId, 
-            constants::intake::intakeDriveMotorConfig
+            constants::intake::intakeDriveMotorConfig,
+            hardware::motor::MotorType::KrakenX60
         };
 };

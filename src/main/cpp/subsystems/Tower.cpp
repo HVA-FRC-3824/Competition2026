@@ -1,20 +1,14 @@
 #include "subsystems/Tower.h"
 
-Tower::Tower()
+Tower::Tower(std::function<frc::Pose2d()> poseSupplier) :
+    m_poseSupplier{poseSupplier}
 {
     m_hoodActuator.SetBounds(2.0_us, 1.8_us, 1.5_us, 1.2_us, 1.0_us);
-}
-
-void Tower::SetState(units::foot_t distance)
-{
-    SetState(Interpolate(distance));
 }
  
 void Tower::SetState(TowerState newState)
 {
-    SetFlywheel(newState.flyWheelSpeed);
-
-    SetActuator(newState.hoodActuatorPercentInput);
+    m_state = newState;
 }
 
 TowerState Tower::GetState()
@@ -22,14 +16,60 @@ TowerState Tower::GetState()
     return m_state;
 }
 
-// Starts to spin up the flywheel motor
-// This is arbitary since its 
+void Tower::Periodic()
+{
+    bool isTurretRobotRelative = true;
+    auto oldPose      = m_pose.first;
+    auto oldTimestamp = m_pose.second;
+
+    m_pose = {m_poseSupplier(), frc::GetTime()};
+
+    auto speed = ((m_pose.first - oldPose).Translation() / (m_pose.second - oldTimestamp).value());
+
+    frc::Pose3d hub = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) 
+         == frc::DriverStation::Alliance::kBlue ? constants::field::blueHub : constants::field::redHub;
+
+    switch (m_state.mode) 
+    {
+        case TowerMode::STATIC:
+            isTurretRobotRelative = true;
+            m_state.turretAngle = 0_deg;
+            m_state.hoodActuatorPercentInput = constants::tower::constantFlywheelSpeed;
+            break;
+        case TowerMode::HUB:
+            isTurretRobotRelative = false;
+            m_state = CalculateShot(
+                frc::Translation3d{m_pose.first.Translation()}.Distance(hub.Translation()), 
+                speed);
+            break;
+
+        case TowerMode::PASSING:
+            // We want to point straight towards our alliance zone
+            isTurretRobotRelative = false;
+            break;
+
+        default:
+            break;
+    }
+
+    if (isTurretRobotRelative)
+    {
+        SetTurret(m_state.turretAngle);
+    } else 
+    {
+        SetTurret(m_state.turretAngle, m_pose.first.Rotation().Degrees());
+    }
+    SetFlywheel(m_state.flyWheelSpeed);
+    SetActuator(m_state.hoodActuatorPercentInput);
+}
+
+// Spins up the flywheel motor
 void Tower::SetFlywheel(double input)
 {
     m_flywheelMotor.SetReferenceState(input, hardware::motor::MotorInput::ARBITRARY);
 }
 
-// Input 0-1
+// Activates the actuator which moves linearly to move the hood by some degreesInput 0-1
 void Tower::SetActuator(double position)
 {
     // range: 0-1
@@ -45,35 +85,25 @@ void Tower::SetActuator(double position)
 	m_hoodActuator.SetSpeed(std::clamp(position, constants::tower::ActuatorLowerBound, constants::tower::ActuatorUpperBound));
 }
 
-TowerState Tower::Interpolate(units::foot_t distance) 
+// Sets the desired angle of the turret relative to the robot
+void Tower::SetTurret(units::degree_t angle)
 {
-    // If the distance is very close, closer than we've tested, just do the closest tested shot 
-    if (distance <= experimentTables[0].distance)
-        return TowerState{experimentTables[0].flywheelInput, experimentTables[0].hoodInput};
+    // Do not allow turret to move past 360 degrees either way
+    angle = (units::degree_t) fmod(angle.value(), 360.0);
+    while (angle.value() < 0) 
+        angle += 360.0_deg;
 
-    // You have to go down from the max by 2 because 
-    // you need to look ahead to the next test in the array
-    for (int i = 0; i < experimentTables.size() - 2U; i++) 
-    {
-        TestedTowerStates a = experimentTables[i];
-        TestedTowerStates b = experimentTables[i + 1];
+    m_turretMotor.SetReferenceState(angle.value() / 360, hardware::motor::MotorInput::POSITION);
+}
 
-        // Checks if the real distance is in between the two tests
-        // if not, go to the next one
-        if (distance <= b.distance) {
-            // This represents the midpoint for interpolation
-            double t = (distance - a.distance) / (b.distance - a.distance);
+// Sets the desired angle of the turret relative to the field
+void Tower::SetTurret(units::degree_t angle, units::degree_t gyroAngle)
+{
+    SetTurret(gyroAngle - angle);
+}
 
-            // Do the actual interpolations and return
-            return TowerState{
-                std::lerp(a.flywheelInput, b.flywheelInput, t),
-                std::lerp(a.hoodInput,     b.hoodInput,     t)
-            };
-        }
-    }
-
-    // If a suitable pair isn't found, work with the most distant calculation
-    // Ideally this doesn't happen so we should work out the correct numbers from right up against the hub to about half-field
-    auto& furthestTest = experimentTables[experimentTables.size() - 1];
-    return TowerState{furthestTest.flywheelInput, furthestTest.hoodInput};
+// We're doing this via a polynomial that I dont think has been calculated yet
+TowerState Tower::CalculateShot(units::meter_t distance, frc::Translation2d speed)
+{
+    return TowerState{TowerMode::MANUAL, 0_deg, 0.0, 0.0};
 }

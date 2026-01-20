@@ -11,13 +11,13 @@
 /// @param angleMotorConversion The conversion factor for the angle motor (motor revolutions / (2 * pi)).
 SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEncoderCanId, 
                            hardware::motor::MotorConfiguration driveConfig, hardware::motor::MotorConfiguration turnConfig) :
-        m_driveMotor          {driveMotorCanId, driveConfig, frc::DCMotor::KrakenX60()}, // The MOI or moments of inertias for simulation, and its not accurate of the actual robot
-        m_angleMotor          {angleMotorCanId, turnConfig,  frc::DCMotor::KrakenX44()},
+        m_driveMotor          {driveMotorCanId, driveConfig, hardware::motor::MotorType::KrakenX60, frc::DCMotor::KrakenX60()},
+        m_angleMotor          {angleMotorCanId, turnConfig,  hardware::motor::MotorType::KrakenX44, frc::DCMotor::KrakenX44()},
         m_angleAbsoluteEncoder{angleEncoderCanId}
 
 {
     // Ensure the drive motor encoder is reset to zero
-    m_driveMotor.SetReferenceState(0, hardware::motor::MotorInput::POSITION);
+    m_driveMotor.OffsetEncoder(0);
 }
 #pragma endregion
 
@@ -102,7 +102,7 @@ void SwerveModule::ResetDriveEncoder()
 void SwerveModule::SetWheelAngleToForward(units::angle::radian_t forwardAngle)
 {
     // Ensure the drive motor encoder is reset to zero
-    m_driveMotor.SetReferenceState(0, hardware::motor::MotorInput::POSITION);
+    m_driveMotor.OffsetEncoder(0);
 
     // Set the motor angle encoder position to the forward direction
     m_angleMotor.OffsetEncoder(GetAbsoluteEncoderAngle().value() - forwardAngle.value());

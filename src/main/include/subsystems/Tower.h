@@ -4,37 +4,39 @@
 #include <functional>
 #include <numeric>
 
+#include <units/angle.h>
+#include <units/length.h>
+
 #include <frc2/command/SubsystemBase.h>
+#include <frc/DriverStation.h>
+
 #include <frc/geometry/Pose2d.h>
 
 #include <frc/Servo.h>
 
-#include <units/angle.h>
-#include <units/length.h>
+#include <photon/PhotonCamera.h>
 
 #include "lib/hardware/motors/TalonFX.h"
 
 #include "Constants.h"
 #pragma endregion
 
+
 #pragma region StateStructures
+enum TowerMode
+{
+    HUB,
+    PASSING,
+    STATIC,
+    MANUAL
+};
+
 struct TowerState
 {
-    double flyWheelSpeed;
-    double hoodActuatorPercentInput;
-};
-
-struct TestedTowerStates 
-{
-    units::foot_t distance;
-    double        hoodInput;
-    double        flywheelInput;
-};
-#pragma endregion
-
-#pragma region Data
-constexpr std::array<TestedTowerStates, 1U> experimentTables{
-    TestedTowerStates{5_ft, 1, 1}
+    TowerMode       mode;
+    units::degree_t turretAngle;
+    double          flyWheelSpeed;
+    double          hoodActuatorPercentInput;
 };
 #pragma endregion
 
@@ -42,13 +44,13 @@ class Tower : public frc2::SubsystemBase
 {
     public:
         
-        explicit Tower();
+        explicit    Tower(std::function<frc::Pose2d()> poseSupplier);
 
         void        SetState(TowerState newState);
 
-        void        SetState(units::foot_t distance);
-
         TowerState  GetState();
+
+        void        Periodic() override;
 
     private:
 
@@ -59,13 +61,26 @@ class Tower : public frc2::SubsystemBase
         // Starts to spin up the flywheel motor
         // This may need to be a -1,1 or some other kind of input
         void SetFlywheel(double input);
+        
+        // Sets the desired angle of the turret relative to the robot
+        void SetTurret(units::degree_t angle);
+        
+        // Sets the desired angle of the turret relative to the field
+        void SetTurret(units::degree_t angle, units::degree_t gyroAngle);
 
-        // Interpolates between two known working points, the std::vector should become an array once we're done testing
-        // This is temporary until polynomial method is made
-        TowerState Interpolate(units::foot_t distance);
+        TowerState CalculateShot(units::meter_t distance, frc::Translation2d speed);
 
-        hardware::motor::TalonFX m_flywheelMotor{constants::tower::flywheelMotorID, constants::tower::flywheelConfig};
-        frc::Servo               m_hoodActuator{0}; // TODO: Remove magic number
+        hardware::motor::TalonFX m_turretMotor  {constants::tower::turretMotorID,   constants::tower::turretConfig,   hardware::motor::MotorType::KrakenX60};
+        hardware::motor::TalonFX m_flywheelMotor{constants::tower::flywheelMotorID, constants::tower::flywheelConfig, hardware::motor::MotorType::KrakenX60};
+        frc::Servo               m_hoodActuator {constants::tower::actuatorID};
 
-        TowerState m_state{0, 0};
+        // Do not use this to do pose estimatation. Because its on a turret, it is unreliable
+        photon::PhotonCamera     m_turretCam{"turretCam"};
+
+        std::function<frc::Pose2d()>            m_poseSupplier;
+        std::pair<frc::Pose2d, units::second_t> m_pose;
+
+        TowerState m_state{TowerMode::STATIC, 0_deg, 0, 0};
+
+        
 };

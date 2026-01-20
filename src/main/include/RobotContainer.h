@@ -17,7 +17,6 @@
 #include "subsystems/Chassis.h"
 #include "subsystems/Indexer.h"
 #include "subsystems/Tower.h"
-#include "subsystems/Turret.h"
 #include "subsystems/Climb.h"
 #include "subsystems/Intake.h"
 
@@ -26,7 +25,6 @@
 #include "commands/LedsCommands.h"
 #include "commands/IntakeCommands.h"
 #include "commands/TowerCommands.h"
-#include "commands/TurretCommands.h"
 #include "commands/IntakeCommands.h"
 #include "commands/ClimbCommands.h"
 
@@ -59,14 +57,12 @@ class RobotContainer
         Chassis                             m_chassis{};
         Indexer                             m_indexer{};
         Leds                                m_leds{};
-        Tower                               m_tower{};
-        Turret                              m_turret{};
+        Tower                               m_tower{[&]() {return m_chassis.GetPose();}};
         Climb                               m_climb{};
         Intake                              m_intake{};
 
         // Instantiate subsystem states
-        TowerState                          m_manualTowerState {0.0, 0.0};
-        TurretState                         m_manualTurretState{TurretMode::MANUAL, 0_deg};
+        TowerState                          m_manualTowerState{TowerMode::MANUAL, 0_deg, 0.0, 0.0};
 
         RobotStatus                         m_robotStatus = RobotStatus::Idle;
 };

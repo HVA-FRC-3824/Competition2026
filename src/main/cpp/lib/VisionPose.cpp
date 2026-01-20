@@ -1,7 +1,7 @@
-#include "lib\PhotonVision.h"
+#include "lib/VisionPose.h"
 
 
-PhotonVision::PhotonVision(std::string_view           cameraName,
+VisionPose::VisionPose(std::string_view cameraName,
             frc::Transform3d            robotToCamPose,
             frc::AprilTagFieldLayout    tagLayout,
             Eigen::Matrix<double, 3, 1> singleTagStdDevs,
@@ -36,12 +36,12 @@ PhotonVision::PhotonVision(std::string_view           cameraName,
     }
 }
 
-photon::PhotonPipelineResult PhotonVision::GetLatestResult() 
+photon::PhotonPipelineResult VisionPose::GetLatestResult() 
 { 
     return m_latestResult; 
 }
 
-void PhotonVision::Periodic()
+void VisionPose::Periodic()
 {
     // Run each new pipeline result through our pose estimator
     for (const auto &result : camera.GetAllUnreadResults())
@@ -69,7 +69,7 @@ void PhotonVision::Periodic()
     }
 }
 
-Eigen::Matrix<double, 3, 1> PhotonVision::GetEstimationStdDevs(frc::Pose2d estimatedPose)
+Eigen::Matrix<double, 3, 1> VisionPose::GetEstimationStdDevs(frc::Pose2d estimatedPose)
 {
     Eigen::Matrix<double, 3, 1> estStdDevs = constants::vision::SingleTagStdDevs;
     auto                        targets    = GetLatestResult().GetTargets();
@@ -107,12 +107,12 @@ Eigen::Matrix<double, 3, 1> PhotonVision::GetEstimationStdDevs(frc::Pose2d estim
     return estStdDevs;
 }
 
-void PhotonVision::SimPeriodic(frc::Pose2d robotSimPose)
+void VisionPose::SimPeriodic(frc::Pose2d robotSimPose)
 {
     visionSim->Update(robotSimPose);
 }
 
-void PhotonVision::ResetSimPose(frc::Pose2d pose)
+void VisionPose::ResetSimPose(frc::Pose2d pose)
 {
     if (frc::RobotBase::IsSimulation())
     {
@@ -120,7 +120,7 @@ void PhotonVision::ResetSimPose(frc::Pose2d pose)
     }
 }
 
-frc::Field2d& PhotonVision::GetSimDebugField() 
+frc::Field2d& VisionPose::GetSimDebugField() 
 { 
     return visionSim->GetDebugField(); 
 }
