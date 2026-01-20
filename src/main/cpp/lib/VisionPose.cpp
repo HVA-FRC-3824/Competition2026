@@ -1,6 +1,5 @@
 #include "lib/VisionPose.h"
 
-
 VisionPose::VisionPose(std::string_view cameraName,
             frc::Transform3d            robotToCamPose,
             frc::AprilTagFieldLayout    tagLayout,

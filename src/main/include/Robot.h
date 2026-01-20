@@ -1,5 +1,6 @@
 #pragma once
 
+#pragma region Includes
 #include <hal/FRCUsageReporting.h>
 
 #include <frc/TimedRobot.h>
@@ -9,6 +10,7 @@
 #include "RobotContainer.h"
 
 #include "Constants.h"
+#pragma endregion
 
 class Robot : public frc::TimedRobot
 {

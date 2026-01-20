@@ -9,7 +9,6 @@
 #include "subsystems/Indexer.h"
 #pragma endregion
 
-
 #pragma region IndexerOn
 // This turns the indexer on
 frc2::CommandPtr IndexerOn(Indexer* intake);

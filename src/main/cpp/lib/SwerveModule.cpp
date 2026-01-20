@@ -43,10 +43,6 @@ void SwerveModule::ConfigureDriveMotor()
     slot0Configs.kV = SwerveConstants::DriveV;
     slot0Configs.kA = SwerveConstants::DriveA;
 
-    // Add the "Feedback" section settings
-    // ctre::phoenix6::configs::FeedbackConfigs &feedbackConfigs = talonFXConfiguration.Feedback;
-    // feedbackConfigs.SensorToMechanismRatio = SwerveConstants::WheelCircumference.value() / SwerveConstants::DriveMotorReduction;
-
     // Apply the configuration to the drive motor
     ctre::phoenix::StatusCode status = ctre::phoenix::StatusCode::StatusCodeNotInitialized;
     for (int attempt = 0; attempt < SwerveConstants::MotorConfigurationAttempts; attempt++)
@@ -69,7 +65,7 @@ void SwerveModule::ConfigureDriveMotor()
 /// @brief Method to configure the angle motor and encoder.
 void SwerveModule::ConfigureAngleMotor()
 {
-   // Create the Angle motor configuration
+    // Create the Angle motor configuration
     ctre::phoenix6::configs::TalonFXConfiguration talonFXConfiguration{};
 
     // Add the "Motor Output" section settings
@@ -86,10 +82,6 @@ void SwerveModule::ConfigureAngleMotor()
     slot0Configs.kP = SwerveConstants::AngleP;
     slot0Configs.kI = SwerveConstants::AngleI;
     slot0Configs.kD = SwerveConstants::AngleD;
-
-    // Add the "Feedback" section settings
-    // ctre::phoenix6::configs::FeedbackConfigs &feedbackConfigs = talonFXConfiguration.Feedback;
-    // feedbackConfigs.SensorToMechanismRatio = SwerveConstants::WheelCircumference.value() / SwerveConstants::DriveMotorReduction;
 
     // Apply the configuration to the angle motor
     ctre::phoenix::StatusCode status = ctre::phoenix::StatusCode::StatusCodeNotInitialized;

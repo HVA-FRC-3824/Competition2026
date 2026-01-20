@@ -2,7 +2,6 @@
 
 #pragma region Includes
 #include <numbers>
-#include <cmath>
 #include <iostream>
 
 #include <ctre/phoenix6/CANcoder.hpp>
@@ -10,6 +9,7 @@
 
 #include <frc/kinematics/SwerveModulePosition.h>
 #include <frc/kinematics/SwerveModuleState.h>
+#include <frc/smartdashboard/SmartDashboard.h>
 
 #include "lib/Logging.h"
 
@@ -17,6 +17,7 @@
 #include "ConstantsCanIds.h"
 #pragma endregion
 
+#pragma region SwerveModuleConstants
 namespace SwerveConstants
 {
     constexpr units::meter_t wheelCircumference = 0.319278_m;
@@ -45,6 +46,7 @@ namespace SwerveConstants
 
     constexpr int MotorConfigurationAttempts = 3;
 }
+#pragma endregion
 
 class SwerveModule
 {

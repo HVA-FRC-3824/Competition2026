@@ -8,13 +8,6 @@
 #include "Constants.h"
 #pragma endregion
 
-#pragma region Climb Constants
-namespace ClimbConstants
-{
-
-}
-#pragma endregion
-
 enum CurrentClimbState
 {
     Ground,
@@ -26,11 +19,10 @@ enum CurrentClimbState
 class Climb : public frc2::SubsystemBase
 {
     public:
+
         explicit Climb();
 
-
     private:
-        CurrentClimbState m_currentClimbState;
-        
 
+        CurrentClimbState m_currentClimbState;
 };

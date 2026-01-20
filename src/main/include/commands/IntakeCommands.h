@@ -7,9 +7,7 @@
 #include <frc2/command/WaitCommand.h>
 
 #include "subsystems/Intake.h"
-
 #pragma endregion
-
 
 // #pragma region IntakeOn
 // // This turns the intake on

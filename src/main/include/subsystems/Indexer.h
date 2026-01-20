@@ -11,6 +11,7 @@
 #include "ConstantsCanIds.h"
 #pragma endregion
 
+#pragma region IndexerConstants
 namespace IndexerConstants
 {
     constexpr size_t numMotors = 2U;
@@ -21,6 +22,7 @@ namespace IndexerConstants
         ConstantsCanIds::indexerMotor2ID
     };
 }
+#pragma endregion
 
 class Indexer : public frc2::SubsystemBase
 {
@@ -32,6 +34,8 @@ class Indexer : public frc2::SubsystemBase
         void SetMotors(double input);
 
     private:
+
+        void ConfigureMotor(ctre::phoenix6::hardware::TalonFX& motor);
 
         // array of motors for the indexers, hopefully they're all the same, 4U is how many motors there are, replace with constant
         // TODO: update this to the real design

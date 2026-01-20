@@ -1,6 +1,5 @@
 #include "commands/IndexerCommands.h"
 
-
 #pragma region IndexerOn
 // This turns the indexer on
 frc2::CommandPtr IndexerOn(Indexer* intake)

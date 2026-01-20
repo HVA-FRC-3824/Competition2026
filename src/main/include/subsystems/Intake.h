@@ -10,7 +10,21 @@
 #include "ConstantsCanIds.h"
 #pragma endregion
 
-#pragma region Intake Constants
+#pragma region IntakeEnums
+enum IntakePosition
+{
+    Stowed,
+    Deployed
+};
+
+enum IntakeState
+{
+    Inactive,
+    Active
+};
+#pragma endregion
+
+#pragma region IntakeConstants
 namespace IntakeConstants
 {
     constexpr auto IntakeMaxAngle     = 0.25_tr;   // How far the motor needs to turns
@@ -18,24 +32,12 @@ namespace IntakeConstants
 }
 #pragma endregion
 
-enum IntakePosition
-{
-    Stowed,
-    Deployed
-};
-enum IntakeState
-{
-    Inactive,
-    Active
-};
-
 class Intake : public frc2::SubsystemBase
 {
     public:
+    
         explicit Intake();
         
-        void     SetMotors();
-
         void     SetIntakePosition(IntakePosition position);
         void     DriveIntake(IntakeState state);
 
@@ -43,9 +45,13 @@ class Intake : public frc2::SubsystemBase
         IntakeState    m_intakeState;         // Current intake drive state, starts as off
 
     private:
-        // Motor that will angle the intake between 0 and 90 degrees
-        ctre::phoenix6::hardware::TalonFX m_turnMotor{ConstantsCanIds::intakeTurnMotorId};
 
-        // Motor that will drive the intake to take in fuel
-        ctre::phoenix6::hardware::TalonFX m_driveMotor{ConstantsCanIds::intakeDriveMotorId};
+        void ConfigureIntakePositonMotor();
+        void ConfigureFuelIntakeMotor();
+
+        // Motor that will extend and retract the intake (Magic motion position controlled )
+        ctre::phoenix6::hardware::TalonFX m_intakePositonMotor{ConstantsCanIds::intakeTurnMotorId};
+
+        // Motor that will drive the intake to take in fuel (Velocity PID controlled)
+        ctre::phoenix6::hardware::TalonFX m_fuelIntakeMotor{ConstantsCanIds::intakeDriveMotorId};
 };

@@ -24,15 +24,15 @@ namespace ConstantsCanIds
     constexpr CANid_t backRightTurnCANid     = 22;
     constexpr CANid_t backRightEncoderCANid  = 23;
 
-    constexpr CANid_t intakeTurnMotorId      = 0;
-    constexpr CANid_t intakeDriveMotorId     = 0;
+    constexpr CANid_t intakeTurnMotorId      = 30;
+    constexpr CANid_t intakeDriveMotorId     = 31;
 
-    constexpr CANid_t turretMotorID          = 0;
+    constexpr CANid_t turretMotorID          = 40;
 
-    constexpr CANid_t actuatorID             = 0;
-    constexpr CANid_t flywheelMotorID        = 0;
+    constexpr CANid_t actuatorID             = 50;
+    constexpr CANid_t flywheelMotorID        = 51;
 
-    constexpr CANid_t indexerMotor1ID         = 0;
-    constexpr CANid_t indexerMotor2ID         = 0;
+    constexpr CANid_t indexerMotor1ID        = 60;
+    constexpr CANid_t indexerMotor2ID        = 61;
 }
 #pragma endregion

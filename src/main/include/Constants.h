@@ -2,18 +2,15 @@
 
 #pragma region Includes
 #include <array>
-#include <numbers>
 
 #include <units/base.h>
 #include <units/angle.h>
 #include <units/angular_velocity.h>
 #include <units/velocity.h>
 #include <units/length.h>
-#include <units/voltage.h>
 
 #include <frc/geometry/Transform3d.h>
 #include <frc/apriltag/AprilTagFieldLayout.h>
-#include <frc/smartdashboard/SmartDashboard.h>
 #pragma endregion
 
 typedef int Button;
@@ -25,59 +22,6 @@ namespace constants
     {
         constexpr frc::Pose3d blueHub{182.11_in,             158.84_in, 72_in, frc::Rotation3d(0_deg)};
         constexpr frc::Pose3d redHub {325.61_in + 143.50_in, 158.84_in, 72_in, frc::Rotation3d(0_deg)};
-    }
-    #pragma endregion
-
-    #pragma region Swerve
-    namespace swerve
-    {
-        // NOTE: The absolute encoder range is 0.5 to -0.5
-
-        // These are the angles that correspond to the wheels facing "forward"
-        constexpr units::turn_t frontRightForwardAngle{-0.193604};
-        constexpr units::turn_t frontLeftForwardAngle {-0.422119};
-        constexpr units::turn_t rearRightForwardAngle {-0.174561};
-        constexpr units::turn_t rearLeftForwardAngle  { 0.268555};
-
-        // These make sure to limit how fast the robot can go
-        constexpr units::meters_per_second_t                    maxSpeed          {4};
-        constexpr units::angular_velocity::radians_per_second_t maxAngularVelocity{2 * std::numbers::pi};
-
-        // The physical dimensions of the robot
-        constexpr units::meter_t wheelBase {25.0};
-        constexpr units::meter_t trackWidth{25.0};
-    }
-    #pragma endregion
-
-    #pragma region Tower
-    namespace tower
-    {
-        // This is -1 to 1, really 0 to 1
-        constexpr double constantFlywheelSpeed = 0.8;
-    
-        // TODO: test these angles, likely isn't correct as we have a different than the bot, team 102 in 2022, I got it from
-        constexpr units::degree_t MinAngle = 0_deg;
-        constexpr units::degree_t MaxAngle = 50_deg;
-    
-        // TODO: test these lengths, they're most likely accurate
-        // I got these from team 102 from 2022, they used the same actuator
-        constexpr units::inch_t   MaxLength = 14.336_in;
-        constexpr units::inch_t   MinLength = 8.946_in;
-
-        // Comes from 102 too
-        constexpr double          ActuatorLowerBound = -0.95;
-        constexpr double          ActuatorUpperBound =  0.95;
-    }
-    #pragma endregion
-
-    #pragma region Intake
-    namespace intake
-    {
-        // TODO: These need to be tuned
-        // Config for motor that will angle the intake between 0 and 90 degrees
-
-        // TODO: These need to be tuned
-        // Config for motor that will drive the intake
     }
     #pragma endregion
 

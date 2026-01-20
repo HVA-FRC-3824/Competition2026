@@ -18,7 +18,8 @@ frc2::CommandPtr ChassisZeroHeading(Chassis *chassis)
 /// @brief A command that toggles in between XMode and driving mode
 frc2::CommandPtr ChassisXMode(Chassis *chassis)
 {
-    static wpi::array<frc::SwerveModuleState, 4> XStates{
+    static wpi::array<frc::SwerveModuleState, 4> XStates
+    {
         frc::SwerveModuleState{0_mps, 315_deg}, // FL
         frc::SwerveModuleState{0_mps, 45_deg},  // FR
         frc::SwerveModuleState{0_mps, 45_deg},  // BL
