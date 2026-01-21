@@ -12,7 +12,7 @@
 
 #include <photon/PhotonCamera.h>
 
-#include "lib/Leds.h"
+#include "subsystems/Leds.h"
 
 #include "subsystems/Chassis.h"
 #include "subsystems/Indexer.h"
@@ -39,6 +39,8 @@ class RobotContainer
         // Method that returns a pointer to the singleton instance of the RobotContainer class
         static RobotContainer *GetInstance();
 
+        
+
     private:
 
         // Static pointer to singleton instance
@@ -64,5 +66,5 @@ class RobotContainer
         // Instantiate subsystem states
         TowerState                          m_manualTowerState{TowerMode::MANUAL, 0_deg, 0.0, 0.0};
 
-        RobotStatus                         m_robotStatus = RobotStatus::Idle;
+        LedMode                             m_robotStatus = LedMode::Off;
 };

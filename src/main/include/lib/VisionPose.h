@@ -1,5 +1,6 @@
 #pragma once
 
+#pragma region Includes
 #include <photon/PhotonCamera.h>
 #include <photon/PhotonPoseEstimator.h>
 #include <photon/simulation/VisionSystemSim.h>
@@ -13,6 +14,7 @@
 #include <frc/RobotBase.h>
 
 #include "Constants.h"
+#pragma endregion
 
 class VisionPose
 {

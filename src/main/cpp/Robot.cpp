@@ -23,6 +23,7 @@ void Robot::RobotPeriodic()
     // Run the command scheduler
     frc2::CommandScheduler::GetInstance().Run();
 
+    // Check which hub is active
     std::string gameData;
     gameData = frc::DriverStation::GetGameSpecificMessage();
 
@@ -53,6 +54,15 @@ void Robot::RobotPeriodic()
     {
         //Code for no data received yet
     }
+
+    SetLedState();
+}
+#pragma endregion
+
+#pragma region SetLedState
+void Robot::SetLedState()
+{
+    
 }
 #pragma endregion
 

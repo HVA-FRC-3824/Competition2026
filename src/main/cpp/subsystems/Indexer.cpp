@@ -1,22 +1,6 @@
 #include "subsystems/Indexer.h"
 
-#pragma region Constructor
-/// @brief Constructor for the Indexer subsystem
-Indexer::Indexer() : m_motors{ctre::phoenix6::hardware::TalonFX{IndexerConstants::motorIDs[0]},
-                              ctre::phoenix6::hardware::TalonFX{IndexerConstants::motorIDs[1]}}
-{
-    // Configure each motor in the indexer
-    for (auto& motor : m_motors) 
-    {
-        // Configure the motor settings
-        ConfigureMotor(motor);
-    }
-}
-#pragma endregion
-
-#pragma region ConfigureMotor
-/// @brief Configures the motor settings for the indexer motors
-void Indexer::ConfigureMotor(ctre::phoenix6::hardware::TalonFX& motor)
+Indexer::Indexer()
 {
 
 }

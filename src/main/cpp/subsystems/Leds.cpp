@@ -1,4 +1,4 @@
-#include "lib/Leds.h"
+#include "subsystems/Leds.h"
 
 using namespace std;
 
@@ -24,7 +24,6 @@ Leds::Leds()
 /// @brief This method will be called once periodically.
 void Leds::Periodic()
 {
-    /*
     switch (m_ledMode)
     {
         case LedMode::Off:
@@ -53,29 +52,7 @@ void Leds::Periodic()
             m_scrollingRainbow.ApplyTo(m_ledBuffer);
             break;
         }
-            
     }
-    */
-
-    // // Switch based on robot status
-    // switch (m_robotStatus)
-    // {
-    //     // TODO: Create & assign functions to each status
-    //     case RobotStatus::Idle:
-    //         break;
-
-    //     case RobotStatus::Climbing:
-    //         SetMode(LedMode::SolidRed);
-    //         break;
-
-    //     case RobotStatus::Driving:
-    //         m_driving.ApplyTo(m_ledBuffer);
-    //         break;
-            
-    //     case RobotStatus::Shooting:
-    //         m_shooting.ApplyTo(m_ledBuffer);
-    //         break;
-    // }
 
     // Set the LEDs
     m_led.SetData(m_ledBuffer);
@@ -89,8 +66,6 @@ void Leds::SetMode(LedMode ledMode)
 {
     // Remember the LED mode
     m_ledMode = ledMode;
-
-return;
 
     // Set the LEDs based on the LED mode
     switch (m_ledMode)
@@ -123,16 +98,6 @@ return;
 
     // Set the LEDs
     m_led.SetData(m_ledBuffer);
-}
-#pragma endregion
-
-#pragma region SetStatus
-/// @brief  Set the status of the robot
-/// @param robotStatus Robotstatus enum
-void Leds::SetStatus(RobotStatus robotStatus)
-{
-    // Remember the robotstatus
-    m_robotStatus = robotStatus;
 }
 #pragma endregion
 

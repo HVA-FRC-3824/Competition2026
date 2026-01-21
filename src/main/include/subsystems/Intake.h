@@ -11,16 +11,12 @@
 #pragma endregion
 
 #pragma region IntakeEnums
-enum IntakePosition
-{
-    Stowed,
-    Deployed
-};
-
 enum IntakeState
 {
-    Inactive,
-    Active
+    Stowed,
+
+    DeployedRollerOn,
+    DeployedRollerOff
 };
 #pragma endregion
 
@@ -38,10 +34,8 @@ class Intake : public frc2::SubsystemBase
     
         explicit Intake();
         
-        void     SetIntakePosition(IntakePosition position);
         void     DriveIntake(IntakeState state);
 
-        IntakePosition m_intakePosition;      // Current intake position, starts at stowed(0 rotations)(set in constructor)
         IntakeState    m_intakeState;         // Current intake drive state, starts as off
 
     private:

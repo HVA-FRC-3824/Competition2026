@@ -128,11 +128,11 @@ void Tower::Periodic()
     // Calculate the speed of the robot based on the change in pose over time
     auto speed = ((m_pose.first - oldPose).Translation() / (m_pose.second - oldTimestamp).value());
 
-    // Determine the hub position based on the alliance color
-    frc::Pose3d hub = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) 
-         == frc::DriverStation::Alliance::kBlue ? constants::field::blueHub : constants::field::redHub;
+    // Does not need to be initialized every cycle, 
+    static bool isBlue = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) == frc::DriverStation::Alliance::kBlue;
 
-    // Decide what to do based on the current mode
+    frc::Pose3d hub = isBlue ? constants::field::blueHub : constants::field::redHub;
+
     switch (m_state.mode) 
     {
         case TowerMode::STATIC:
@@ -148,7 +148,13 @@ void Tower::Periodic()
         {
             // Aim at the hub
             isTurretRobotRelative = false;
-            m_state = CalculateShot(frc::Translation3d{m_pose.first.Translation()}.Distance(hub.Translation()), speed);
+            m_state = CalculateShot(
+                frc::Translation3d{m_pose.first.Translation()}.Distance(hub.Translation()), 
+                speed);
+
+            auto relativeDistance = hub.ToPose2d().Translation() - m_pose.first.Translation();
+
+            m_state.turretAngle = 57.2958_deg * std::atan2(relativeDistance.Y().value(), relativeDistance.X().value());
             break;
         }
 
@@ -156,6 +162,8 @@ void Tower::Periodic()
         {
             // Point straight towards our alliance zone
             isTurretRobotRelative = false;
+            // m_state = CalculateShot(frc::Translation2d);
+            m_state.turretAngle   = 180_deg; // Gyro SHOULD be 0_deg when facing opposite side, so 180_deg when facing ours
             break;
         }
 
