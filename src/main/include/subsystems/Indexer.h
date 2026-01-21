@@ -39,5 +39,8 @@ class Indexer : public frc2::SubsystemBase
 
         // array of motors for the indexers, hopefully they're all the same, 4U is how many motors there are, replace with constant
         // TODO: update this to the real design
-        std::array<ctre::phoenix6::hardware::TalonFX, IndexerConstants::numMotors> m_motors;
+        std::array<ctre::phoenix6::hardware::TalonFX, IndexerConstants::numMotors> m_motors{
+            ctre::phoenix6::hardware::TalonFX{IndexerConstants::motorIDs[0]},
+            ctre::phoenix6::hardware::TalonFX{IndexerConstants::motorIDs[1]}
+        };
 };

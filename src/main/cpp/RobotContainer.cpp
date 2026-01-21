@@ -26,8 +26,8 @@ RobotContainer::RobotContainer()
 {
     // // Configure the chassis default command
     m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetChassisSpeeds()));
-    m_leds.SetDefaultCommand(SetLedStatus(&m_leds, [&]() { return m_robotStatus;}));
-
+    m_leds.SetDefaultCommand(SetLedStatus(&m_leds, [this]() { return m_robotStatus;}));
+  
     // ******************* //
     // * DRIVER CONTROLS * //
     // ******************* //
@@ -37,7 +37,7 @@ RobotContainer::RobotContainer()
     {
         {constants::controller::A,           ChassisZeroHeading(&m_chassis)},
         {constants::controller::B,           FlipFieldCentricity(&m_chassis)},
-        {constants::controller::Y,           frc2::InstantCommand{ [&]() {m_robotStatus = RobotStatus::Shooting;}, {&m_leds} }.ToPtr()},
+        {constants::controller::Y,           frc2::InstantCommand{ [&] {m_robotStatus;}, {&m_leds} }.ToPtr()},
         {constants::controller::X,           ChassisXMode(&m_chassis)}, // Toggle
         {constants::controller::LeftBumper,  frc2::WaitCommand{1_s}.ToPtr()}, // When pressed, shoot one ball
     };
@@ -47,6 +47,8 @@ RobotContainer::RobotContainer()
     {
         frc2::JoystickButton(&m_driveController, int(button)).OnTrue(std::move(command));
     }
+
+    // frc2::JoystickButton(&m_driveController, constants::controller::A).OnTrue(new frc2::InstantCommand{[this] { m_chassis.ZeroHeading(); }, {&m_chassis}});
 
     // ********************* //
     // * OPERATOR CONTROLS * //
@@ -58,11 +60,11 @@ RobotContainer::RobotContainer()
     // ********** //
 
 
-    cs::UsbCamera camera = frc::CameraServer::StartAutomaticCapture();
+    // cs::UsbCamera camera = frc::CameraServer::StartAutomaticCapture();
 
-    // Set the resolution and frame rate of the camera
-    camera.SetResolution(640, 480); // Set resolution to 640x480
-    camera.SetFPS(30);             // Set frame rate to 30 FPS
+    // // Set the resolution and frame rate of the camera
+    // camera.SetResolution(640, 480); // Set resolution to 640x480
+    // camera.SetFPS(30);             // Set frame rate to 30 FPS
 }
 #pragma endregion
 

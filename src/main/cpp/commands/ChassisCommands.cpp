@@ -5,10 +5,18 @@
 /// @param chassis A pointer to the chassis subsystem.
 /// @return A CommandPtr that resets the gyro yaw to zero.
 frc2::CommandPtr ChassisZeroHeading(Chassis *chassis)
-{
+{       
+    Log("Chassis Zero Heading Called Firt ", 0);
+    frc::SmartDashboard::PutNumber("Chassis Zero Heading Calledsada ", 0);
+    static int numCalled = 0;
     // Create and return a InstantCommand that resets the gyro yaw
     return frc2::InstantCommand{
-        [chassis] () { chassis->ZeroHeading(); },
+        [=] () { 
+            numCalled++;
+            chassis->ZeroHeading();
+            Log("Chassis Zero Heading Called ", numCalled);
+            frc::SmartDashboard::PutNumber("Chassis Zero Heading Called ", numCalled);
+        },
         { chassis } // Requirements (subsystems required by this command)
     }.ToPtr();
 }
@@ -27,7 +35,7 @@ frc2::CommandPtr ChassisXMode(Chassis *chassis)
     };
 
     return frc2::InstantCommand{
-            [&]() {
+            [=] {
                 if (!chassis->GetXMode())
                 {
                     chassis->SetModuleStates(XStates);
@@ -125,3 +133,4 @@ frc2::CommandPtr AlignToNearestTag(Chassis *chassis, frc::Transform2d targetOffs
     return ChassisDrivePose(chassis, targetWithOffset);
 }
 #pragma endregion
+

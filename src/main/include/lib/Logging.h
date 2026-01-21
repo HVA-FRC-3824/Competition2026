@@ -11,14 +11,19 @@
 #include <frc/kinematics/SwerveModulePosition.h>
 #pragma endregion
 
-inline void Log(std::string_view name, double value)
-{
-    nt::NetworkTableInstance::GetDefault().GetEntry(name).SetDouble(value);
-}
-
 inline void Log(std::string_view name, bool value)
 {
     nt::NetworkTableInstance::GetDefault().GetEntry(name).SetBoolean(value);
+}
+
+inline void Log(std::string_view name, int value)
+{
+    nt::NetworkTableInstance::GetDefault().GetEntry(name).SetInteger(value);
+}
+
+inline void Log(std::string_view name, double value)
+{
+    nt::NetworkTableInstance::GetDefault().GetEntry(name).SetDouble(value);
 }
 
 inline void Log(std::string_view name, std::string_view value)

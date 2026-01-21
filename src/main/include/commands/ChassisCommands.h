@@ -38,6 +38,7 @@ frc2::CommandPtr ChassisDrivePose(Chassis* chassis, std::string CommandName);
 /// @param targetPose The target pose to drive to. End goal state relative to the origin, blue alliance side.
 /// @return A CommandPtr that drives the chassis to the specified pose.
 frc2::CommandPtr ChassisDrivePose(Chassis* chassis, frc::Pose2d targetPose);
+// TODO: implement, trajectoryGenerator in FRC lib AND Pathplanner
 
 /// @brief Creates a command to flip the field centricity of the chassis.
 /// @param chassis A pointer to the chassis subsystem.

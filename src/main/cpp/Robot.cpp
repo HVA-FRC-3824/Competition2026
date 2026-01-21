@@ -54,15 +54,6 @@ void Robot::RobotPeriodic()
     {
         //Code for no data received yet
     }
-
-    SetLedState();
-}
-#pragma endregion
-
-#pragma region SetLedState
-void Robot::SetLedState()
-{
-    
 }
 #pragma endregion
 

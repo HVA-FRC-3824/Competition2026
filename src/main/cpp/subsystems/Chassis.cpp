@@ -54,6 +54,7 @@ void Chassis::DriveRobotRelative(const frc::ChassisSpeeds& speeds)
     // unless we're not in x mode, then we don't want to be in x mode
     if (m_isXMode)
     {
+        // TODO: set to x mode
         return;
     }
 
@@ -61,7 +62,7 @@ void Chassis::DriveRobotRelative(const frc::ChassisSpeeds& speeds)
     m_desiredSpeeds = speeds;
 
     // Save the desired states for use and logging later
-    m_desiredStates = m_kinematics.ToSwerveModuleStates(m_isFieldRelative ? frc::ChassisSpeeds::FromFieldRelativeSpeeds(speeds, GetHeading()) : speeds);
+    m_desiredStates = m_kinematics.ToSwerveModuleStates(speeds);
 
     // Set the desired state for each swerve module
     SetModuleStates(m_desiredStates);
@@ -89,6 +90,9 @@ void Chassis::ZeroHeading()
 {
     // Zero the gyro heading
     m_gyro.Reset();
+    static int numCalled = 0;
+    numCalled++;
+    Log("Zero Heading Called ", numCalled);
 }
 #pragma endregion
 

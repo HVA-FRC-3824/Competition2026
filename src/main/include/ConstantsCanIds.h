@@ -5,6 +5,7 @@ typedef int CANid_t;
 #pragma region ConstantsCanIds
 namespace ConstantsCanIds
 {
+    // CAN IDs
     const     auto CanBus                    = "rio";
 
     // Swerve motor and encoders CAN IDs
@@ -29,10 +30,12 @@ namespace ConstantsCanIds
 
     constexpr CANid_t turretMotorID          = 40;
 
-    constexpr CANid_t actuatorID             = 50;
     constexpr CANid_t flywheelMotorID        = 51;
 
     constexpr CANid_t indexerMotor1ID        = 60;
     constexpr CANid_t indexerMotor2ID        = 61;
+
+    // PWM Ports
+    constexpr int actuatorID             = 2;
 }
 #pragma endregion
