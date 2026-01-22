@@ -6,92 +6,33 @@
 Tower::Tower(std::function<frc::Pose2d()> poseSupplier) :  m_poseSupplier{poseSupplier}
 {
     // Configure the tower motors
-    ConfigureTurretMotor();
-    ConfigureFlywheelMotor();
+    TalonFXConfiguration(&m_turretMotor,
+                          TowerConstants::AngleMaximumAmperage,
+                          true,
+                          TowerConstants::AngleP,
+                          TowerConstants::AngleI,
+                          TowerConstants::AngleD,
+                          0.0,
+                          0.0,
+                          0.0,
+                          0_tps,
+                          units::turns_per_second_squared_t{0});
+
+    TalonFXConfiguration(&m_flywheelMotor,
+                          TowerConstants::FlywheelMaximumAmperage,
+                          true,
+                          TowerConstants::FlywheelP,
+                          TowerConstants::FlywheelI,
+                          TowerConstants::FlywheelD,
+                          0.0,
+                          0.0,
+                          0.0,
+                          0_tps,
+                          units::turns_per_second_squared_t{0});
 
     // Initialize the pose with the current pose and timestamp
     m_hoodActuator.SetBounds(2.0_us, 1.8_us, 1.5_us, 1.2_us, 1.0_us);
 }
-#pragma endregion
- 
-#pragma region ConfigureTurretMotor
-/// @brief Configures the turret motor settings. Position PID (typicaly just PD for position control)
-void Tower::ConfigureTurretMotor()
-{
-    // Create the Angle motor configuration
-    ctre::phoenix6::configs::TalonFXConfiguration talonFXConfiguration{};
-
-    // Add the "Motor Output" section settings
-    ctre::phoenix6::configs::MotorOutputConfigs &motorOutputConfigs = talonFXConfiguration.MotorOutput;
-    motorOutputConfigs.NeutralMode = ctre::phoenix6::signals::NeutralModeValue::Brake;
-
-    // Add the "Current Limits" section settings
-    ctre::phoenix6::configs::CurrentLimitsConfigs &currentLimitsConfigs = talonFXConfiguration.CurrentLimits;
-    currentLimitsConfigs.StatorCurrentLimit       = TowerConstants::AngleMaximumAmperage;
-    currentLimitsConfigs.StatorCurrentLimitEnable = true;
-
-    // Add the "Slot0" section settings
-    ctre::phoenix6::configs::Slot0Configs &slot0Configs = talonFXConfiguration.Slot0;
-    slot0Configs.kP = TowerConstants::AngleP;
-    slot0Configs.kI = TowerConstants::AngleI;
-    slot0Configs.kD = TowerConstants::AngleD;
-
-    // Apply the configuration to the Angle motor
-    ctre::phoenix::StatusCode status = ctre::phoenix::StatusCode::StatusCodeNotInitialized;
-    for (int attempt = 0; attempt < TowerConstants::MotorConfigurationAttempts; attempt++)
-    {
-        // Apply the configuration to the Angle motor
-        status = m_turretMotor.GetConfigurator().Apply(talonFXConfiguration);
-
-        // Check if the configuration was successful
-        if (status.IsOK())
-           break;
-    }
-
-    // Determine if the last configuration load was successful
-    if (!status.IsOK())
-        std::cout << "***** ERROR: Could not configure Tower Angle motor. Error: " << status.GetName() << std::endl;
-}
-#pragma endregion
-
-#pragma region ConfigureFlywheelMotor
-/// @brief Configures the flywheel motor settings
-void Tower::ConfigureFlywheelMotor()
-{
-    // Create the Flywheel motor configuration
-    ctre::phoenix6::configs::TalonFXConfiguration talonFXConfiguration{};
-
-    // Add the "Motor Output" section settings
-    ctre::phoenix6::configs::MotorOutputConfigs &motorOutputConfigs = talonFXConfiguration.MotorOutput;
-    motorOutputConfigs.NeutralMode = ctre::phoenix6::signals::NeutralModeValue::Brake;
-
-    // Add the "Current Limits" section settings
-    ctre::phoenix6::configs::CurrentLimitsConfigs &currentLimitsConfigs = talonFXConfiguration.CurrentLimits;
-    currentLimitsConfigs.StatorCurrentLimit       = TowerConstants::FlywheelMaximumAmperage;
-    currentLimitsConfigs.StatorCurrentLimitEnable = true;
-
-    // Add the "Slot0" section settings
-    ctre::phoenix6::configs::Slot0Configs &slot0Configs = talonFXConfiguration.Slot0;
-    slot0Configs.kP = TowerConstants::FlywheelP;
-    slot0Configs.kI = TowerConstants::FlywheelI;
-    slot0Configs.kD = TowerConstants::FlywheelD;
-
-    // Apply the configuration to the Flywheel motor
-    ctre::phoenix::StatusCode status = ctre::phoenix::StatusCode::StatusCodeNotInitialized;
-    for (int attempt = 0; attempt < TowerConstants::MotorConfigurationAttempts; attempt++)
-    {
-        // Apply the configuration to the Flywheel motor
-        status = m_flywheelMotor.GetConfigurator().Apply(talonFXConfiguration);
-
-        // Check if the configuration was successful
-        if (status.IsOK())
-           break;
-    }
-
-    // Determine if the last configuration load was successful
-    if (!status.IsOK())
-        std::cout << "***** ERROR: Could not configure swerve motor. Error: " << status.GetName() << std::endl;
-}   
 #pragma endregion
 
 #pragma region SetState
@@ -131,11 +72,11 @@ void Tower::Periodic()
     // Does not need to be initialized every cycle, 
     static bool isBlue = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) == frc::DriverStation::Alliance::kBlue;
 
-    frc::Pose3d hub = isBlue ? constants::field::blueHub : constants::field::redHub;
+    frc::Pose3d Hub = isBlue ? constants::field::blueHub : constants::field::redHub;
 
     switch (m_state.mode) 
     {
-        case TowerMode::STATIC:
+        case TowerMode::Static:
         {
             // Keep turret at 0 degrees relative to robot
             isTurretRobotRelative            = true;
@@ -144,21 +85,21 @@ void Tower::Periodic()
             break;
         }
 
-        case TowerMode::HUB:
+        case TowerMode::Hub:
         {
-            // Aim at the hub
+            // Aim at the Hub
             isTurretRobotRelative = false;
             m_state = CalculateShot(
-                frc::Translation3d{m_pose.first.Translation()}.Distance(hub.Translation()), 
+                frc::Translation3d{m_pose.first.Translation()}.Distance(Hub.Translation()), 
                 speed);
 
-            auto relativeDistance = hub.ToPose2d().Translation() - m_pose.first.Translation();
+            auto relativeDistance = Hub.ToPose2d().Translation() - m_pose.first.Translation();
 
             m_state.turretAngle = 57.2958_deg * std::atan2(relativeDistance.Y().value(), relativeDistance.X().value());
             break;
         }
 
-        case TowerMode::PASSING:
+        case TowerMode::Passing:
         {
             // Point straight towards our alliance zone
             isTurretRobotRelative = false;
@@ -250,6 +191,6 @@ void Tower::SetTurret(units::degree_t angle, units::degree_t gyroAngle)
 /// @param speed The speed of the target or robot
 TowerState Tower::CalculateShot(units::meter_t distance, frc::Translation2d speed)
 {
-    return TowerState{TowerMode::MANUAL, 0_deg, 0.0, 0.0};
+    return TowerState{TowerMode::Manual, 0_deg, 0.0, 0.0};
 }
 #pragma endregion

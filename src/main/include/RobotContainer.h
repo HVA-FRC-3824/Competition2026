@@ -15,17 +15,16 @@
 #include "subsystems/Leds.h"
 
 #include "subsystems/Chassis.h"
-#include "subsystems/Indexer.h"
+#include "subsystems/Spindexer.h"
 #include "subsystems/Tower.h"
 #include "subsystems/Climb.h"
 #include "subsystems/Intake.h"
 
 #include "commands/ChassisCommands.h"
-#include "commands/IndexerCommands.h"
+#include "commands/IntakeCommands.h"
 #include "commands/LedsCommands.h"
-#include "commands/IntakeCommands.h"
+#include "commands/SpindexerCommands.h"
 #include "commands/TowerCommands.h"
-#include "commands/IntakeCommands.h"
 #include "commands/ClimbCommands.h"
 
 #include "Constants.h"
@@ -38,8 +37,6 @@ class RobotContainer
 
         // Method that returns a pointer to the singleton instance of the RobotContainer class
         static RobotContainer *GetInstance();
-
-        
 
     private:
 
@@ -57,14 +54,14 @@ class RobotContainer
 
         // Instantiate the robot subsystems
         Chassis                             m_chassis{};
-        Indexer                             m_indexer{};
+        Spindexer                           m_indexer{};
         Leds                                m_leds{};
         Tower                               m_tower{[&]() {return m_chassis.GetPose();}};
         Climb                               m_climb{};
         Intake                              m_intake{};
 
         // Instantiate subsystem states
-        TowerState                          m_manualTowerState{TowerMode::MANUAL, 0_deg, 0.0, 0.0};
+        TowerState                          m_manualTowerState{TowerMode::Manual, 0_deg, 0.0, 0.0};
 
         LedMode                             m_robotStatus = LedMode::Off;
 };

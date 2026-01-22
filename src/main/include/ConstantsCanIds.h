@@ -32,8 +32,8 @@ namespace ConstantsCanIds
 
     constexpr CANid_t flywheelMotorID        = 51;
 
-    constexpr CANid_t indexerMotor1ID        = 60;
-    constexpr CANid_t indexerMotor2ID        = 61;
+    constexpr CANid_t spinnerMotorID         = 60;
+    constexpr CANid_t kickerMotorID          = 61;
 
     // PWM Ports
     constexpr int actuatorID             = 2;

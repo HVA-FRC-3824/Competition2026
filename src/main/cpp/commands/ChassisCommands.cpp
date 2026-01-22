@@ -5,18 +5,11 @@
 /// @param chassis A pointer to the chassis subsystem.
 /// @return A CommandPtr that resets the gyro yaw to zero.
 frc2::CommandPtr ChassisZeroHeading(Chassis *chassis)
-{       
-    Log("Chassis Zero Heading Called Firt ", 0);
-    frc::SmartDashboard::PutNumber("Chassis Zero Heading Calledsada ", 0);
-    static int numCalled = 0;
+{
+    
     // Create and return a InstantCommand that resets the gyro yaw
     return frc2::InstantCommand{
-        [=] () { 
-            numCalled++;
-            chassis->ZeroHeading();
-            Log("Chassis Zero Heading Called ", numCalled);
-            frc::SmartDashboard::PutNumber("Chassis Zero Heading Called ", numCalled);
-        },
+        [=] () {chassis->ZeroHeading();},
         { chassis } // Requirements (subsystems required by this command)
     }.ToPtr();
 }
@@ -26,22 +19,13 @@ frc2::CommandPtr ChassisZeroHeading(Chassis *chassis)
 /// @brief A command that toggles in between XMode and driving mode
 frc2::CommandPtr ChassisXMode(Chassis *chassis)
 {
-    static wpi::array<frc::SwerveModuleState, 4> XStates
-    {
-        frc::SwerveModuleState{0_mps, 315_deg}, // FL
-        frc::SwerveModuleState{0_mps, 45_deg},  // FR
-        frc::SwerveModuleState{0_mps, 45_deg},  // BL
-        frc::SwerveModuleState{0_mps, 315_deg}  // BR
-    };
-
     return frc2::InstantCommand{
             [=] {
                 if (!chassis->GetXMode())
                 {
-                    chassis->SetModuleStates(XStates);
                     chassis->SetXMode(true);
                 } 
-                else 
+                else
                 {
                     chassis->SetXMode(false);
                 }

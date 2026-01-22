@@ -49,6 +49,14 @@ namespace ChassisConstants
     // The physical dimensions of the robot
     constexpr units::meter_t wheelBase {25.0};
     constexpr units::meter_t trackWidth{25.0};
+
+    constexpr wpi::array<frc::SwerveModuleState, 4> xStates
+    {
+        frc::SwerveModuleState{0_mps, 315_deg}, // FL
+        frc::SwerveModuleState{0_mps, 45_deg},  // FR
+        frc::SwerveModuleState{0_mps, 45_deg},  // BL
+        frc::SwerveModuleState{0_mps, 315_deg}  // BR
+    };
 }
 #pragma endregion
 

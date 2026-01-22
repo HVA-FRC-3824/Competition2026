@@ -23,7 +23,7 @@ void Robot::RobotPeriodic()
     // Run the command scheduler
     frc2::CommandScheduler::GetInstance().Run();
 
-    // Check which hub is active
+    // Check which Hub is active
     std::string gameData;
     gameData = frc::DriverStation::GetGameSpecificMessage();
 

@@ -6,6 +6,8 @@
 #include <ctre/phoenix6/TalonFX.hpp>
 #include <frc2/command/SubsystemBase.h>
 
+#include "lib/TalonFXConfiguration.h"
+
 #include "Constants.h"
 #include "ConstantsCanIds.h"
 #pragma endregion
@@ -34,7 +36,7 @@ class Intake : public frc2::SubsystemBase
     
         explicit Intake();
         
-        void     DriveIntake(IntakeState state);
+        void     SetState(IntakeState newState);
 
         IntakeState    m_intakeState;         // Current intake drive state, starts as off
 
@@ -43,7 +45,7 @@ class Intake : public frc2::SubsystemBase
         void ConfigureIntakePositonMotor();
         void ConfigureFuelIntakeMotor();
 
-        // Motor that will extend and retract the intake (Magic motion position controlled )
+        // Motor that will extend and retract the intake (Magic motion position controlled)
         ctre::phoenix6::hardware::TalonFX m_intakePositonMotor{ConstantsCanIds::intakeTurnMotorId};
 
         // Motor that will drive the intake to take in fuel (Velocity PID controlled)

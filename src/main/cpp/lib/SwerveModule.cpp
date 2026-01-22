@@ -10,94 +10,32 @@ SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEn
         m_angleMotor          {angleMotorCanId},
         m_angleAbsoluteEncoder{angleEncoderCanId}
 {
-    // Configure the drive and angle motors
-    ConfigureDriveMotor();
-    ConfigureAngleMotor();
+    TalonFXConfiguration(&m_driveMotor,
+                          SwerveConstants::DriveMaximumAmperage,
+                          true,
+                          SwerveConstants::DriveP,
+                          SwerveConstants::DriveI,
+                          SwerveConstants::DriveD,
+                          0.0,
+                          SwerveConstants::DriveV,
+                          SwerveConstants::DriveA,
+                          0_tps,
+                          units::turns_per_second_squared_t{0});
+
+    TalonFXConfiguration(&m_angleMotor,
+                          SwerveConstants::AngleMaximumAmperage,
+                          true,
+                          SwerveConstants::AngleP,
+                          SwerveConstants::AngleI,
+                          SwerveConstants::AngleD,
+                          0.0,
+                          0.0,
+                          0.0,
+                          0_tps,
+                          units::turns_per_second_squared_t{0});
 
     // Ensure the drive motor encoder is reset to zero
     m_driveMotor.SetPosition(0.0_tr);
-}
-#pragma endregion
-
-#pragma region ConfigureDriveMotor
-/// @brief Method to configure the drive motor.
-void SwerveModule::ConfigureDriveMotor()
-{
-    // Create the drive motor configuration
-    ctre::phoenix6::configs::TalonFXConfiguration talonFXConfiguration{};
-
-    // Add the "Motor Output" section settings
-    ctre::phoenix6::configs::MotorOutputConfigs &motorOutputConfigs = talonFXConfiguration.MotorOutput;
-    motorOutputConfigs.NeutralMode = ctre::phoenix6::signals::NeutralModeValue::Brake;
-
-    // Add the "Current Limits" section settings
-    ctre::phoenix6::configs::CurrentLimitsConfigs &currentLimitsConfigs = talonFXConfiguration.CurrentLimits;
-    currentLimitsConfigs.StatorCurrentLimit       = SwerveConstants::DriveMaximumAmperage;
-    currentLimitsConfigs.StatorCurrentLimitEnable = true;
-
-    // Add the "Slot0" section settings
-    ctre::phoenix6::configs::Slot0Configs &slot0Configs = talonFXConfiguration.Slot0;
-    slot0Configs.kP = SwerveConstants::DriveP;
-    slot0Configs.kI = SwerveConstants::DriveI;
-    slot0Configs.kD = SwerveConstants::DriveD;
-    slot0Configs.kV = SwerveConstants::DriveV;
-    slot0Configs.kA = SwerveConstants::DriveA;
-
-    // Apply the configuration to the drive motor
-    ctre::phoenix::StatusCode status = ctre::phoenix::StatusCode::StatusCodeNotInitialized;
-    for (int attempt = 0; attempt < SwerveConstants::MotorConfigurationAttempts; attempt++)
-    {
-        // Apply the configuration to the drive motor
-        status = m_driveMotor.GetConfigurator().Apply(talonFXConfiguration);
-
-        // Check if the configuration was successful
-        if (status.IsOK())
-           break;
-    }
-
-    // Determine if the last configuration load was successful
-    if (!status.IsOK())
-        std::cout << "***** ERROR: Could not configure swerve motor. Error: " << status.GetName() << std::endl;
-}
-#pragma endregion
-
-#pragma region ConfigureAngleMotor
-/// @brief Method to configure the angle motor and encoder.
-void SwerveModule::ConfigureAngleMotor()
-{
-    // Create the Angle motor configuration
-    ctre::phoenix6::configs::TalonFXConfiguration talonFXConfiguration{};
-
-    // Add the "Motor Output" section settings
-    ctre::phoenix6::configs::MotorOutputConfigs &motorOutputConfigs = talonFXConfiguration.MotorOutput;
-    motorOutputConfigs.NeutralMode = ctre::phoenix6::signals::NeutralModeValue::Brake;
-
-    // Add the "Current Limits" section settings
-    ctre::phoenix6::configs::CurrentLimitsConfigs &currentLimitsConfigs = talonFXConfiguration.CurrentLimits;
-    currentLimitsConfigs.StatorCurrentLimit       = SwerveConstants::AngleMaximumAmperage;
-    currentLimitsConfigs.StatorCurrentLimitEnable = true;
-
-    // Add the "Slot0" section settings
-    ctre::phoenix6::configs::Slot0Configs &slot0Configs = talonFXConfiguration.Slot0;
-    slot0Configs.kP = SwerveConstants::AngleP;
-    slot0Configs.kI = SwerveConstants::AngleI;
-    slot0Configs.kD = SwerveConstants::AngleD;
-
-    // Apply the configuration to the angle motor
-    ctre::phoenix::StatusCode status = ctre::phoenix::StatusCode::StatusCodeNotInitialized;
-    for (int attempt = 0; attempt < SwerveConstants::MotorConfigurationAttempts; attempt++)
-    {
-        // Apply the configuration to the angle motor
-        status = m_angleMotor.GetConfigurator().Apply(talonFXConfiguration);
-
-        // Check if the configuration was successful
-        if (status.IsOK())
-           break;
-    }
-
-    // Determine if the last configuration load was successful
-    if (!status.IsOK())
-        std::cout << "***** ERROR: Could not configure swerve motor. Error: " << status.GetName() << std::endl;
 }
 #pragma endregion
 

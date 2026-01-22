@@ -9,7 +9,10 @@
 #include "subsystems/Intake.h"
 #pragma endregion
 
-#pragma region Toggle Intake Drive
-// Toggle running the intake
-frc2::CommandPtr DriveIntake(Intake* intake, IntakeState state);
+#pragma region Toggle Intake IntakeSetState
+/// @brief Toggle running the intake
+/// @param intake Pointer to the intake subsystem
+/// @param state state to set the intake to (Active, Inactive)
+/// @return Command to toggle driving the intake
+frc2::CommandPtr IntakeSetState(Intake* intake, IntakeState state);
 #pragma endregion

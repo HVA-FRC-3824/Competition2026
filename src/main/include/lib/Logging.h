@@ -5,7 +5,6 @@
 #include <networktables/StructArrayTopic.h>
 #include <networktables/StructTopic.h>
 
-// Types
 #include <frc/kinematics/ChassisSpeeds.h>
 #include <frc/kinematics/SwerveModuleState.h>
 #include <frc/kinematics/SwerveModulePosition.h>

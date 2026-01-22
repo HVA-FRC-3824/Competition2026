@@ -11,6 +11,7 @@
 #include <frc/kinematics/SwerveModuleState.h>
 #include <frc/smartdashboard/SmartDashboard.h>
 
+#include "lib/TalonFXConfiguration.h"
 #include "lib/Logging.h"
 
 #include "Constants.h"

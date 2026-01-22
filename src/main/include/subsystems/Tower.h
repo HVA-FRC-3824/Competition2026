@@ -18,6 +18,9 @@
 
 #include <photon/PhotonCamera.h>
 
+#include "lib/TalonFXConfiguration.h"
+#include "lib/SparkMaxConfiguration.h"
+
 #include "Constants.h"
 #include "ConstantsCanIds.h"
 #pragma endregion
@@ -25,10 +28,10 @@
 #pragma region StateStructures
 enum TowerMode
 {
-    HUB,
-    PASSING,
-    STATIC,
-    MANUAL
+    Hub,
+    Passing,
+    Static,
+    Manual
 };
 
 struct TowerState
@@ -114,7 +117,7 @@ class Tower : public frc2::SubsystemBase
         std::function<frc::Pose2d()>            m_poseSupplier;
         std::pair<frc::Pose2d, units::second_t> m_pose;
 
-        TowerState                              m_state{TowerMode::STATIC, 0_deg, 0, 0}; 
+        TowerState                              m_state{TowerMode::Static, 0_deg, 0, 0}; 
 
         ctre::phoenix6::hardware::TalonFX       m_turretMotor  {ConstantsCanIds::turretMotorID};
         ctre::phoenix6::hardware::TalonFX       m_flywheelMotor{ConstantsCanIds::flywheelMotorID};
