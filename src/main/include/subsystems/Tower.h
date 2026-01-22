@@ -22,7 +22,7 @@
 #include "lib/SparkMaxConfiguration.h"
 
 #include "Constants.h"
-#include "ConstantsCanIds.h"
+#include "ConstantsRoboRio.h"
 #pragma endregion
 
 #pragma region StateStructures
@@ -121,5 +121,5 @@ class Tower : public frc2::SubsystemBase
 
         ctre::phoenix6::hardware::TalonFX       m_turretMotor  {ConstantsCanIds::turretMotorID};
         ctre::phoenix6::hardware::TalonFX       m_flywheelMotor{ConstantsCanIds::flywheelMotorID};
-        frc::Servo                              m_hoodActuator {ConstantsCanIds::actuatorID};
+        frc::Servo                              m_hoodActuator {ConstantsPwmPorts::actuatorPort};
 };

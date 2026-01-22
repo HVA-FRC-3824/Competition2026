@@ -8,11 +8,12 @@
 #include <frc/LEDPattern.h>
 
 #include "Constants.h"
+#include "ConstantsRoboRio.h"
 
 #pragma region LedConstants
 namespace LedConstants
 {
-    constexpr auto PwmPort     =   9;
+
 
     constexpr auto Length      = 400;  // The length of the LED string
     constexpr auto Brightness  = 0.5;
@@ -70,7 +71,7 @@ class Leds : public frc2::SubsystemBase
         frc::LEDPattern     m_shooting = frc::LEDPattern::Gradient(frc::LEDPattern::kDiscontinuous, std::array<frc::Color, 2>{frc::Color::kRed, frc::Color::kBlack}).
                                                           ScrollAtAbsoluteSpeed(0.5_mps, units::meter_t{1 / 120.0});
 
-        frc::AddressableLED m_led{LedConstants::PwmPort};
+        frc::AddressableLED m_led{ConstantsPwmPorts::ledPort};
 
         std::array<frc::AddressableLED::LEDData, LedConstants::Length> m_ledBuffer;  // Instatntiate the LED data buffer
 };

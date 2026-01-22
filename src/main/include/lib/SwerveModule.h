@@ -15,7 +15,7 @@
 #include "lib/Logging.h"
 
 #include "Constants.h"
-#include "ConstantsCanIds.h"
+#include "ConstantsRoboRio.h"
 #pragma endregion
 
 #pragma region SwerveModuleConstants
