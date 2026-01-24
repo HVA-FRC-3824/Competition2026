@@ -1,15 +1,23 @@
 #include "lib/TalonFXConfiguration.h"
 
 #pragma region TalonFXConfiguration
+/// @brief Configures a TalonFX motor with the specified parameters
+/// @param motor Pointer to the TalonFX motor to configure 
+/// @param currentLimit The current limit for the motor
+/// @param breakMode True to set the motor to brake mode, false for coast mode 
+/// @param P The proportional gain for the motor's PID controller
+/// @param I The integral gain for the motor's PID controller
+/// @param D The derivative gain for the motor's PID controller
+/// @param S The static feedforward gain for the motor
+/// @param V The velocity feedforward gain for the motor
+/// @param A The acceleration feedforward gain for the motor
+/// @param velocityLimit The maximum velocity for Motion Magic control
+/// @param accelerationLimit The maximum acceleration for Motion Magic control
 void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
                           units::ampere_t currentLimit,
                           bool   breakMode,
-                          double P,
-                          double I,
-                          double D,
-                          double S,
-                          double V,
-                          double A,
+                          double P, double I, double D,
+                          double S, double V, double A,
                           units::turns_per_second_t         velocityLimit,
                           units::turns_per_second_squared_t accelerationLimit)
 {
@@ -26,8 +34,7 @@ void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
 
     // Configure Current Limits
     ctre::phoenix6::configs::CurrentLimitsConfigs &currentLimitsConfigs = talonFXConfiguration.CurrentLimits;
-    // Also set supply current limit for battery protection
-    currentLimitsConfigs.SupplyCurrentLimit = currentLimit;
+    currentLimitsConfigs.SupplyCurrentLimit       = currentLimit;
     currentLimitsConfigs.SupplyCurrentLimitEnable = true;
 
     // Configure PID and Feedforward (Slot 0)
@@ -49,11 +56,13 @@ void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
     ctre::phoenix::StatusCode status = ctre::phoenix::StatusCode::StatusCodeNotInitialized;
     for (int attempt = 0; attempt < MAX_CONFIG_RETRIES; attempt++)
     {
+        // Apply the configuration
         status = motor->GetConfigurator().Apply(talonFXConfiguration);
         if (status.IsOK())
         {
             break;
         }
+
         // Small delay before retry
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
@@ -74,6 +83,7 @@ void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
     /// *** SIMULATION STUFF *** ///
     auto& talonFXSim = motor->GetSimState();
     talonFXSim.Orientation = ctre::phoenix6::sim::ChassisReference::CounterClockwise_Positive;
+
     // TODO: This only supports x60 and x44 krakens, I'm not sure how we want to handle this
     // This isnt a big issue, and the todo can be removed without much error or impact
     talonFXSim.SetMotorType(ctre::phoenix6::sim::TalonFXSimState::MotorType::KrakenX60);

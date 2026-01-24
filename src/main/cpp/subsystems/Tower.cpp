@@ -32,6 +32,7 @@ Tower::Tower(std::function<frc::Pose2d()> poseSupplier, std::function<frc::Chass
                           0_tps,
                           units::turns_per_second_squared_t{0});
 
+    // Initialize the pose with the current pose and timestamp
     m_hoodActuator.SetBounds(2.0_us, 1.8_us, 1.5_us, 1.2_us, 1.0_us);
 }
 #pragma endregion

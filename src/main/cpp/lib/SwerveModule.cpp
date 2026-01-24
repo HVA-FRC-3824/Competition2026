@@ -10,29 +10,30 @@ SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEn
         m_angleMotor          {angleMotorCanId},
         m_angleAbsoluteEncoder{angleEncoderCanId}
 {
-    TalonFXConfiguration(&m_driveMotor,
-                          SwerveConstants::DriveMaximumAmperage,
-                          true,
-                          SwerveConstants::DriveP,
-                          SwerveConstants::DriveI,
-                          SwerveConstants::DriveD,
-                          0.0,
-                          SwerveConstants::DriveV,
-                          SwerveConstants::DriveA,
-                          0_tps,
-                          units::turns_per_second_squared_t{0});
+    // Configure the motors
+    TalonFXConfiguration(&m_driveMotor,    // Drive motor configuration
+                          60_A,            // Maximum Amperage
+                          true,            // Brake mode enabled
+                          0.03,            // P gain
+                          1.5,             // I gain
+                          0.0,             // D gain
+                          0.0,             // V gain
+                          0.0,             // A gain
+                          0.0,             // S gain
+                          0_tps,           // Velocity limit
+                          0_tr_per_s_sq);  // Acceleration limit
 
-    TalonFXConfiguration(&m_angleMotor,
-                          SwerveConstants::AngleMaximumAmperage,
-                          true,
-                          SwerveConstants::AngleP,
-                          SwerveConstants::AngleI,
-                          SwerveConstants::AngleD,
-                          0.0,
-                          0.0,
-                          0.0,
-                          0_tps,
-                          units::turns_per_second_squared_t{0});
+    TalonFXConfiguration(&m_angleMotor,    // Angle motor configuration
+                          20_A,            // Maximum Amperage
+                          true,            // Brake mode enabled
+                          0.75,             // P gain
+                          0.0,             // I gain
+                          0.012,           // D gain
+                          0.0,             // V gain
+                          0.0,             // A gain
+                          0.0,             // S gain
+                          0_tps,           // Velocity limit
+                          0_tr_per_s_sq);  // Acceleration limit
 
     // Ensure the drive motor encoder is reset to zero
     m_driveMotor.SetPosition(0.0_tr);
@@ -63,7 +64,7 @@ void SwerveModule::SetDesiredState(frc::SwerveModuleState& desiredState, std::st
 
     // Set the motor reference states
     // Convert wheel linear velocity to motor rotations per second
-    double wheelRotationsPerSecond = desiredState.speed.value() / SwerveConstants::wheelCircumference.value();
+    double wheelRotationsPerSecond = desiredState.speed.value() / SwerveConstants::WheelCircumference.value();
     units::angular_velocity::turns_per_second_t motorVelocity{wheelRotationsPerSecond * SwerveConstants::DriveMotorReduction};
     m_driveMotor.SetControl(ctre::phoenix6::controls::VelocityDutyCycle{motorVelocity});
     
@@ -130,28 +131,47 @@ void SwerveModule::ResetDriveEncoder()
 #pragma region SetWheelAngleToForward
 /// @brief Method to set the swerve wheel encoder to the forward angle.
 /// @param forwardAngle The absolute angle for the forward direction.
-void SwerveModule::SetWheelAngleToForward(units::angle::radian_t forwardAngle)
+void SwerveModule::SetWheelAngleToForward(units::angle::degree_t forwardAngle)
 {
+    frc::SmartDashboard::PutNumber("Setting Wheel Angle To Forward", forwardAngle.value());
+    frc::SmartDashboard::PutNumber("Absolute Encoder Angle", GetAbsoluteEncoderAngle().value());
+
     // Ensure the drive motor encoder is reset to zero
     m_driveMotor.SetPosition(0_tr);
 
-    // // Set the motor angle encoder position to the forward direction
-    // m_angleMotor.GetEncoder().SetPosition(GetAbsoluteEncoderAngle().value() - forwardAngle.value());
+    // Ensure the angle motor encoder is reset to zero
+    m_angleMotor.SetPosition(0_tr);
 
-    // // Set the motor angle to the forward direction
-    // m_angleMotor.SetControl(0, hardware::motor::MotorInput::POSITION);
+    // Set the motor angle encoder position to the forward direction
+    units::angle::degree_t moveDegrees = forwardAngle - GetAbsoluteEncoderAngle();
+    frc::SmartDashboard::PutNumber("Move Degrees", moveDegrees.value());
+
+    // Determine the shortest move angle
+    if (moveDegrees > 180.0_deg)
+        moveDegrees = moveDegrees - 360.0_deg;
+    else if (moveDegrees < -180.0_deg)
+        moveDegrees = moveDegrees + 360.0_deg;
+
+    units::angle::turn_t angleInTurns = (units::angle::turn_t) (moveDegrees.value() * SwerveConstants::AngleMotorTurnsPerDegree);
+
+    frc::SmartDashboard::PutNumber("Angle In Turns", angleInTurns.value());
+
+    m_angleMotor.SetPosition(angleInTurns);
+
+    // Set the motor angle to the forward direction (position 0)
+    m_angleMotor.SetControl(ctre::phoenix6::controls::PositionDutyCycle{0_tr});
 }
 #pragma endregion
 
 #pragma region GetAbsoluteEncoderAngle
-/// @brief Method to read the absolute encode in radians.
-/// @return The absolute angle value in radians.
-units::angle::radian_t SwerveModule::GetAbsoluteEncoderAngle()
+/// @brief Method to read the absolute encode in degrees.
+/// @return The absolute angle value in degrees.
+units::angle::degree_t SwerveModule::GetAbsoluteEncoderAngle()
 {
-    // The GetAbsolutePosition() method returns a value from -1 to 1
+    // The GetAbsolutePosition() method returns a value from -0.5 to 0.5
     double encoderValue = (double) m_angleAbsoluteEncoder.GetAbsolutePosition().GetValue();
 
-    // To convert to radians
-    return encoderValue * (2.0_rad * std::numbers::pi);
+    // To convert to degrees, multiply by 360
+    return encoderValue * 360_deg;
 }
 #pragma endregion

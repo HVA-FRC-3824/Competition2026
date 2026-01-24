@@ -98,10 +98,10 @@ void Chassis::ZeroHeading()
 void Chassis::ResetWheelAnglesToZero()
 {
     // Set the swerve wheel angles to zero
-    m_swerveModules[0].SetWheelAngleToForward(ChassisConstants::frontLeftForwardAngle);
-    m_swerveModules[1].SetWheelAngleToForward(ChassisConstants::frontRightForwardAngle);
-    m_swerveModules[2].SetWheelAngleToForward(ChassisConstants::rearLeftForwardAngle);
-    m_swerveModules[3].SetWheelAngleToForward(ChassisConstants::rearRightForwardAngle);
+    m_swerveModules[0].SetWheelAngleToForward(ChassisConstants::FrontLeftForwardAngle);
+    // m_swerveModules[1].SetWheelAngleToForward(ChassisConstants::FrontRightForwardAngle);
+    // m_swerveModules[2].SetWheelAngleToForward(ChassisConstants::BackLeftForwardAngle);
+    // m_swerveModules[3].SetWheelAngleToForward(ChassisConstants::BackRightForwardAngle);
 }
 #pragma endregion
 

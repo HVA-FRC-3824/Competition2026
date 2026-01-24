@@ -36,15 +36,15 @@
 namespace ChassisConstants
 {
     // NOTE: The absolute encoder range is 0.5 to -0.5
-    // These are the angles that correspond to the wheels facing "forward"
-    constexpr units::turn_t frontRightForwardAngle{-0.193604};
-    constexpr units::turn_t frontLeftForwardAngle {-0.422119};
-    constexpr units::turn_t rearRightForwardAngle {-0.174561};
-    constexpr units::turn_t rearLeftForwardAngle  { 0.268555};
+    // These are the abosulte encoder values that correspond to the wheels facing "forward"
+    constexpr units::degree_t FrontLeftForwardAngle { 0.485107 * 360.0 };  // Range of absolute encoder is -0.5 to 0.5
+    constexpr units::degree_t FrontRightForwardAngle{ 0.000000 * 360.0 };
+    constexpr units::degree_t BackLeftForwardAngle  { 0.000000 * 360.0 };
+    constexpr units::degree_t BackRightForwardAngle { 0.000000 * 360.0 };
 
     // These make sure to limit how fast the robot can go
-    constexpr units::meters_per_second_t  maxSpeed          {4};
-    constexpr units::radians_per_second_t maxAngularVelocity{2 * std::numbers::pi};
+    constexpr units::meters_per_second_t                    maxSpeed          {4};
+    constexpr units::angular_velocity::radians_per_second_t maxAngularVelocity{2 * std::numbers::pi};
 
     // The physical dimensions of the robot
     constexpr units::meter_t wheelBase {25.0};
@@ -52,10 +52,10 @@ namespace ChassisConstants
 
     constexpr wpi::array<frc::SwerveModuleState, 4> xStates
     {
-        frc::SwerveModuleState{0_mps, 315_deg}, // FL
-        frc::SwerveModuleState{0_mps, 45_deg},  // FR
-        frc::SwerveModuleState{0_mps, 45_deg},  // BL
-        frc::SwerveModuleState{0_mps, 315_deg}  // BR
+        frc::SwerveModuleState{0_mps, 315_deg},  // FL
+        frc::SwerveModuleState{0_mps,  45_deg},  // FR
+        frc::SwerveModuleState{0_mps,  45_deg},  // BL
+        frc::SwerveModuleState{0_mps, 315_deg}   // BR
     };
 
     constexpr pathplanner::PathConstraints constraints{maxSpeed, 3_mps_sq, maxAngularVelocity, 3_rad_per_s_sq};
@@ -137,9 +137,9 @@ class Chassis : public frc2::SubsystemBase
             frc::SwerveModuleState{0_mps, frc::Rotation2d()}, frc::SwerveModuleState{0_mps, frc::Rotation2d()}
         };
             
-        bool m_isFieldRelative = true;
+        bool                                  m_isFieldRelative = true;
 
-        bool m_isXMode = false;
+        bool                                  m_isXMode = false;
     
         studica::AHRS m_gyro{studica::AHRS::NavXComType::kMXP_SPI};  // The gyro sensor
 

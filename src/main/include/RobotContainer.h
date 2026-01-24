@@ -38,6 +38,9 @@ class RobotContainer
         // Method that returns a pointer to the singleton instance of the RobotContainer class
         static RobotContainer *GetInstance();
 
+        // Method to reset swerve wheel angles to zero
+        void ResetWheelAnglesToZero();
+
     private:
 
         // Static pointer to singleton instance

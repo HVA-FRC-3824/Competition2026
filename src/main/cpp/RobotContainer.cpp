@@ -115,3 +115,11 @@ double RobotContainer::GetExponentialValue(double joystickValue, double exponent
     return output;
 }
 #pragma endregion
+
+#pragma region ResetWheelAnglesToZero
+/// @brief Method to reset the swerve wheel angles to zero position.
+void RobotContainer::ResetWheelAnglesToZero()
+{
+    m_chassis.ResetWheelAnglesToZero();
+}
+#pragma endregion
