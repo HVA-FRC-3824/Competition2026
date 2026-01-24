@@ -24,8 +24,6 @@ RobotContainer *RobotContainer::GetInstance()
 /// @brief Method to configure the robot and SmartDashboard configuration.
 RobotContainer::RobotContainer()
 {
-    // // Configure the chassis default command
-    m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetChassisSpeeds()));
     m_leds.SetDefaultCommand(SetLedStatus(&m_leds, [this]() { return m_robotStatus;}));
   
     // ******************* //
@@ -35,11 +33,12 @@ RobotContainer::RobotContainer()
     // Array of run-once controls, organized like this for simplicity and readability
     std::pair<Button, frc2::CommandPtr> runOnceControls[] =
     {
-        {constants::controller::A,           ChassisZeroHeading(&m_chassis)},
-        {constants::controller::B,           FlipFieldCentricity(&m_chassis)},
-        {constants::controller::Y,           frc2::InstantCommand{ [&] {m_robotStatus;}, {&m_leds} }.ToPtr()},
-        {constants::controller::X,           ChassisXMode(&m_chassis)}, // Toggle
-        {constants::controller::LeftBumper,  frc2::WaitCommand{1_s}.ToPtr()}, // When pressed, shoot one ball
+        {constants::controller::A, ChassisZeroHeading(&m_chassis)},
+        {constants::controller::B, FlipFieldCentricity(&m_chassis)},
+        {constants::controller::X, ChassisXMode(&m_chassis)},
+
+        {constants::controller::LeftStickButton,  ClimbDeploy(&m_climb)},
+        {constants::controller::RightStickButton, ClimbRetract(&m_climb)}
     };
 
     // Configure the run-once controls
@@ -48,6 +47,15 @@ RobotContainer::RobotContainer()
         frc2::JoystickButton(&m_driveController, int(button)).OnTrue(std::move(command));
     }
 
+    // This takes the axis inputs and drives the robot
+    m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetChassisSpeeds()));
+
+    // This is effectively a shoot command, the flywheel should already be spun up
+    // and the rest of the tower should be configured by the operator
+    frc2::JoystickButton(&m_driveController, constants::controller::RightBumper)
+        .OnTrue( std::move(SpindexerSetState(&m_spindexer, SpindexerState::Spindexing)))
+        .OnFalse(std::move(SpindexerSetState(&m_spindexer, SpindexerState::Stopped)));
+
     // ********************* //
     // * OPERATOR CONTROLS * //
     // ********************* //
@@ -55,11 +63,25 @@ RobotContainer::RobotContainer()
     // Array of run-once controls, organized like this for simplicity and readability
     std::pair<Button, frc2::CommandPtr> runOnceControlsOperator[] =
     {
-        {constants::controller::A, IntakeSetState(&m_intake, IntakeState::DeployedRollerOn)},
-        {constants::controller::B, IntakeSetState(&m_intake, IntakeState::DeployedRollerOff)},
-        {constants::controller::Y, IntakeSetState(&m_intake, IntakeState::Stowed)},
-        {constants::controller::LeftBumper,  SpindexerSetState(&m_spindexer, SpindexerState::Spindexing)},
-        {constants::controller::RightBumper, SpindexerSetState(&m_spindexer, SpindexerState::Stopped)},
+        // Intake Controls
+        {constants::controller::LeftBumper,  IntakeSetState(&m_intake, IntakeState::DeployedRollerOn)},
+        {constants::controller::RightBumper, IntakeSetState(&m_intake, IntakeState::Stowed)},
+        
+        // Tower state
+        {constants::controller::A, TowerAimHub(&m_tower)},
+        {constants::controller::B, TowerAimPassZone(&m_tower)},
+        {constants::controller::X, TowerManualControl(&m_tower, [&] { return m_manualTowerState; })},
+
+        // Manual tower controls
+        // TODO: remove magic numbers via testing
+        {constants::controller::Pov_0,   frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed += 10_rpm;}, {&m_tower}}.ToPtr()},
+        {constants::controller::Pov_90,  frc2::InstantCommand{[&] { m_manualTowerState.turretAngle += 0.1_deg;}, {&m_tower}}.ToPtr()},
+
+        {constants::controller::Pov_180, frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed -= 10_rpm;}, {&m_tower}}.ToPtr()},
+        {constants::controller::Pov_270, frc2::InstantCommand{[&] { m_manualTowerState.turretAngle -= 0.1_deg;}, {&m_tower}}.ToPtr()},
+
+        {constants::controller::LeftStickButton,  frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches -= 1_in;}, {&m_tower}}.ToPtr()},
+        {constants::controller::RightStickButton, frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches += 1_in;}, {&m_tower}}.ToPtr()},
     };
 
     // Configure the run-once controls
@@ -67,17 +89,6 @@ RobotContainer::RobotContainer()
     {
         frc2::JoystickButton(&m_operatorController, int(button)).OnTrue(std::move(command));
     }
-
-    // ********** //
-    // * CAMERA * //
-    // ********** //
-
-
-    cs::UsbCamera camera = frc::CameraServer::StartAutomaticCapture();
-
-    // Set the resolution and frame rate of the camera
-    camera.SetResolution(640, 480); // Set resolution to 640x480
-    camera.SetFPS(30);             // Set frame rate to 30 FPS
 }
 #pragma endregion
 

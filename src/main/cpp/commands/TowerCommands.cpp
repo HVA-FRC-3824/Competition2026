@@ -7,7 +7,7 @@ frc2::CommandPtr TowerAimHub(Tower *tower)
 {
     // Create and return a InstantCommand that aims the tower at the hub
     return frc2::InstantCommand{
-        [=] () { tower->SetState(TowerState{TowerMode::ShootingToHub, 0_deg, 0, 0}); }, // Execution function
+        [=] () { tower->SetState(TowerState{TowerMode::ShootingToHub, 0_deg, 0_rpm, 0_in}); }, // Execution function
         {tower} // Requirements (subsystems required by this command)
     }.ToPtr();
 }
@@ -20,7 +20,7 @@ frc2::CommandPtr TowerAimPassZone(Tower *tower)
 {
     // Create and return a InstantCommand that aims the tower at the adjacent pass zone
     return frc2::InstantCommand{
-        [=] () { tower->SetState(TowerState{TowerMode::PassingToAdjacentZone, 0_deg, 0, 0}); }, // Execution function
+        [=] () { tower->SetState(TowerState{TowerMode::PassingToAdjacentZone, 0_deg, 0_rpm, 0_in}); }, // Execution function
         {tower} // Requirements (subsystems required by this command)
     }.ToPtr();
 }

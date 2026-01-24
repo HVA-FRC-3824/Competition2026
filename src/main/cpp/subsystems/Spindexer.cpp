@@ -39,6 +39,7 @@ void Spindexer::SetState(SpindexerState newState)
         return;
     }
 
+    // Remember the state of the spindexer
     m_state = newState;
     Log("Spindexer", std::string_view{"Setting spindexer state to " + std::to_string(static_cast<int>(newState))});
 

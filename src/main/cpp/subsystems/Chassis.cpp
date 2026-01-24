@@ -25,13 +25,19 @@ Chassis::Chassis()
             // THIS MEANS TO DESIGN ALL AUTOS AS BEING ON THE BLUE SIDE!!!!
 
             auto alliance = frc::DriverStation::GetAlliance();
-            if (alliance) {
+            if (alliance) 
                 return alliance.value() == frc::DriverStation::Alliance::kRed;
-            }
+            
             return false;
         },
         this // Reference to this subsystem to set requirements
     );
+
+    auto path = pathplanner::PathPlannerPath::fromPathFile("Example Path");
+
+
+    // Create a path following command using AutoBuilder. This will also trigger event markers.
+    auto command = pathplanner::AutoBuilder::followPath(path);
 }
 #pragma endregion
 
@@ -198,20 +204,19 @@ frc::ChassisSpeeds Chassis::GetChassisSpeeds()
 {
     return m_desiredSpeeds;
 }
-
+#pragma endregion
 
 #pragma region Periodic
 /// @brief Method called once per scheduler run.
 void Chassis::Periodic()
 {
-    // Update odometry
     // Update the pose estimator
     m_poseEstimator.Update(GetHeading(), GetModulePositions());
 
     // This also updates the pose estimator with vision as well as updating photonvisions internal estimators
     m_vision.Periodic();
 
-    // Logging
+    /// *** Logging *** ///
     Log("Swerve Module States ",         GetModuleStates());
     Log("Desired Swerve Module States ", m_desiredStates);
 

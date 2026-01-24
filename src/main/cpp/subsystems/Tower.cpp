@@ -2,10 +2,10 @@
 
 #pragma region Tower
 /// @brief Constructor for the Tower subsystem
-/// @param poseSupplier 
-Tower::Tower(std::function<frc::Pose2d()> poseSupplier, std::function<frc::ChassisSpeeds()> speedsSupplier) :
-    m_poseSupplier  {poseSupplier},
-    m_speedsSupplier{speedsSupplier}
+/// @param chassisPoseSupplier 
+Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc::ChassisSpeeds()> chassisSpeedsSupplier) :
+    m_chassisPoseSupplier  {chassisPoseSupplier},
+    m_chassisSpeedsSupplier{chassisSpeedsSupplier}
 {
     // Configure the tower motors
     TalonFXConfiguration(&m_turretMotor,
@@ -42,7 +42,7 @@ Tower::Tower(std::function<frc::Pose2d()> poseSupplier, std::function<frc::Chass
 /// @param newState The new state to set for the Tower subsystem
 void Tower::SetState(TowerState newState)
 {
-    // Set the current state of the Tower subsystem
+    // Remember the state
     m_state = newState;
 }
 #pragma endregion
@@ -63,23 +63,29 @@ void Tower::Periodic()
 {
     bool isTurretRobotRelative = true;
 
-    // Update the current pose and speed
-    auto pose  = m_poseSupplier();
-    auto speed = m_speedsSupplier();
-
-    // Does not need to be initialized every cycle, 
-    static bool isBlue = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) == frc::DriverStation::Alliance::kBlue;
+    // Update the chassis current pose and speed
+    auto chassisPose  = m_chassisPoseSupplier();
+    auto chassisSpeed = m_chassisSpeedsSupplier();
 
     switch (m_state.mode) 
     {
+        case TowerMode::Idle:
+        {
+            // Do nothing, just use the provided state
+            m_state = TowerState{TowerMode::Idle, 0.0_deg, 0.0_tps, 0.0_in};
+            break;
+        }
+
         case TowerMode::ShootingToHub:
         {
+            // If using turret camera, the turret angle is relative to the robot
+            // Otherwise, it is relative to the field as its based on poses
             isTurretRobotRelative = false;
-            frc::Pose3d Hub = isBlue ? constants::field::blueHub : constants::field::redHub;
 
-            auto relativeDistance = Hub.ToPose2d().Translation() - pose.Translation();
-            // This is based off of the position of the robot based on vision and odo so it may be a little bit unreliable sometimes
-            if (TowerConstants::usingTurretCamera)
+            frc::Translation2d relativeDistance;
+
+            // When using the turret camera, relative distance is based on the turret
+            if (m_usingTurretCamera)
             {
                 std::vector<photon::PhotonPipelineResult> results = m_turretCam.GetAllUnreadResults();
                 
@@ -88,16 +94,45 @@ void Tower::Periodic()
                     auto latestResult = results.back();
                     for (auto tag : latestResult.GetTargets())
                     {
-                        // TODO: verify if these are right they might be the ones next to these
                         if (tag.fiducialId == 10 || tag.fiducialId == 26)
                         {
-                            // TODO: remove magic numbers, this just converts radians to degrees
-                            m_state.turretAngle -= 57.2958_deg * tag.altCameraToTarget.Rotation().Angle().value();
+                            // Extract the x and y distances to the target
+                            relativeDistance = tag.GetBestCameraToTarget().Translation().ToTranslation2d();
+             
+                            // Offset from fiducials 10 and 26 to hub center
+                            frc::Translation2d offset10And26ToHub{23.5_in, 0.0_m};
+
+                            // Compensate for the offset from the turret camera to the hub center
+                            auto ShootingDistance = (relativeDistance + offset10And26ToHub).Norm();
+
+                            // Adjust turret angle based on target yaw
+                            m_state.turretAngle += 1_deg * std::fmod((tag.GetYaw() + 180), 180);
                         }
                     }
                 }
+                else
+                {
+                    // No targets found, do not shoot
+                    return;
+                }
+            } 
+            else // If not using the turret camera, base relative distance on field pose
+            {
+                // Sets our hub based on our alliance
+                frc::Pose3d Hub = m_isBlue ? constants::field::blueHub : constants::field::redHub;
+
+                // TODO: Make constant, Make real/realistic
+                frc::Transform3d offsetTurretFromRobotCenter{frc::Translation3d{0.0_m, 0.0_m, 0.0_m}, frc::Rotation3d{0_deg, 0_deg, 0_deg}};
+                
+                // Calculate the relative distance from the turret center to the hub
+                relativeDistance = Hub.ToPose2d().Translation() - (chassisPose.Translation() + offsetTurretFromRobotCenter.Translation().ToTranslation2d());
+
+                // TODO: How to handle Red and Blue hub positions relative to the robot?
+ 
             }
-            m_state = CalculateShot(relativeDistance, speed);
+
+            // Calculate the shot parameters based on the relative distance and chassis speed
+            m_state = CalculateShot(relativeDistance, chassisSpeed);
             break;
         }
 
@@ -107,17 +142,14 @@ void Tower::Periodic()
 
             // Based on alliance color, find the nearest point in our alliance zone to pass to
             // We decide between the close and the far points so that we can avoid hitting the hub net
-            auto targetPoint = pose.Translation().Nearest({isBlue ? constants::field::blueAllianceZoneClose.Translation() : constants::field::redAllianceZoneClose.Translation(),
-                                                           isBlue ? constants::field::blueAllianceZoneFar.Translation()   : constants::field::redAllianceZoneFar.Translation()});
+            auto targetPoint = chassisPose.Translation().Nearest({m_isBlue ? constants::field::blueAllianceZoneClose.Translation() : constants::field::redAllianceZoneClose.Translation(),
+                                                                  m_isBlue ? constants::field::blueAllianceZoneFar.Translation()   : constants::field::redAllianceZoneFar.Translation()});
             
-            auto relativeDistance = targetPoint - pose.Translation();
+            auto relativeDistance = targetPoint - chassisPose.Translation();
 
-            if (TowerConstants::usingTurretCamera)
-            {
-                m_state.turretAngle = 57.2958_deg * std::atan2(relativeDistance.Y().value(), relativeDistance.X().value());
-            }
+            m_state.turretAngle = 57.2958_deg * std::atan2(relativeDistance.Y().value(), relativeDistance.X().value());
 
-            m_state = CalculateShot(relativeDistance, speed);
+            m_state = CalculateShot(relativeDistance, chassisSpeed);
             break;
         }
 
@@ -134,41 +166,47 @@ void Tower::Periodic()
     } 
     else 
     {
-        SetTurret(pose.Rotation().Degrees() - m_state.turretAngle);
+        // Compensate for robot rotation
+        // If we are on red, our gyro will be turned around, flip it
+        SetTurret((chassisPose.Rotation().Degrees() - (m_isBlue ? 0_deg : 180_deg)) - m_state.turretAngle);
     }
 
     // Set flywheel speed and hood actuator position
     SetFlywheel(m_state.flywheelSpeed);
-    SetActuator(m_state.hoodActuatorPercentInput);
+    SetActuator(m_state.hoodActuatorInches);
 }
 #pragma endregion
 
 #pragma region SetFlywheel
 /// @brief Spins up the flywheel motor
 /// @param input The input value to set the flywheel motor speed
-void Tower::SetFlywheel(double input)
+void Tower::SetFlywheel(units::turns_per_second_t input)
 {
     // Set the flywheel motor speed
-    m_flywheelMotor.Set(input);
+    m_flywheelMotor.SetControl(ctre::phoenix6::controls::VelocityDutyCycle{input});
 }
 #pragma endregion
 
 #pragma region SetActuator
-/// @brief Activates the actuator which moves linearly to move the hood by some degrees
-/// @param position The position input value (0-1) to set the hood actuator 
-void Tower::SetActuator(double position)
+/// @brief Activates the actuator which moves linearly to move the hood by some degrees, check the manual https://andymark.com/products/linear-servo-actuators
+/// @param position The position input value to set the hood actuator 
+void Tower::SetActuator(units::inch_t position)
 {
+    position = std::clamp(position, TowerConstants::MinLength, TowerConstants::MaxLength);
+
+    double actuatorPosition = (position.value() - TowerConstants::MinLength.value()) / TowerConstants::ActuatorDistanceConversionFactor.value();
+
     // range: 0-1
-	position = std::clamp(position, 0.0, 1.0);
+	actuatorPosition = std::clamp(actuatorPosition, 0.0, 1.0);
 
     // range: 0-2.0
-    position *= 2.0;
+    actuatorPosition *= 2.0;
 
     // range: -1, 1
-    position -= 1;
+    actuatorPosition -= 1;
 
     // Although this says SetSpeed, this actually does position
-	m_hoodActuator.SetSpeed(std::clamp(position, TowerConstants::ActuatorLowerBound, TowerConstants::ActuatorUpperBound));
+	m_hoodActuator.SetSpeed(std::clamp(actuatorPosition, TowerConstants::ActuatorLowerBound, TowerConstants::ActuatorUpperBound));
 }
 #pragma endregion
 
@@ -193,23 +231,20 @@ void Tower::SetTurret(units::degree_t angle)
 
 #pragma region CalculateShot
 /// @brief Changes the turret angle, flywheel speed, and hood actuator position based on distance and speed to target
-/// @param relativeDistance The distance to the target from the bot
-/// @param speed The speed of the robot comparative to the field
-/// @return The calculated TowerState based on the input parameters
+/// @param relativeDistance The relative distance to the target from the turret to the target
+/// @param speed The chassis speeds of the robot relative to the field
 TowerState Tower::CalculateShot(frc::Translation2d relativeDistance, frc::ChassisSpeeds speed)
 {
-    TowerState newState{TowerMode::ManualControl, 0_deg, 0.0, 0.0};
+    TowerState newState{TowerMode::ManualControl, 0_deg, 0.0_rpm, 0.0_in};
 
     // Create a new Pose2d from the relative distance and apply speed based translations
-    frc::Pose2d newRelativeDistance = frc::Pose2d{relativeDistance, 0_deg};
     // Predict where the target will be in 0.5 seconds using frc::Twist2d
-    frc::Twist2d changeInPosition = speed.ToTwist2d(0.5_s); 
-
     // Add that to the distance to target
+    frc::Pose2d newRelativeDistance = frc::Pose2d{relativeDistance, 0_deg};
+    frc::Twist2d changeInPosition = speed.ToTwist2d(0.5_s); 
     newRelativeDistance = newRelativeDistance.TransformBy(frc::Transform2d{changeInPosition.dx, changeInPosition.dy, changeInPosition.dtheta});
 
-    // Calculate the angle to the target point
-    if (!TowerConstants::usingTurretCamera)
+    if (!m_usingTurretCamera)
     {
         newState.turretAngle = 57.2958_deg * std::atan2(newRelativeDistance.Y().value(), newRelativeDistance.X().value());
     }
@@ -218,7 +253,7 @@ TowerState Tower::CalculateShot(frc::Translation2d relativeDistance, frc::Chassi
     newState.turretAngle += newRelativeDistance.Rotation().Degrees();
 
     // TODO: Implement a real calculation for shot parameters based on distance and speed
-
+    auto distance = std::abs(newRelativeDistance.Translation().Norm().value());
     return newState;
 }
 #pragma endregion

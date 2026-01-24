@@ -21,6 +21,7 @@
 
 #include "lib/TalonFXConfiguration.h"
 #include "lib/SparkMaxConfiguration.h"
+#include "lib/Logging.h"
 
 #include "Constants.h"
 #include "ConstantsRoboRio.h"
@@ -29,6 +30,7 @@
 #pragma region StateStructures
 enum TowerMode
 {
+    Idle,
     ShootingToHub,
     PassingToAdjacentZone,
     ManualControl
@@ -36,10 +38,10 @@ enum TowerMode
 
 struct TowerState
 {
-    TowerMode       mode;
-    units::degree_t turretAngle;
-    double          flywheelSpeed;
-    double          hoodActuatorPercentInput;
+    TowerMode mode;
+    units::degree_t           turretAngle;
+    units::turns_per_second_t flywheelSpeed;
+    units::inch_t             hoodActuatorInches;
 };
 #pragma endregion
 
@@ -62,8 +64,8 @@ namespace TowerConstants
     constexpr auto ActuatorLowerBound = -0.95;
     constexpr auto ActuatorUpperBound =  0.95;
 
-    // Whether or not to use the turret camera for aiming, alternate aiming implementations
-    constexpr auto usingTurretCamera = false;
+    // From inches to 0-1 range
+    constexpr auto ActuatorDistanceConversionFactor = (TowerConstants::MaxLength - TowerConstants::MinLength);
 }
 #pragma endregion
 
@@ -71,36 +73,39 @@ class Tower : public frc2::SubsystemBase
 {
     public:
         
-        explicit    Tower(std::function<frc::Pose2d()> poseSupplier, std::function<frc::ChassisSpeeds()> speedsSupplier);
+        explicit    Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc::ChassisSpeeds()> chassisSpeedsSupplier);
 
         void        SetState(TowerState newState);
         TowerState  GetState();
 
         void        Periodic() override;
 
+        void        TestActuator(double position) { m_hoodActuator.SetSpeed(position); }
+
+        void        AimUsingTurretCamera(bool usingTurretCamera) { m_usingTurretCamera = usingTurretCamera; }
+
     private: 
+    
+        void SetActuator(units::inch_t position);
 
-        // https://andymark.com/products/linear-servo-actuators check the manual
-        // Input in between 0 and 1
-        void SetActuator(double position);
-
-        // Starts to spin up the flywheel motor
-        // This may need to be a -1,1 or some other kind of input
-        void SetFlywheel(double input);
+        void SetFlywheel(units::turns_per_second_t input);
         
-        // Sets the desired angle of the turret relative to the robot
         void SetTurret(units::degree_t angle);
 
-        // Changes the turret angle, flywheel speed, and hood actuator position based on distance and speed to target
-        TowerState CalculateShot(frc::Translation2d relativeDistance, frc::ChassisSpeeds speed);
+        TowerState CalculateShot(frc::Translation2d relativeDistance, frc::ChassisSpeeds chassisSpeed);
+
+        bool                                    m_isBlue = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) 
+                                                                == frc::DriverStation::Alliance::kBlue;
+
+        bool                                    m_usingTurretCamera = true;
 
         // Do not use this to do pose estimatation. Because its on a turret, it is unreliable
         photon::PhotonCamera                    m_turretCam{"turretCam"};
 
-        std::function<frc::Pose2d()>            m_poseSupplier;
-        std::function<frc::ChassisSpeeds()>     m_speedsSupplier;
+        std::function<frc::Pose2d()>            m_chassisPoseSupplier;
+        std::function<frc::ChassisSpeeds()>     m_chassisSpeedsSupplier;   
 
-        TowerState                              m_state{TowerMode::ManualControl, 0_deg, 0, 0}; 
+        TowerState                              m_state{TowerMode::ManualControl, 0_deg, 0_rpm, 0_in}; 
 
         ctre::phoenix6::hardware::TalonFX       m_turretMotor  {ConstantsCanIds::turretMotorId};
         ctre::phoenix6::hardware::TalonFX       m_flywheelMotor{ConstantsCanIds::flywheelMotorId};

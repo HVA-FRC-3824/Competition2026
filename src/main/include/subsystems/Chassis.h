@@ -11,6 +11,7 @@
 #include <pathplanner/lib/auto/AutoBuilder.h>
 #include <pathplanner/lib/config/RobotConfig.h>
 #include <pathplanner/lib/controllers/PPHolonomicDriveController.h>
+#include <pathplanner/lib/path/PathPlannerPath.h>
 
 #include <frc/geometry/Pose2d.h>
 
@@ -61,6 +62,16 @@ namespace ChassisConstants
     constexpr pathplanner::PathConstraints constraints{maxSpeed, 3_mps_sq, maxAngularVelocity, 3_rad_per_s_sq};
 
     constexpr bool usingPathplanner = true;
+    
+
+    constexpr std::string_view            CameraName{"PhotonCamera"};
+
+    constexpr frc::Transform3d            RobotToCam{frc::Translation3d{0_m, 4_in, 15_in}, frc::Rotation3d{}};
+
+    const     frc::AprilTagFieldLayout    TagLayout = frc::AprilTagFieldLayout::LoadField(frc::AprilTagField::k2025ReefscapeWelded);
+
+    const     Eigen::Matrix<double, 3, 1> SingleTagStdDevs{4, 4, 8};
+    const     Eigen::Matrix<double, 3, 1> MultiTagStdDevs{0.5, 0.5, 1};
 }
 #pragma endregion
 
@@ -123,10 +134,10 @@ class Chassis : public frc2::SubsystemBase
 
         frc::SwerveDrivePoseEstimator<4> m_poseEstimator
         {
-            m_kinematics,                                 // Kinematics object
-            frc::Rotation2d(),                            // Initial gyro angle
-            GetModulePositions(),   // Initial module positions
-            frc::Pose2d()           // Initial pose
+            m_kinematics,         // Kinematics object
+            frc::Rotation2d(),    // Initial gyro angle
+            GetModulePositions(), // Initial module positions
+            frc::Pose2d()         // Initial pose, will be overriden by vision
         };
 
         frc::ChassisSpeeds                    m_desiredSpeeds{0_mps, 0_mps, 0_rad_per_s};
@@ -145,11 +156,11 @@ class Chassis : public frc2::SubsystemBase
 
         VisionPose m_vision
         {
-            constants::vision::CameraName,
-            constants::vision::RobotToCam,
-            constants::vision::TagLayout,
-            constants::vision::SingleTagStdDevs,
-            constants::vision::MultiTagStdDevs,
+            ChassisConstants::CameraName,
+            ChassisConstants::RobotToCam,
+            ChassisConstants::TagLayout,
+            ChassisConstants::SingleTagStdDevs,
+            ChassisConstants::MultiTagStdDevs,
 
             // Pose consumer to add vision measurements to the pose estimator
             [this] (frc::Pose2d pose, units::second_t timestamp, Eigen::Matrix<double, 3, 1> stddevs)

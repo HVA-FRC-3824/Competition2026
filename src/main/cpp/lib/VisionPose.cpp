@@ -6,7 +6,8 @@ VisionPose::VisionPose(std::string_view cameraName,
             Eigen::Matrix<double, 3, 1> singleTagStdDevs,
             Eigen::Matrix<double, 3, 1> multiTagStdDevs,
             std::function<void(frc::Pose2d, units::second_t, Eigen::Matrix<double, 3, 1>)> estConsumer) :
-    cameraName{cameraName}, tagLayout{tagLayout}, photonEstimator
+    cameraName{cameraName}, tagLayout{tagLayout}, 
+    photonEstimator
     { 
         tagLayout, 
         photon::PoseStrategy::MULTI_TAG_PNP_ON_COPROCESSOR, 
@@ -48,6 +49,7 @@ void VisionPose::Periodic()
         // cache result and update pose estimator
         auto visionEst = photonEstimator.Update(result);
         m_latestResult = result;
+
         // In sim only, add our vision estimate to the sim debug field
         if (frc::RobotBase::IsSimulation())
         {
@@ -60,17 +62,16 @@ void VisionPose::Periodic()
                 GetSimDebugField().GetObject("VisionEstimation")->SetPoses({});
             }
         }
-        if (visionEst)
+        if (visionEst.has_value())
         {
-            estConsumer(visionEst->estimatedPose.ToPose2d(), visionEst->timestamp,
-                        GetEstimationStdDevs(visionEst->estimatedPose.ToPose2d()));
+            estConsumer(visionEst->estimatedPose.ToPose2d(), visionEst->timestamp, GetEstimationStdDevs(visionEst->estimatedPose.ToPose2d()));
         }
     }
 }
 
 Eigen::Matrix<double, 3, 1> VisionPose::GetEstimationStdDevs(frc::Pose2d estimatedPose)
 {
-    Eigen::Matrix<double, 3, 1> estStdDevs = constants::vision::SingleTagStdDevs;
+    Eigen::Matrix<double, 3, 1> estStdDevs = singleTagStdDevs;
     auto                        targets    = GetLatestResult().GetTargets();
     int                         numTags    = 0;
     units::meter_t              avgDist    = 0_m;
@@ -90,7 +91,7 @@ Eigen::Matrix<double, 3, 1> VisionPose::GetEstimationStdDevs(frc::Pose2d estimat
     avgDist /= numTags;
     if (numTags > 1)
     {
-        estStdDevs = constants::vision::MultiTagStdDevs;
+        estStdDevs = multiTagStdDevs;
     }
     if (numTags == 1 && avgDist > 4_m)
     {
