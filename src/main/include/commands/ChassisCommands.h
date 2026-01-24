@@ -1,8 +1,13 @@
 #pragma once
 
 #pragma region Includes
-#include <frc2/command/CommandPtr.h>
+#include <pathplanner/lib/auto/AutoBuilder.h>
 
+#include <frc/trajectory/TrajectoryGenerator.h>
+#include <frc/controller/ProfiledPIDController.h>
+#include <frc2/command/SwerveControllerCommand.h>
+
+#include <frc2/command/CommandPtr.h>
 #include <frc2/command/InstantCommand.h>
 #include <frc2/command/WaitCommand.h>
 

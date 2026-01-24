@@ -9,29 +9,29 @@ namespace ConstantsCanIds
     const     auto    CanBus                 = "rio";
 
     // Swerve motor and encoders CAN IDs
-    constexpr CANid_t frontLeftDriveCANid    = 01;
-    constexpr CANid_t frontLeftTurnCANid     = 02;
-    constexpr CANid_t frontLeftEncoderCANid  = 03;
+    constexpr CANid_t frontLeftDriveId   = 01;
+    constexpr CANid_t frontLeftTurnId    = 02;
+    constexpr CANid_t frontLeftEncoderId = 03;
 
-    constexpr CANid_t frontRightDriveCANid   = 11;
-    constexpr CANid_t frontRightTurnCANid    = 12;
-    constexpr CANid_t frontRightEncoderCANid = 13;
+    constexpr CANid_t frontRightDriveId  = 11;
+    constexpr CANid_t frontRightTurnId   = 12;
+    constexpr CANid_t frontRightEncoderId= 13;
 
-    constexpr CANid_t backLeftDriveCANid     = 21;
-    constexpr CANid_t backLeftTurnCANid      = 22;
-    constexpr CANid_t backLeftEncoderCANid   = 23;
+    constexpr CANid_t backLeftDriveId    = 21;
+    constexpr CANid_t backLeftTurnId     = 22;
+    constexpr CANid_t backLeftEncoderId  = 23;
 
-    constexpr CANid_t backRightDriveCANid    = 31;
-    constexpr CANid_t backRightTurnCANid     = 32;
-    constexpr CANid_t backRightEncoderCANid  = 33;
+    constexpr CANid_t backRightDriveId   = 31;
+    constexpr CANid_t backRightTurnId    = 32;
+    constexpr CANid_t backRightEncoderId = 33;
 
-    constexpr CANid_t intakeTurnMotorId      = 40;
-    constexpr CANid_t intakeDriveMotorId     = 41;
+    constexpr CANid_t intakePositionMotorId = 40;
+    constexpr CANid_t fuelIntakeMotorId     = 41;
 
-    constexpr CANid_t spinnerMotorID         = 50;
-    constexpr CANid_t kickerMotorID          = 51;
-    constexpr CANid_t turretMotorID          = 52;
-    constexpr CANid_t flywheelMotorID        = 53;
+    constexpr CANid_t spinnerMotorId         = 50;
+    constexpr CANid_t kickerMotorId          = 51;
+    constexpr CANid_t turretMotorId          = 52;
+    constexpr CANid_t flywheelMotorId        = 53;
 }
 #pragma endregion
 

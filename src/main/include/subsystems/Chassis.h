@@ -43,8 +43,8 @@ namespace ChassisConstants
     constexpr units::turn_t rearLeftForwardAngle  { 0.268555};
 
     // These make sure to limit how fast the robot can go
-    constexpr units::meters_per_second_t                    maxSpeed          {4};
-    constexpr units::angular_velocity::radians_per_second_t maxAngularVelocity{2 * std::numbers::pi};
+    constexpr units::meters_per_second_t  maxSpeed          {4};
+    constexpr units::radians_per_second_t maxAngularVelocity{2 * std::numbers::pi};
 
     // The physical dimensions of the robot
     constexpr units::meter_t wheelBase {25.0};
@@ -57,6 +57,10 @@ namespace ChassisConstants
         frc::SwerveModuleState{0_mps, 45_deg},  // BL
         frc::SwerveModuleState{0_mps, 315_deg}  // BR
     };
+
+    constexpr pathplanner::PathConstraints constraints{maxSpeed, 3_mps_sq, maxAngularVelocity, 3_rad_per_s_sq};
+
+    constexpr bool usingPathplanner = true;
 }
 #pragma endregion
 
@@ -85,9 +89,8 @@ class Chassis : public frc2::SubsystemBase
 
         frc::Rotation2d                          GetHeading();
         frc::Pose2d                              GetPose();
+        frc::ChassisSpeeds                       GetChassisSpeeds();
 
-        frc::Pose2d                              GetNearestTag();
-        
         void                                     Periodic() override;
     
     private:
@@ -104,10 +107,10 @@ class Chassis : public frc2::SubsystemBase
         
         std::array<SwerveModule, 4> m_swerveModules
         {
-            SwerveModule{ConstantsCanIds::frontLeftDriveCANid,  ConstantsCanIds::frontLeftTurnCANid,  ConstantsCanIds::frontLeftEncoderCANid },
-            SwerveModule{ConstantsCanIds::frontRightDriveCANid, ConstantsCanIds::frontRightTurnCANid, ConstantsCanIds::frontRightEncoderCANid},
-            SwerveModule{ConstantsCanIds::backLeftDriveCANid,   ConstantsCanIds::backLeftTurnCANid,   ConstantsCanIds::backLeftEncoderCANid  },
-            SwerveModule{ConstantsCanIds::backRightDriveCANid,  ConstantsCanIds::backRightTurnCANid,  ConstantsCanIds::backRightEncoderCANid } 
+            SwerveModule{ConstantsCanIds::frontLeftDriveId,  ConstantsCanIds::frontLeftTurnId,  ConstantsCanIds::frontLeftEncoderId},
+            SwerveModule{ConstantsCanIds::frontRightDriveId, ConstantsCanIds::frontRightTurnId, ConstantsCanIds::frontRightEncoderId},
+            SwerveModule{ConstantsCanIds::backLeftDriveId,   ConstantsCanIds::backLeftTurnId,   ConstantsCanIds::backLeftEncoderId },
+            SwerveModule{ConstantsCanIds::backRightDriveId,  ConstantsCanIds::backRightTurnId,  ConstantsCanIds::backRightEncoderId} 
         };
 
         frc::SwerveDriveKinematics<4> m_kinematics
@@ -134,9 +137,9 @@ class Chassis : public frc2::SubsystemBase
             frc::SwerveModuleState{0_mps, frc::Rotation2d()}, frc::SwerveModuleState{0_mps, frc::Rotation2d()}
         };
             
-        bool                                  m_isFieldRelative = true;
+        bool m_isFieldRelative = true;
 
-        bool                                  m_isXMode = false;
+        bool m_isXMode = false;
     
         studica::AHRS m_gyro{studica::AHRS::NavXComType::kMXP_SPI};  // The gyro sensor
 

@@ -52,20 +52,6 @@ frc2::CommandPtr ChassisDrive(Chassis *chassis, std::function<frc::ChassisSpeeds
 }
 #pragma endregion
 
-#pragma region ChassisDrivePose(Chassis *chassis, std::string CommandName)
-/// @brief Creates a command to drive the chassis to a specified pose.
-/// @param chassis A pointer to the chassis subsystem.
-/// @param CommandName The name of the command or path to follow.
-/// @return A CommandPtr that drives the chassis to the specified pose.
-frc2::CommandPtr ChassisDrivePose(Chassis *chassis, std::string CommandName)
-{
-    //return AutoBuilder::followPath(PathPlannerPath::fromPathFile(CommandName));
-
-    // Note: Temporary fix for pathplanner not working correctly when called immediately after another command
-    return frc2::WaitCommand(0.1_s).ToPtr();
-}
-#pragma endregion
-
 #pragma region ChassisDrivePose(Chassis *chassis, frc::Pose2d targetPose)
 /// @brief Creates a command to drive the chassis to a specified pose.
 /// @param chassis A pointer to the chassis subsystem.
@@ -73,10 +59,69 @@ frc2::CommandPtr ChassisDrivePose(Chassis *chassis, std::string CommandName)
 /// @return A CommandPtr that drives the chassis to the specified pose.
 frc2::CommandPtr ChassisDrivePose(Chassis *chassis, frc::Pose2d targetPose)
 {
-    // return AutoBuilder::pathfindToPose(targetPose, constants::PathPlanner::Constraints);
+    if (ChassisConstants::usingPathplanner)
+    {
+        return pathplanner::AutoBuilder::pathfindToPose(targetPose, ChassisConstants::constraints);
+    }
+    else
+    {
+        // // Set up config for trajectory
+        // frc::TrajectoryConfig trajectoryConfig(m_speed, ChassisPoseConstants::MaxAcceleration);
 
-    // Note: Temporary fix for pathplanner not working correctly when called immediately after another command
-    return frc2::WaitCommand(0.1_s).ToPtr();
+        // // Add kinematics to ensure maximum speed is actually obeyed
+        // trajectoryConfig.SetKinematics(m_drivetrain->m_kinematics);
+
+        // // Determine if the trajectory should be reversed
+        // if (m_distanceX < 0_in)
+        //     trajectoryConfig.SetReversed(true);
+
+        // // Ensure the new pose requires an X or Y move
+        // // Note: GenerateTrajectory will throw an exception if the distance X and Y are zero
+        // if (fabs(m_distanceX.value()) < 0.001 && fabs(m_distanceY.value()) < 0.001)
+        //     m_distanceX = 0.01_m;
+
+        // // Get the robot starting pose
+        // auto startPose = m_drivetrain->GetPose();
+
+        // // Create the trajectory to follow
+        // frc::Pose2d endPose{startPose.X()                  + m_distanceX,
+        //                     startPose.Y()                  + m_distanceY,
+        //                     startPose.Rotation().Degrees() + m_angle};
+
+        // frc::SmartDashboard::PutNumber("Start X",    startPose.X().value() * 39.3701);
+        // frc::SmartDashboard::PutNumber("Start Y",    startPose.Y().value() * 39.3701);
+        // frc::SmartDashboard::PutNumber("Start A",    startPose.Rotation().Degrees().value());
+
+        // frc::SmartDashboard::PutNumber("Distance X", m_distanceX.value() * 39.3701);
+        // frc::SmartDashboard::PutNumber("Distance Y", m_distanceY.value() * 39.3701);
+        // frc::SmartDashboard::PutNumber("Angle",      m_angle.value());
+
+        // frc::SmartDashboard::PutNumber("End X",      endPose.X().value() * 39.3701);
+        // frc::SmartDashboard::PutNumber("End Y",      endPose.Y().value() * 39.3701);
+        // frc::SmartDashboard::PutNumber("End A",      endPose.Rotation().Degrees().value());
+
+        // // Create the trajectory to follow
+        // auto trajectory = frc::TrajectoryGenerator::GenerateTrajectory(startPose, {}, endPose, trajectoryConfig);
+
+        // // Create a profile PID controller
+        // frc::ProfiledPIDController<units::radians> profiledPIDController{ChassisPoseConstants::PProfileController, 0, 0,
+        //                                                                  ChassisPoseConstants::ThetaControllerConstraints};
+
+        // // enable continuous input for the profile PID controller
+        // profiledPIDController.EnableContinuousInput(units::radian_t{-std::numbers::pi}, units::radian_t{std::numbers::pi});
+
+        // // Create the swerve controller command
+        // m_swerveControllerCommand = new frc2::SwerveControllerCommand<4>(
+        //     trajectory,
+        //     [this]() { return m_drivetrain->GetPose(); },
+        //     m_drivetrain->m_kinematics,
+        //     frc::PIDController(ChassisPoseConstants::PXController, 0, 0),
+        //     frc::PIDController(ChassisPoseConstants::PYController, 0, 0),
+        //     profiledPIDController,
+        //     [this](auto moduleStates) { m_drivetrain->SetModuleStates(moduleStates); },
+        //     {m_drivetrain}
+        // );
+    }
 }
 #pragma endregion
 
@@ -94,27 +139,26 @@ frc2::CommandPtr FlipFieldCentricity(Chassis *chassis)
 }
 #pragma endregion
 
-#pragma region AlignToNearestTag(Chassis *chassis, frc::Transform2d targetOffset)
-// This command will align the robot to the nearest AprilTag
-// It will use the AprilTag's pose to determine the target position and rotation
-// The robot will drive towards the target position and rotate to face the target rotation
-frc2::CommandPtr AlignToNearestTag(Chassis *chassis, frc::Transform2d targetOffset)
-{
-        frc::Pose2d targetPosition = chassis->GetNearestTag();
+// Effectively dead code, this is replaced by frc lib 
+// #pragma region AlignToNearestTag(Chassis *chassis, frc::Transform2d targetOffset)
+// // This command will align the robot to the nearest AprilTag
+// // It will use the AprilTag's pose to determine the target position and rotation
+// // The robot will drive towards the target position and rotate to face the target rotation
+// frc2::CommandPtr AlignToNearestTag(Chassis *chassis, frc::Transform2d targetOffset)
+// {
+//         // Rotate offset and offset it relative to the target position's orientation
+//         // This does actually work trust chat
+//         frc::Pose2d targetWithOffset{
+//             targetPosition.X() + targetOffset.Translation().X() * std::cos(targetPosition.Rotation().Radians().value())
+//                                - targetOffset.Translation().Y() * std::sin(targetPosition.Rotation().Radians().value()),
 
-        // Rotate offset and offset it relative to the target position's orientation
-        // This does actually work trust chat
-        frc::Pose2d targetWithOffset{
-            targetPosition.X() + targetOffset.Translation().X() * std::cos(targetPosition.Rotation().Radians().value())
-                               - targetOffset.Translation().Y() * std::sin(targetPosition.Rotation().Radians().value()),
+//             targetPosition.Y() + targetOffset.Translation().X() * std::sin(targetPosition.Rotation().Radians().value())
+//                                + targetOffset.Translation().Y() * std::cos(targetPosition.Rotation().Radians().value()),
 
-            targetPosition.Y() + targetOffset.Translation().X() * std::sin(targetPosition.Rotation().Radians().value())
-                               + targetOffset.Translation().Y() * std::cos(targetPosition.Rotation().Radians().value()),
+//             targetPosition.Rotation().Degrees() + targetOffset.Rotation().Degrees()
+//         };
 
-            targetPosition.Rotation().Degrees() + targetOffset.Rotation().Degrees()
-        };
-
-    return ChassisDrivePose(chassis, targetWithOffset);
-}
-#pragma endregion
+//     return ChassisDrivePose(chassis, targetWithOffset);
+// }
+// #pragma endregion
 

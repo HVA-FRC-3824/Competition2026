@@ -48,6 +48,8 @@ class Leds : public frc2::SubsystemBase
         void     Periodic() override;
         void     SetMode(LedMode ledMode);
 
+        LedMode GetMode() const { return m_ledMode; }
+
     private:
 
         void Off();

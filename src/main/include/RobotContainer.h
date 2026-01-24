@@ -50,18 +50,19 @@ class RobotContainer
 
         double                              GetExponentialValue(double joystickValue, double exponent);
 
-        frc::XboxController                 m_driveController{constants::controller::DrivePort};
+        frc::XboxController                 m_driveController   {constants::controller::DrivePort};
+        frc::XboxController                 m_operatorController{constants::controller::OperatorPort};
 
         // Instantiate the robot subsystems
         Chassis                             m_chassis{};
-        Spindexer                           m_indexer{};
+        Spindexer                           m_spindexer{};
         Leds                                m_leds{};
-        Tower                               m_tower{[&]() {return m_chassis.GetPose();}};
+        Tower                               m_tower{[&] {return m_chassis.GetPose();}, [&] {return m_chassis.GetChassisSpeeds();}};
         Climb                               m_climb{};
         Intake                              m_intake{};
 
         // Instantiate subsystem states
-        TowerState                          m_manualTowerState{TowerMode::Manual, 0_deg, 0.0, 0.0};
+        TowerState                          m_manualTowerState{TowerMode::ManualControl, 0_deg, 0.0, 0.0};
 
         LedMode                             m_robotStatus = LedMode::Off;
 };

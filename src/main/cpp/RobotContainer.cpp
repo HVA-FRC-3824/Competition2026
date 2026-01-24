@@ -48,23 +48,36 @@ RobotContainer::RobotContainer()
         frc2::JoystickButton(&m_driveController, int(button)).OnTrue(std::move(command));
     }
 
-    // frc2::JoystickButton(&m_driveController, constants::controller::A).OnTrue(new frc2::InstantCommand{[this] { m_chassis.ZeroHeading(); }, {&m_chassis}});
-
     // ********************* //
     // * OPERATOR CONTROLS * //
     // ********************* //
 
+    // Array of run-once controls, organized like this for simplicity and readability
+    std::pair<Button, frc2::CommandPtr> runOnceControlsOperator[] =
+    {
+        {constants::controller::A, IntakeSetState(&m_intake, IntakeState::DeployedRollerOn)},
+        {constants::controller::B, IntakeSetState(&m_intake, IntakeState::DeployedRollerOff)},
+        {constants::controller::Y, IntakeSetState(&m_intake, IntakeState::Stowed)},
+        {constants::controller::LeftBumper,  SpindexerSetState(&m_spindexer, SpindexerState::Spindexing)},
+        {constants::controller::RightBumper, SpindexerSetState(&m_spindexer, SpindexerState::Stopped)},
+    };
+
+    // Configure the run-once controls
+    for (auto& [button, command] : runOnceControlsOperator)
+    {
+        frc2::JoystickButton(&m_operatorController, int(button)).OnTrue(std::move(command));
+    }
 
     // ********** //
     // * CAMERA * //
     // ********** //
 
 
-    // cs::UsbCamera camera = frc::CameraServer::StartAutomaticCapture();
+    cs::UsbCamera camera = frc::CameraServer::StartAutomaticCapture();
 
-    // // Set the resolution and frame rate of the camera
-    // camera.SetResolution(640, 480); // Set resolution to 640x480
-    // camera.SetFPS(30);             // Set frame rate to 30 FPS
+    // Set the resolution and frame rate of the camera
+    camera.SetResolution(640, 480); // Set resolution to 640x480
+    camera.SetFPS(30);             // Set frame rate to 30 FPS
 }
 #pragma endregion
 
@@ -93,12 +106,10 @@ std::function<frc::ChassisSpeeds()> RobotContainer::GetChassisSpeeds()
 double RobotContainer::GetExponentialValue(double joystickValue, double exponent)
 {
     int    direction = (joystickValue < 0.0) ? -1 : 1;
-    double absValue  = std::abs(joystickValue);
-    double output    = std::pow(absValue, exponent) * direction;
+    double output    = std::pow(std::abs(joystickValue), exponent) * direction;
 
     // Ensure the range of the output
-    if (output < -1.0) output = -1.0;
-    if (output > 1.0)  output =  1.0;
+    output = std::clamp(output, -1.0, 1.0);
 
     // Return the output value
     return output;

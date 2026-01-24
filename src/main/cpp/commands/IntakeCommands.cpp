@@ -7,6 +7,6 @@
 /// @return Command to toggle driving the intake
 frc2::CommandPtr IntakeSetState(Intake* intake, IntakeState state)
 {
-    return frc2::InstantCommand{[=]() { intake->SetState(state); }, {intake}}.ToPtr();
+    return frc2::InstantCommand{[=] { intake->SetState(state); }, {intake}}.ToPtr();
 }
 #pragma endregion

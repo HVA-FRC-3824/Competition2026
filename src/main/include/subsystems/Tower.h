@@ -11,6 +11,7 @@
 #include <frc/DriverStation.h>
 
 #include <frc/geometry/Pose2d.h>
+#include <frc/kinematics/ChassisSpeeds.h>
 
 #include <frc/Servo.h>
 
@@ -28,10 +29,9 @@
 #pragma region StateStructures
 enum TowerMode
 {
-    Hub,
-    Passing,
-    Static,
-    Manual
+    ShootingToHub,
+    PassingToAdjacentZone,
+    ManualControl
 };
 
 struct TowerState
@@ -46,35 +46,24 @@ struct TowerState
 #pragma region TowerConstants
 namespace TowerConstants
 {
-    constexpr auto AngleMaximumAmperage       = 20.0_A;
-
-    constexpr auto AngleP                     = 0.1;
-    constexpr auto AngleI                     = 0.0;
-    constexpr auto AngleD                     = 0.0;
-
-    constexpr auto FlywheelMaximumAmperage    = 40.0_A;
-
-    constexpr auto FlywheelP                  = 0.1;
-    constexpr auto FlywheelI                  = 0.0;
-    constexpr auto FlywheelD                  = 0.0;
-
-    constexpr auto MotorConfigurationAttempts = 5;
-
     // This is -1 to 1, really 0 to 1
-    constexpr double constantFlywheelSpeed    = 0.8;
+    constexpr auto constantFlywheelSpeed    = 0.8;
 
-    // TODO: test these angles, likely isn't correct as we have a different than the bot, team 102 in 2022, I got it from
-    constexpr units::degree_t MinAngle        = 0_deg;
-    constexpr units::degree_t MaxAngle        = 50_deg;
+    // TODO: Make these real. These values will be changed over the course of the season probably
+    constexpr auto MinAngle        = -180_deg;
+    constexpr auto MaxAngle        =  180_deg;
 
     // TODO: test these lengths, they're most likely accurate
     // I got these from team 102 from 2022, they used the same actuator
-    constexpr units::inch_t   MaxLength        = 14.336_in;
-    constexpr units::inch_t   MinLength        = 8.946_in;
+    constexpr auto MaxLength        = 14.336_in;
+    constexpr auto MinLength        = 8.946_in;
 
     // Comes from 102 too
-    constexpr double          ActuatorLowerBound = -0.95;
-    constexpr double          ActuatorUpperBound =  0.95;
+    constexpr auto ActuatorLowerBound = -0.95;
+    constexpr auto ActuatorUpperBound =  0.95;
+
+    // Whether or not to use the turret camera for aiming, alternate aiming implementations
+    constexpr auto usingTurretCamera = false;
 }
 #pragma endregion
 
@@ -82,18 +71,14 @@ class Tower : public frc2::SubsystemBase
 {
     public:
         
-        explicit    Tower(std::function<frc::Pose2d()> poseSupplier);
+        explicit    Tower(std::function<frc::Pose2d()> poseSupplier, std::function<frc::ChassisSpeeds()> speedsSupplier);
 
         void        SetState(TowerState newState);
         TowerState  GetState();
 
         void        Periodic() override;
 
-    private:
-
-        // Motor configuration methods
-        void ConfigureTurretMotor();
-        void ConfigureFlywheelMotor();
+    private: 
 
         // https://andymark.com/products/linear-servo-actuators check the manual
         // Input in between 0 and 1
@@ -105,21 +90,19 @@ class Tower : public frc2::SubsystemBase
         
         // Sets the desired angle of the turret relative to the robot
         void SetTurret(units::degree_t angle);
-        
-        // Sets the desired angle of the turret relative to the field
-        void SetTurret(units::degree_t angle, units::degree_t gyroAngle);
 
-        TowerState CalculateShot(units::meter_t distance, frc::Translation2d speed);
+        // Changes the turret angle, flywheel speed, and hood actuator position based on distance and speed to target
+        TowerState CalculateShot(frc::Translation2d relativeDistance, frc::ChassisSpeeds speed);
 
         // Do not use this to do pose estimatation. Because its on a turret, it is unreliable
         photon::PhotonCamera                    m_turretCam{"turretCam"};
 
         std::function<frc::Pose2d()>            m_poseSupplier;
-        std::pair<frc::Pose2d, units::second_t> m_pose;
+        std::function<frc::ChassisSpeeds()>     m_speedsSupplier;
 
-        TowerState                              m_state{TowerMode::Static, 0_deg, 0, 0}; 
+        TowerState                              m_state{TowerMode::ManualControl, 0_deg, 0, 0}; 
 
-        ctre::phoenix6::hardware::TalonFX       m_turretMotor  {ConstantsCanIds::turretMotorID};
-        ctre::phoenix6::hardware::TalonFX       m_flywheelMotor{ConstantsCanIds::flywheelMotorID};
+        ctre::phoenix6::hardware::TalonFX       m_turretMotor  {ConstantsCanIds::turretMotorId};
+        ctre::phoenix6::hardware::TalonFX       m_flywheelMotor{ConstantsCanIds::flywheelMotorId};
         frc::Servo                              m_hoodActuator {ConstantsPwmPorts::actuatorPort};
 };

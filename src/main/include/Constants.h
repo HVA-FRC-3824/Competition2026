@@ -20,8 +20,28 @@ namespace constants
     #pragma region Field
     namespace field
     {
-        constexpr frc::Pose3d blueHub{182.11_in,             158.84_in, 72_in, frc::Rotation3d(0_deg)};
-        constexpr frc::Pose3d redHub {325.61_in + 143.50_in, 158.84_in, 72_in, frc::Rotation3d(0_deg)};
+        /// *** Field Dimensions *** ///
+        constexpr units::inch_t fieldLength  = 652.11_in;
+        constexpr units::inch_t fieldWidth   = 317.69_in;
+
+        constexpr units::inch_t allianceWallToAllianceZone = 182.11_in;
+
+        constexpr units::inch_t hubHeight = 72_in;
+
+        /// *** Field Locations *** ///
+
+        constexpr frc::Pose3d blueHub{allianceWallToAllianceZone,               fieldWidth / 2, hubHeight, frc::Rotation3d(0_deg)};
+        constexpr frc::Pose3d redHub {fieldLength - allianceWallToAllianceZone, fieldWidth / 2, hubHeight, frc::Rotation3d(0_deg)};
+
+        // For passing we want to aim towards the inside of our alliance zone or towards the neutral zone whichever is closer
+        // Either way we want the balls to be going as close to our alliance zone as possible, so aim for that
+        // - "Aim for the stars and maybe you'll reach the neutral zone" or something like that...
+
+        constexpr frc::Pose2d blueAllianceZoneClose{allianceWallToAllianceZone, fieldWidth / 4, 0_rad};
+        constexpr frc::Pose2d blueAllianceZoneFar  {allianceWallToAllianceZone, fieldWidth - (fieldWidth / 4), 0_rad};
+
+        constexpr frc::Pose2d redAllianceZoneClose{fieldLength - allianceWallToAllianceZone + 10_in, fieldWidth / 4, 0_rad};
+        constexpr frc::Pose2d redAllianceZoneFar  {fieldLength - allianceWallToAllianceZone + 10_in, fieldWidth - (fieldWidth / 4), 0_rad};
     }
     #pragma endregion
 
@@ -30,6 +50,7 @@ namespace constants
     {
         // Drive Input Configurations
         constexpr int    DrivePort           = 0;
+        constexpr int    OperatorPort        = 1;
 
         constexpr double TranslationDeadZone = 0.06;
         constexpr double RotateDeadZone      = 0.06;

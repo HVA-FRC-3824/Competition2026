@@ -1,33 +1,40 @@
 #include "commands/TowerCommands.h"
 
 #pragma region TowerAimHub
-// This aims the tower to the Hub based on the camera
-frc2::CommandPtr TowerAimHub(Tower* tower)
+/// @brief Creates a command to aim the tower at the hub.
+/// @param tower A pointer to the tower subsystem.
+frc2::CommandPtr TowerAimHub(Tower *tower)
 {
-    return frc2::InstantCommand{[=] {tower->SetState(TowerState{TowerMode::Hub, 0_deg, 0.0, 0.0});}, {tower}}.ToPtr();
+    // Create and return a InstantCommand that aims the tower at the hub
+    return frc2::InstantCommand{
+        [=] () { tower->SetState(TowerState{TowerMode::ShootingToHub, 0_deg, 0, 0}); }, // Execution function
+        {tower} // Requirements (subsystems required by this command)
+    }.ToPtr();
 }
 #pragma endregion
 
-#pragma region TowerAimPassing
-// This aims the tower to the Hub based on the camera
-frc2::CommandPtr TowerAimPassing(Tower* tower)
+#pragma region TowerAimPassZone
+/// @brief Creates a command to aim the tower at the adjacent pass zone.
+/// @param tower A pointer to the tower subsystem.
+frc2::CommandPtr TowerAimPassZone(Tower *tower)
 {
-    return frc2::InstantCommand{[=] {tower->SetState(TowerState{TowerMode::Passing, 0_deg, 0.0, 0.0});}, {tower}}.ToPtr();
+    // Create and return a InstantCommand that aims the tower at the adjacent pass zone
+    return frc2::InstantCommand{
+        [=] () { tower->SetState(TowerState{TowerMode::PassingToAdjacentZone, 0_deg, 0, 0}); }, // Execution function
+        {tower} // Requirements (subsystems required by this command)
+    }.ToPtr();
 }
 #pragma endregion
 
-#pragma region TowerStatic
-// This aims the tower to the Hub based on the camera
-frc2::CommandPtr TowerAimStatic(Tower* tower)
+#pragma region TowerManualControl
+/// @brief Creates a command to set the tower to manual control mode.
+/// @param tower A pointer to the tower subsystem.
+frc2::CommandPtr TowerManualControl(Tower *tower, std::function<TowerState()> stateSupplier)
 {
-    return frc2::InstantCommand{[=] {tower->SetState(TowerState{TowerMode::Static, 0_deg, 0.0, 0.0});}, {tower}}.ToPtr();
-}
-#pragma endregion
-
-#pragma region TowerManual
-// This aims the tower to the Hub based on the camera
-frc2::CommandPtr TowerAimManual(Tower* tower, std::function<TowerState()> stateSupplier)
-{
-    return frc2::InstantCommand{[=] {tower->SetState(stateSupplier());}, {tower}}.ToPtr();
+    // Create and return a InstantCommand that sets the tower to manual control mode
+    return frc2::InstantCommand{
+        [=] () { tower->SetState(stateSupplier()); }, // Execution function
+        {tower} // Requirements (subsystems required by this command)
+    }.ToPtr();
 }
 #pragma endregion

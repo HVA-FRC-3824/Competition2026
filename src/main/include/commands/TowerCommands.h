@@ -9,14 +9,14 @@
 #include "subsystems/Tower.h"
 #pragma endregion
 
-// Aim towards the Hub
-frc2::CommandPtr TowerAimHub(Tower* tower);
+/// @brief Creates a command to aim the tower at the hub.
+/// @param tower A pointer to the tower subsystem.
+frc2::CommandPtr TowerAimHub(Tower *tower);
 
-// This aims the tower towards a given 
-frc2::CommandPtr TowerAimPassing(Tower* tower);
+/// @brief Creates a command to aim the tower at the adjacent pass zone.
+/// @param tower A pointer to the tower subsystem.
+frc2::CommandPtr TowerAimPassZone(Tower *tower);
 
-// This aims the tower forwards
-frc2::CommandPtr TowerAimStatic(Tower* tower);
-
-// This aims the tower to the Hub based on the camera
-frc2::CommandPtr TowerAimManual(Tower* tower, std::function<TowerState()> stateSupplier);
+/// @brief Creates a command to set the tower to manual control mode.
+/// @param tower A pointer to the tower subsystem.
+frc2::CommandPtr TowerManualControl(Tower *tower, std::function<TowerState()> stateSupplier);

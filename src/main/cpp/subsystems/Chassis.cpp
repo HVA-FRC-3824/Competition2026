@@ -54,6 +54,7 @@ void Chassis::DriveRobotRelative(const frc::ChassisSpeeds& speeds)
     if (m_isXMode)
     {
         SetModuleStates(ChassisConstants::xStates);
+        m_desiredStates = ChassisConstants::xStates;
         return;
     }
 
@@ -191,14 +192,13 @@ frc::Pose2d Chassis::GetPose()
 }
 #pragma endregion
 
-#pragma region GetNearestTag
-/// @brief Method to get the nearest AprilTag pose.
-/// @return The nearest AprilTag pose.
-frc::Pose2d Chassis::GetNearestTag()
+#pragma region GetChassisSpeeds
+/// @brief Method to get the robot chassis speeds.
+frc::ChassisSpeeds Chassis::GetChassisSpeeds()
 {
-    return GetPose().Nearest(constants::vision::AprilTagLocations::Pose2dTagsSpan);
+    return m_desiredSpeeds;
 }
-#pragma endregion
+
 
 #pragma region Periodic
 /// @brief Method called once per scheduler run.

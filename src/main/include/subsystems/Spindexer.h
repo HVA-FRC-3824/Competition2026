@@ -8,26 +8,27 @@
 #include <ctre/phoenix6/TalonFX.hpp>
 
 #include "lib/TalonFXConfiguration.h"
+#include "lib/Logging.h"
 
 #include "Constants.h"
 #include "ConstantsRoboRio.h"
+#pragma endregion
+
+#pragma region StateStruct
+enum SpindexerState
+{
+    Stopped,
+    Spindexing
+};
 #pragma endregion
 
 #pragma region SpindexerConstants
 namespace SpindexerConstants
 {
     // TODO: test and tune these values
-    constexpr auto spinnerWheelVoltage = 10_V;
-    constexpr auto kickerWheelVoltage  = 6_V;
+    constexpr auto spinnerWheelTurns = 10_tps;
+    constexpr auto kickerWheelTurns  = 10_tps;
 }
-#pragma endregion
-
-#pragma region StateStruct
-enum SpindexerState
-{
-    Indexing,
-    Paused
-};
 #pragma endregion
 
 class Spindexer : public frc2::SubsystemBase
@@ -39,14 +40,12 @@ class Spindexer : public frc2::SubsystemBase
         // Sets the indexing motors
         void SetState(SpindexerState newState);
 
-        void Periodic() override;
+        SpindexerState GetState() const { return m_state; }
 
     private:
 
-        void ConfigureMotor(ctre::phoenix6::hardware::TalonFX& motor);
-
-        ctre::phoenix6::hardware::TalonFX m_spinnerMotor{ConstantsCanIds::spinnerMotorID};
-        ctre::phoenix6::hardware::TalonFX m_kickerMotor {ConstantsCanIds::kickerMotorID};
+        ctre::phoenix6::hardware::TalonFX m_spinnerMotor{ConstantsCanIds::spinnerMotorId};
+        ctre::phoenix6::hardware::TalonFX m_kickerMotor {ConstantsCanIds::kickerMotorId};
         
-        SpindexerState m_state = SpindexerState::Paused;
+        SpindexerState m_state = SpindexerState::Stopped;
 };

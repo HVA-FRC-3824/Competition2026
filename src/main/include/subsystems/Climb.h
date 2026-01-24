@@ -8,12 +8,10 @@
 #include "Constants.h"
 #pragma endregion
 
-enum CurrentClimbState
+enum ClimbState
 {
-    Ground,
-    Level1,
-    Level2,
-    Level3
+    Deployed,
+    Retracted
 };
 
 class Climb : public frc2::SubsystemBase
@@ -22,7 +20,13 @@ class Climb : public frc2::SubsystemBase
 
         explicit Climb();
 
+        void SetState(ClimbState state);
+
+        ClimbState GetState() const { return m_climbState; }
+
     private:
 
-        CurrentClimbState m_currentClimbState;
+        // TODO: add hardware components here (TalonFX controller?)
+
+        ClimbState m_climbState;
 };
