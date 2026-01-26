@@ -38,7 +38,7 @@ enum TowerMode
 
 struct TowerState
 {
-    TowerMode mode;
+    TowerMode                 mode;
     units::degree_t           turretAngle;
     units::turns_per_second_t flywheelSpeed;
     units::inch_t             hoodActuatorInches;
@@ -48,20 +48,13 @@ struct TowerState
 #pragma region TowerConstants
 namespace TowerConstants
 {
-    // This is -1 to 1, really 0 to 1
-    constexpr auto constantFlywheelSpeed    = 0.8;
+    constexpr auto MinAngle           = -180_deg;  // TODO: Make these real. 
+    constexpr auto MaxAngle           =  180_deg;
+ 
+    constexpr auto MaxLength          = 14.336_in;  // TODO: test these lengths, they're most likely accurate
+    constexpr auto MinLength          = 8.946_in;   // I got these from team 102 from 2022, they used the same actuator
 
-    // TODO: Make these real. These values will be changed over the course of the season probably
-    constexpr auto MinAngle        = -180_deg;
-    constexpr auto MaxAngle        =  180_deg;
-
-    // TODO: test these lengths, they're most likely accurate
-    // I got these from team 102 from 2022, they used the same actuator
-    constexpr auto MaxLength        = 14.336_in;
-    constexpr auto MinLength        = 8.946_in;
-
-    // Comes from 102 too
-    constexpr auto ActuatorLowerBound = -0.95;
+    constexpr auto ActuatorLowerBound = -0.95;      // Comes from 102 too
     constexpr auto ActuatorUpperBound =  0.95;
 
     // From inches to 0-1 range
@@ -92,15 +85,15 @@ class Tower : public frc2::SubsystemBase
         
         void SetTurret(units::degree_t angle);
 
-        TowerState CalculateShot(frc::Translation2d relativeDistance, frc::ChassisSpeeds chassisSpeed);
+        TowerState CalculateShot(TowerMode towerMode, frc::Translation2d relativeDistance, frc::ChassisSpeeds chassisSpeed);
 
         bool                                    m_isBlue = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) 
                                                                 == frc::DriverStation::Alliance::kBlue;
 
-        bool                                    m_usingTurretCamera = true;
+        bool                                    m_usingTurretCamera = false;
 
         // Do not use this to do pose estimatation. Because its on a turret, it is unreliable
-        photon::PhotonCamera                    m_turretCam{"turretCam"};
+        photon::PhotonCamera                    m_turretCam{"CameraTurret"};
 
         std::function<frc::Pose2d()>            m_chassisPoseSupplier;
         std::function<frc::ChassisSpeeds()>     m_chassisSpeedsSupplier;   

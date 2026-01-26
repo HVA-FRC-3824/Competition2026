@@ -48,7 +48,7 @@ RobotContainer::RobotContainer()
     }
 
     // This takes the axis inputs and drives the robot
-    m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetChassisSpeeds()));
+    m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetSpeeds()));
 
     // This is effectively a shoot command, the flywheel should already be spun up
     // and the rest of the tower should be configured by the operator
@@ -92,10 +92,10 @@ RobotContainer::RobotContainer()
 }
 #pragma endregion
 
-#pragma region GetChassisSpeeds
+#pragma region GetSpeeds
 /// @brief Method to return the chassis speeds based on joystick inputs.
 /// @return The chassis speeds based on joystick inputs.
-std::function<frc::ChassisSpeeds()> RobotContainer::GetChassisSpeeds()
+std::function<frc::ChassisSpeeds()> RobotContainer::GetSpeeds()
 {
     return [&]()
     {

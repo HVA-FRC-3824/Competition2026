@@ -2,35 +2,36 @@
 
 #pragma region Tower
 /// @brief Constructor for the Tower subsystem
-/// @param chassisPoseSupplier 
+/// @param chassisPoseSupplier Function that supplies the current chassis pose
+/// @param chassisSpeedsSupplier Function that supplies the current chassis speeds
 Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc::ChassisSpeeds()> chassisSpeedsSupplier) :
     m_chassisPoseSupplier  {chassisPoseSupplier},
     m_chassisSpeedsSupplier{chassisSpeedsSupplier}
 {
     // Configure the tower motors
     TalonFXConfiguration(&m_turretMotor,
-                          40_A,
-                          true,
-                          0.0,
-                          0.0,
-                          0.0,
-                          0.0,
-                          0.0,
-                          0.0,
-                          0_tps,
-                          units::turns_per_second_squared_t{0});
+                          40_A,                                  // Current limit
+                          true,                                  // Brake mode
+                          0.0,                                   // P gain
+                          0.0,                                   // I gain
+                          0.0,                                   // D gain
+                          0.0,                                   // S (static friction feedforward)
+                          0.0,                                   // V (velocity feedforward)
+                          0.0,                                   // A (acceleration feedforward)
+                          0_tps,                                 // Velocity limit
+                          units::turns_per_second_squared_t{0}); // Acceleration limit
 
     TalonFXConfiguration(&m_flywheelMotor,
-                          40_A,
-                          true,
-                          0.0,
-                          0.0,
-                          0.0,
-                          0.0,
-                          0.0,
-                          0.0,
-                          0_tps,
-                          units::turns_per_second_squared_t{0});
+                          40_A,                                  // Current limit
+                          true,                                  // Brake mode
+                          0.0,                                   // P gain
+                          0.0,                                   // I gain
+                          0.0,                                   // D gain
+                          0.0,                                   // S (static friction feedforward)
+                          0.0,                                   // V (velocity feedforward)
+                          0.0,                                   // A (acceleration feedforward)
+                          0_tps,                                 // Velocity limit
+                          units::turns_per_second_squared_t{0}); // Acceleration limit
 
     // Initialize the pose with the current pose and timestamp
     m_hoodActuator.SetBounds(2.0_us, 1.8_us, 1.5_us, 1.2_us, 1.0_us);
@@ -61,8 +62,6 @@ TowerState Tower::GetState()
 /// @brief Periodic method for the Tower subsystem, called periodically by the CommandScheduler
 void Tower::Periodic()
 {
-    bool isTurretRobotRelative = true;
-
     // Update the chassis current pose and speed
     auto chassisPose  = m_chassisPoseSupplier();
     auto chassisSpeed = m_chassisSpeedsSupplier();
@@ -78,10 +77,6 @@ void Tower::Periodic()
 
         case TowerMode::ShootingToHub:
         {
-            // If using turret camera, the turret angle is relative to the robot
-            // Otherwise, it is relative to the field as its based on poses
-            isTurretRobotRelative = false;
-
             frc::Translation2d relativeDistance;
 
             // When using the turret camera, relative distance is based on the turret
@@ -103,10 +98,10 @@ void Tower::Periodic()
                             frc::Translation2d offset10And26ToHub{23.5_in, 0.0_m};
 
                             // Compensate for the offset from the turret camera to the hub center
-                            auto ShootingDistance = (relativeDistance + offset10And26ToHub).Norm();
+                            frc::Translation2d shootingDistance = relativeDistance + offset10And26ToHub;
 
-                            // Adjust turret angle based on target yaw
-                            m_state.turretAngle += 1_deg * std::fmod((tag.GetYaw() + 180), 180);
+                            // Calculate the shot parameters based on the relative distance and chassis speed
+                            m_state = CalculateShot(TowerMode::ShootingToHub, shootingDistance, chassisSpeed);
                         }
                     }
                 }
@@ -132,14 +127,12 @@ void Tower::Periodic()
             }
 
             // Calculate the shot parameters based on the relative distance and chassis speed
-            m_state = CalculateShot(relativeDistance, chassisSpeed);
+            m_state = CalculateShot(TowerMode::ShootingToHub, relativeDistance, chassisSpeed);
             break;
         }
 
         case TowerMode::PassingToAdjacentZone:
         {
-            isTurretRobotRelative = false;
-
             // Based on alliance color, find the nearest point in our alliance zone to pass to
             // We decide between the close and the far points so that we can avoid hitting the hub net
             auto targetPoint = chassisPose.Translation().Nearest({m_isBlue ? constants::field::blueAllianceZoneClose.Translation() : constants::field::redAllianceZoneClose.Translation(),
@@ -149,7 +142,7 @@ void Tower::Periodic()
 
             m_state.turretAngle = 57.2958_deg * std::atan2(relativeDistance.Y().value(), relativeDistance.X().value());
 
-            m_state = CalculateShot(relativeDistance, chassisSpeed);
+            m_state = CalculateShot(TowerMode::PassingToAdjacentZone, relativeDistance, chassisSpeed);
             break;
         }
 
@@ -160,7 +153,7 @@ void Tower::Periodic()
     }
 
     // Apply the calculated state to the hardware
-    if (isTurretRobotRelative)
+    if (m_usingTurretCamera)
     {
         SetTurret(m_state.turretAngle);
     } 
@@ -233,19 +226,26 @@ void Tower::SetTurret(units::degree_t angle)
 /// @brief Changes the turret angle, flywheel speed, and hood actuator position based on distance and speed to target
 /// @param relativeDistance The relative distance to the target from the turret to the target
 /// @param speed The chassis speeds of the robot relative to the field
-TowerState Tower::CalculateShot(frc::Translation2d relativeDistance, frc::ChassisSpeeds speed)
+TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relativeDistance, frc::ChassisSpeeds speed)
 {
-    TowerState newState{TowerMode::ManualControl, 0_deg, 0.0_rpm, 0.0_in};
+    TowerState newState{towerMode, 0_deg, 0.0_rpm, 0.0_in};
 
     // Create a new Pose2d from the relative distance and apply speed based translations
     // Predict where the target will be in 0.5 seconds using frc::Twist2d
     // Add that to the distance to target
-    frc::Pose2d newRelativeDistance = frc::Pose2d{relativeDistance, 0_deg};
-    frc::Twist2d changeInPosition = speed.ToTwist2d(0.5_s); 
+    frc::Pose2d  newRelativeDistance = frc::Pose2d{relativeDistance, 0_deg};
+    frc::Twist2d changeInPosition    = speed.ToTwist2d(0.5_s); 
     newRelativeDistance = newRelativeDistance.TransformBy(frc::Transform2d{changeInPosition.dx, changeInPosition.dy, changeInPosition.dtheta});
 
-    if (!m_usingTurretCamera)
+    // Calculate turret angle
+    if (m_usingTurretCamera)
     {
+        // Adjust turret angle based on target yaw                  
+        newState.turretAngle = 0.0_deg;
+    }
+    else
+    {
+        // Adjust turret angle based on predicted target position
         newState.turretAngle = 57.2958_deg * std::atan2(newRelativeDistance.Y().value(), newRelativeDistance.X().value());
     }
 
@@ -254,6 +254,14 @@ TowerState Tower::CalculateShot(frc::Translation2d relativeDistance, frc::Chassi
 
     // TODO: Implement a real calculation for shot parameters based on distance and speed
     auto distance = std::abs(newRelativeDistance.Translation().Norm().value());
+
+    // Calculate hood actuator position based on distance
+    newState.hoodActuatorInches = std::clamp(units::inch_t{0.1_in + (0.05_in * distance)}, TowerConstants::MinLength, TowerConstants::MaxLength);
+
+    // Calculate the flywheel speed based on distance
+    newState.flywheelSpeed = units::turns_per_second_t{(0.5_tps * distance) + 5.0_tps};
+
+    // Return the new calculated state
     return newState;
 }
 #pragma endregion

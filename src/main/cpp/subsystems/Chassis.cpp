@@ -1,22 +1,23 @@
 #include "subsystems/Chassis.h"
 
 #pragma region Chassis
+/// @brief Constructor for the Chassis subsystem
 Chassis::Chassis()
 {
     pathplanner::RobotConfig config = pathplanner::RobotConfig::fromGUISettings();
 
     // Configure the AutoBuilder
     pathplanner::AutoBuilder::configure(
-        [this] () { return GetPose(); }, // Robot pose supplier
-        [this] (frc::Pose2d pose) { m_poseEstimator.ResetPose(pose); }, // Method to reset odometry (will be called if your auto has a starting pose)
-        [this] () { return m_desiredSpeeds; }, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-        [this] (auto speeds, auto feedforwards) { DriveRobotRelative(speeds); }, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
-        std::make_shared<pathplanner::PPHolonomicDriveController>( // PPHolonomicController is the built in path following controller for holonomic drive trains
+        [this] () { return GetPose(); },                                    // Robot pose supplier
+        [this] (frc::Pose2d pose) { m_poseEstimator.ResetPose(pose); },     // Method to reset odometry (will be called if your auto has a starting pose)
+        [this] () { return m_desiredSpeeds; },                              // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+        [this] (auto speeds, auto feedforwards) { DriveRelative(speeds); }, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+        std::make_shared<pathplanner::PPHolonomicDriveController>(          // PPHolonomicController is the built in path following controller for holonomic drive trains
             // TODO: magic numbers, test these
             pathplanner::PIDConstants(1.0, 0.0, 0.0), // Translation PID constants
-            pathplanner::PIDConstants(1.0, 0.0, 0.0) // Rotation PID constants
+            pathplanner::PIDConstants(1.0, 0.0, 0.0)  // Rotation PID constants
         ),
-        config, // The robot configuration
+        config,  // The robot configuration
         []() {
             // Boolean supplier that controls when the path will be mirrored for the red alliance
             // This will flip the path being followed to the red side of the field.
@@ -35,9 +36,12 @@ Chassis::Chassis()
 
     auto path = pathplanner::PathPlannerPath::fromPathFile("Example Path");
 
-
     // Create a path following command using AutoBuilder. This will also trigger event markers.
     auto command = pathplanner::AutoBuilder::followPath(path);
+
+    m_timer.Reset();
+    m_timer.Start();
+    m_perodicCounter = 0;
 }
 #pragma endregion
 
@@ -46,20 +50,22 @@ Chassis::Chassis()
 /// @param speeds The desired chassis speeds.
 void Chassis::Drive(const frc::ChassisSpeeds& speeds)
 {
-    DriveRobotRelative(m_isFieldRelative ? frc::ChassisSpeeds::FromFieldRelativeSpeeds(speeds, GetHeading()) : speeds);
+    DriveRelative(m_isFieldRelative ? frc::ChassisSpeeds::FromFieldRelativeSpeeds(speeds, GetHeading()) : speeds);
 }
 #pragma endregion
 
-#pragma region Drive
+#pragma region DriveRelative
 /// @brief Method to drive the chassis with the specified speeds.
 /// @param speeds The desired chassis speeds.
-void Chassis::DriveRobotRelative(const frc::ChassisSpeeds& speeds)
+void Chassis::DriveRelative(const frc::ChassisSpeeds& speeds)
 {
-    // If we're in x mode, we want to stay in x mode, 
-    // unless we're not in x mode, then we don't want to be in x mode
+    // If the chassis is in x mode, than stay in x mode, ignoring the desired speeds
     if (m_isXMode)
     {
+        // Set the module states to x mode
         SetModuleStates(ChassisConstants::xStates);
+
+        // Save the desired speeds for logging later
         m_desiredStates = ChassisConstants::xStates;
         return;
     }
@@ -81,12 +87,15 @@ void Chassis::DriveRobotRelative(const frc::ChassisSpeeds& speeds)
 #pragma endregion
 
 #pragma region SetModuleStates
+/// @brief Method to set the desired states for the swerve modules.
+/// @param states The desired states for each swerve module.
 void Chassis::SetModuleStates(wpi::array<frc::SwerveModuleState, 4> states)
 {
-    m_swerveModules[0].SetDesiredState(states[0], "Front Left");
-    m_swerveModules[1].SetDesiredState(states[1], "Front Right");
-    m_swerveModules[2].SetDesiredState(states[2], "Rear Left");
-    m_swerveModules[3].SetDesiredState(states[3], "Rear Right");
+    // Set the desired state for each swerve module
+    m_swerveModules[0].SetDesiredState(states[0], "Front Left " );
+    m_swerveModules[1].SetDesiredState(states[1], "Front Right ");
+    m_swerveModules[2].SetDesiredState(states[2], "Rear Left "  );
+    m_swerveModules[3].SetDesiredState(states[3], "Rear Right " );
 }
 #pragma endregion
 
@@ -165,15 +174,21 @@ void Chassis::FlipFieldCentric()
 #pragma endregion
 
 #pragma region GetXMode
+/// @brief Method to get whether the chassis is in X mode.
+/// @return True if the chassis is in X mode, false otherwise.
 bool Chassis::GetXMode()
 {
+    // Return whether the chassis is in X mode
     return m_isXMode;
 }
 #pragma endregion
 
 #pragma region SetXMode
+/// @brief Method to set whether the chassis is in X mode.
+/// @param isXMode True to set X mode, false otherwise.
 void Chassis::SetXMode(bool isXMode)
 {
+    // Set whether the chassis in x mode
     m_isXMode = isXMode;
 }
 #pragma endregion
@@ -198,10 +213,12 @@ frc::Pose2d Chassis::GetPose()
 }
 #pragma endregion
 
-#pragma region GetChassisSpeeds
+#pragma region GetSpeeds
 /// @brief Method to get the robot chassis speeds.
-frc::ChassisSpeeds Chassis::GetChassisSpeeds()
+/// @return The robot chassis speeds.
+frc::ChassisSpeeds Chassis::GetSpeeds()
 {
+    // Return the desired chassis speeds
     return m_desiredSpeeds;
 }
 #pragma endregion
@@ -216,7 +233,48 @@ void Chassis::Periodic()
     // This also updates the pose estimator with vision as well as updating photonvisions internal estimators
     m_vision.Periodic();
 
-    /// *** Logging *** ///
+    // frc::SmartDashboard::PutNumber("Chassis Timer", m_timer.Get().value());
+
+    // if (frc::DriverStation::IsEnabled())
+    // {
+    //     // Determine if 10 seconds have elapsed
+    //     if (m_timer.HasElapsed(5_s))
+    //     {
+    //         // Reset the timer
+    //         m_timer.Reset();
+    
+    //         m_perodicCounter++;
+    
+    //         frc::SmartDashboard::PutNumber("Chassis Counter", m_perodicCounter);
+    
+    //         frc::SwerveModuleState swerveModuleState;
+    //         swerveModuleState.angle = frc::Rotation2d{360_deg * m_perodicCounter};
+    //         swerveModuleState.speed = 0_mps;
+    
+    //         frc::SmartDashboard::PutNumber("Swerve Rotation", swerveModuleState.angle.Degrees().value());
+    
+    //         // The Swerve module angles in increments of 360 degrees
+    //         m_swerveModules[0].SetDesiredState(swerveModuleState, "Front Left " );
+    //         m_swerveModules[1].SetDesiredState(swerveModuleState, "Front Right ");
+    //         m_swerveModules[2].SetDesiredState(swerveModuleState, "Rear Left "  );
+    //         m_swerveModules[3].SetDesiredState(swerveModuleState, "Rear Right " );
+    //     }
+    // }
+    // else 
+    // {
+    //     m_timer.Reset();
+    // } 
+
+    frc::SwerveModulePosition position =  m_swerveModules[0].GetPosition(); // Hack to get around compiler optimization removing unused code
+    frc::SwerveModuleState    state     = m_swerveModules[0].GetState();    // Hack to get around compiler optimization removing unused code
+    
+    frc::SmartDashboard::PutNumber("Chassis FL Position", position.angle.Degrees().value());
+    frc::SmartDashboard::PutNumber("Chassis FL Distance", position.distance.value());
+    
+    frc::SmartDashboard::PutNumber("Chassis FL State",    state.angle.Degrees().value());
+    frc::SmartDashboard::PutNumber("Chassis FL Speed",    state.speed.value());
+
+   /// *** Logging *** ///
     Log("Swerve Module States ",         GetModuleStates());
     Log("Desired Swerve Module States ", m_desiredStates);
 

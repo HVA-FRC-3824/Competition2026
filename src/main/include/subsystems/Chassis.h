@@ -6,6 +6,8 @@
 #include "studica/AHRS.h"
 
 #include <frc/DriverStation.h>
+#include <frc/Timer.h>
+#include <frc/smartdashboard/SmartDashboard.h>
 #include <frc2/command/SubsystemBase.h>
 
 #include <pathplanner/lib/auto/AutoBuilder.h>
@@ -63,10 +65,9 @@ namespace ChassisConstants
 
     constexpr bool usingPathplanner = true;
     
+    constexpr std::string_view            CameraName{"CameraChassis"};
 
-    constexpr std::string_view            CameraName{"PhotonCamera"};
-
-    constexpr frc::Transform3d            RobotToCam{frc::Translation3d{0_m, 4_in, 15_in}, frc::Rotation3d{}};
+    constexpr frc::Transform3d            RobotToCamera{frc::Translation3d{0_m, 4_in, 15_in}, frc::Rotation3d{}};
 
     const     frc::AprilTagFieldLayout    TagLayout = frc::AprilTagFieldLayout::LoadField(frc::AprilTagField::k2025ReefscapeWelded);
 
@@ -82,7 +83,7 @@ class Chassis : public frc2::SubsystemBase
         explicit                                 Chassis();
 
         void                                     Drive(const frc::ChassisSpeeds& speeds);
-        void                                     DriveRobotRelative(const frc::ChassisSpeeds& speeds);
+        void                                     DriveRelative(const frc::ChassisSpeeds& speeds);
 
         void                                     SetModuleStates(wpi::array<frc::SwerveModuleState, 4> states);
 
@@ -95,12 +96,13 @@ class Chassis : public frc2::SubsystemBase
         wpi::array<frc::SwerveModulePosition, 4> GetModulePositions();
     
         void                                     FlipFieldCentric();
+        
         bool                                     GetXMode();
         void                                     SetXMode(bool isXMode);
 
         frc::Rotation2d                          GetHeading();
         frc::Pose2d                              GetPose();
-        frc::ChassisSpeeds                       GetChassisSpeeds();
+        frc::ChassisSpeeds                       GetSpeeds();
 
         void                                     Periodic() override;
     
@@ -154,10 +156,13 @@ class Chassis : public frc2::SubsystemBase
     
         studica::AHRS m_gyro{studica::AHRS::NavXComType::kMXP_SPI};  // The gyro sensor
 
+        frc::Timer    m_timer;
+        int           m_perodicCounter = 0;   
+
         VisionPose m_vision
         {
             ChassisConstants::CameraName,
-            ChassisConstants::RobotToCam,
+            ChassisConstants::RobotToCamera,
             ChassisConstants::TagLayout,
             ChassisConstants::SingleTagStdDevs,
             ChassisConstants::MultiTagStdDevs,

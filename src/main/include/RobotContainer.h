@@ -10,8 +10,6 @@
 
 #include <frc/filter/SlewRateLimiter.h>
 
-#include <photon/PhotonCamera.h>
-
 #include "subsystems/Leds.h"
 
 #include "subsystems/Chassis.h"
@@ -49,7 +47,7 @@ class RobotContainer
         // Private class constructor to configure the robot and SmartDashboard configuration
         RobotContainer();
 
-        std::function<frc::ChassisSpeeds()> GetChassisSpeeds();
+        std::function<frc::ChassisSpeeds()> GetSpeeds();
 
         double                              GetExponentialValue(double joystickValue, double exponent);
 
@@ -60,7 +58,7 @@ class RobotContainer
         Chassis                             m_chassis{};
         Spindexer                           m_spindexer{};
         Leds                                m_leds{};
-        Tower                               m_tower{[&] {return m_chassis.GetPose();}, [&] {return m_chassis.GetChassisSpeeds();}};
+        Tower                               m_tower{[&] {return m_chassis.GetPose();}, [&] {return m_chassis.GetSpeeds();}};
         Climb                               m_climb{};
         Intake                              m_intake{};
 
