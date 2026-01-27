@@ -18,6 +18,7 @@
 void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
                           units::ampere_t currentLimit,
                           bool   breakMode,
+                          bool   continuousWrap,
                           double P,
                           double I,
                           double D,

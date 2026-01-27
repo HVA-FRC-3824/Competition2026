@@ -4,6 +4,7 @@
 void SparkMaxConfiguration(rev::spark::SparkMax *motor,
                           units::ampere_t currentLimit,
                           bool   breakMode,
+                          bool   continuousWrap,
                           double P,
                           double I,
                           double D,
@@ -23,18 +24,14 @@ void SparkMaxConfiguration(rev::spark::SparkMax *motor,
                             : rev::spark::SparkBaseConfig::IdleMode::kCoast)
         .SmartCurrentLimit(currentLimit.value());
 
-    // TODO: Figure out what we want to do here if anything
-    // sparkMaxConfig.encoder
-    //     .PositionConversionFactor(1)
-    //     .VelocityConversionFactor(1);
-
     // Configure the closed loop controller
     sparkMaxConfig.closedLoop
         .SetFeedbackSensor(rev::spark::FeedbackSensor::kPrimaryEncoder)
-        .Pid(P, I, D);
+        .Pid(P, I, D)
+        .PositionWrappingEnabled(continuousWrap);
         
     sparkMaxConfig.closedLoop.maxMotion
-            .MaxVelocity(velocityLimit.value())
+            .CruiseVelocity(velocityLimit.value())
             .MaxAcceleration(accelerationLimit.value());
 
     // Write the configuration to the motor controller

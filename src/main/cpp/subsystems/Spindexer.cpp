@@ -4,7 +4,8 @@ Spindexer::Spindexer()
 {
     TalonFXConfiguration(&m_spinnerMotor,
                           20.0_A, // Maximum Amperage
-                          true, // Break mode
+                          true,  // Break mode
+                          false, // Continuous wrap
                           0.1, // P
                           0.0, // I
                           0.0, // D
@@ -16,7 +17,8 @@ Spindexer::Spindexer()
 
     TalonFXConfiguration(&m_kickerMotor,
                           20.0_A, // Maximum Amperage
-                          true, // Break mode
+                          true,  // Break mode
+                          false, // Continuous wrap
                           0.1, // P
                           0.0, // I
                           0.0, // D

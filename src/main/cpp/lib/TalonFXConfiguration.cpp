@@ -16,6 +16,7 @@
 void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
                           units::ampere_t currentLimit,
                           bool   breakMode,
+                          bool   continuousWrap,
                           double P, double I, double D,
                           double S, double V, double A,
                           units::turns_per_second_t         velocityLimit,
@@ -25,6 +26,8 @@ void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
     
     // Create the TalonFX configuration
     ctre::phoenix6::configs::TalonFXConfiguration talonFXConfiguration{};
+
+    talonFXConfiguration.ClosedLoopGeneral.ContinuousWrap = continuousWrap;
 
     // Configure Motor Output settings
     ctre::phoenix6::configs::MotorOutputConfigs &motorOutputConfigs = talonFXConfiguration.MotorOutput;
@@ -79,13 +82,5 @@ void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
         std::cout << "TalonFX motor (CAN ID: " << motor->GetDeviceID() 
                     << ") configured successfully." << std::endl;
     }
-
-    /// *** SIMULATION STUFF *** ///
-    auto& talonFXSim = motor->GetSimState();
-    talonFXSim.Orientation = ctre::phoenix6::sim::ChassisReference::CounterClockwise_Positive;
-
-    // TODO: This only supports x60 and x44 krakens, I'm not sure how we want to handle this
-    // This isnt a big issue, and the todo can be removed without much error or impact
-    talonFXSim.SetMotorType(ctre::phoenix6::sim::TalonFXSimState::MotorType::KrakenX60);
 }
 #pragma endregion

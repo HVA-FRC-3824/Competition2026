@@ -10,10 +10,28 @@ SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEn
         m_angleMotor          {angleMotorCanId},
         m_angleAbsoluteEncoder{angleEncoderCanId}
 {
+    // Ensure the drive and angle motor encoders are reset to zero
+    m_driveMotor.SetPosition(0.0_tr);
+    m_angleMotor.SetPosition(0.0_tr);
+
+    if (frc::RobotBase::IsSimulation())
+    {
+        auto& driveSim = m_driveMotor.GetSimState();
+        auto& angleSim = m_angleMotor.GetSimState();
+        
+        driveSim.Orientation = ctre::phoenix6::sim::ChassisReference::CounterClockwise_Positive;
+        driveSim.SetMotorType(ctre::phoenix6::sim::TalonFXSimState::MotorType::KrakenX60);
+        
+        angleSim.Orientation = ctre::phoenix6::sim::ChassisReference::CounterClockwise_Positive;
+        angleSim.SetMotorType(ctre::phoenix6::sim::TalonFXSimState::MotorType::KrakenX44);
+        return;
+    }
+
     // Configure the motors
     TalonFXConfiguration(&m_driveMotor,    // Drive motor configuration
                           60_A,            // Maximum Amperage
                           true,            // Brake mode enabled
+                          false,           // Continuous wrap
                           0.03,            // P gain
                           1.5,             // I gain
                           0.0,             // D gain
@@ -26,7 +44,8 @@ SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEn
     TalonFXConfiguration(&m_angleMotor,    // Angle motor configuration
                           20_A,            // Maximum Amperage
                           true,            // Brake mode enabled
-                          0.75,             // P gain
+                          true,            // Continuous wrap
+                          0.75,            // P gain
                           0.0,             // I gain
                           0.012,           // D gain
                           0.0,             // V gain
@@ -34,10 +53,6 @@ SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEn
                           0.0,             // S gain
                           0_tps,           // Velocity limit
                           0_tr_per_s_sq);  // Acceleration limit
-
-    // Ensure the drive and angle motor encoders are reset to zero
-    m_driveMotor.SetPosition(0.0_tr);
-    m_angleMotor.SetPosition(0.0_tr);
 }
 #pragma endregion
 
@@ -47,18 +62,8 @@ SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEn
 /// @param description String to show the module state on the SmartDashboard.
 void SwerveModule::SetDesiredState(frc::SwerveModuleState &desiredState, std::string description)
 {
-    // // Set the motor speed and angle
-    // if (frc::RobotBase::IsSimulation())
-    // {
-    //     m_driveMotor.SimPeriodic();
-    //     m_angleMotor.SimPeriodic();
-    // }
-
-    frc::SmartDashboard::PutNumber(description + "Drive", (double) desiredState.speed.value());
-    frc::SmartDashboard::PutNumber(description + "Angle", (double) desiredState.angle.Degrees().value());
-
-    // Optimize the reference state to avoid spinning further than 90 degrees.
-    desiredState.Optimize(frc::Rotation2d(GetPosition().angle.Degrees()));
+    // Optimize the reference state to avoid spinning further than 180 degrees.
+    desiredState.Optimize(GetPosition().angle);
 
     // Convert wheel linear velocity to motor rotations per second						   
     m_driveMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage((units::angular_velocity::turns_per_second_t)
@@ -96,13 +101,7 @@ frc::SwerveModuleState SwerveModule::GetState()
 /// @brief Method to retrieve the swerve module position.
 /// @return The swerve module position.
 frc::SwerveModulePosition SwerveModule::GetPosition()
-{
-    // if (frc::RobotBase::IsSimulation())
-    //     return {
-    //         1_m   * m_driveMotor.GetVelocity().value(),
-    //         1_rad * m_angleMotor.GetPosition().value()
-    //     };
-    
+{   
     // Determine the module drive and angle positions
     auto drivePosition = units::meter_t {((double) m_driveMotor.GetPosition().GetValue()) * SwerveConstants::DriveMotorConversion.value()};
     auto anglePosition = units::degree_t{((double) m_angleMotor.GetPosition().GetValue()) * SwerveConstants::DegreesPerAngleMotorTurn.value()};
@@ -163,5 +162,48 @@ units::angle::degree_t SwerveModule::GetAbsoluteEncoderAngle()
 
     // To convert to degrees, multiply by 360
     return encoderValue * 360_deg;
+}
+#pragma endregion
+
+#pragma SimPeriodic
+void SwerveModule::SimPeriodic()
+{
+    auto& driveSim = m_driveMotor.GetSimState();
+
+   // set the supply voltage of the TalonFX
+   driveSim.SetSupplyVoltage(frc::RobotController::GetBatteryVoltage());
+
+   // get the motor voltage of the TalonFX
+   auto motorVoltage = driveSim.GetMotorVoltage();
+
+   // use the motor voltage to calculate new position and velocity
+   // using WPILib's DCMotorSim class for physics simulation
+   m_simDriveModel.SetInputVoltage(motorVoltage);
+   m_simDriveModel.Update(20_ms); // assume 20 ms loop time
+
+   // apply the new rotor position and velocity to the TalonFX;
+   // note that this is rotor position/velocity (before gear ratio), but
+   // DCMotorSim returns mechanism position/velocity (after gear ratio)
+   driveSim.SetRawRotorPosition((6.75) * m_simDriveModel.GetAngularPosition());
+   driveSim.SetRotorVelocity(   (6.75) * m_simDriveModel.GetAngularVelocity());
+
+   auto& angleSim = m_angleMotor.GetSimState();
+
+   // set the supply voltage of the TalonFX
+   angleSim.SetSupplyVoltage(frc::RobotController::GetBatteryVoltage());
+
+   // get the motor voltage of the TalonFX
+   motorVoltage = angleSim.GetMotorVoltage();
+
+   // use the motor voltage to calculate new position and velocity
+   // using WPILib's DCMotorSim class for physics simulation
+   m_simTurnModel.SetInputVoltage(motorVoltage);
+   m_simTurnModel.Update(20_ms); // assume 20 ms loop time
+
+   // apply the new rotor position and velocity to the TalonFX;
+   // note that this is rotor position/velocity (before gear ratio), but
+   // DCMotorSim returns mechanism position/velocity (after gear ratio)
+   angleSim.SetRawRotorPosition((150.0 / 7.0) * m_simTurnModel.GetAngularPosition());
+   angleSim.SetRotorVelocity(   (150.0 / 7.0) * m_simTurnModel.GetAngularVelocity());
 }
 #pragma endregion

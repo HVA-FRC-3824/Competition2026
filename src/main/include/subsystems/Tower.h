@@ -10,6 +10,10 @@
 #include <frc2/command/SubsystemBase.h>
 #include <frc/DriverStation.h>
 
+#include <frc/smartdashboard/Mechanism2d.h>
+#include <frc/smartdashboard/MechanismLigament2d.h>
+#include <frc/smartdashboard/SmartDashboard.h>
+
 #include <frc/geometry/Pose2d.h>
 #include <frc/kinematics/ChassisSpeeds.h>
 
@@ -59,6 +63,8 @@ namespace TowerConstants
 
     // From inches to 0-1 range
     constexpr auto ActuatorDistanceConversionFactor = (TowerConstants::MaxLength - TowerConstants::MinLength);
+
+    constexpr auto OffsetTurretFromRobotCenter = frc::Transform3d{frc::Translation3d{0.0_m, 0.0_m, 0.0_m}, frc::Rotation3d{0.0_deg, 0.0_deg, 0.0_deg}};
 }
 #pragma endregion
 
@@ -91,6 +97,13 @@ class Tower : public frc2::SubsystemBase
                                                                 == frc::DriverStation::Alliance::kBlue;
 
         bool                                    m_usingTurretCamera = false;
+
+        frc::Mechanism2d                        m_logMechanism{20, 20, frc::Color{0.0, 0.0, 0.0}}; // Width height
+        frc::MechanismRoot2d                   *m_logMechanismRoot = m_logMechanism.GetRoot("Tower", 10, 10);
+        
+        frc::MechanismLigament2d               *m_logHoodFlywheel = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Hood&Flywheel", 3, 0_deg);
+        frc::MechanismLigament2d               *m_logTurret       = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Turret",        3, 90_deg);
+
 
         // Do not use this to do pose estimatation. Because its on a turret, it is unreliable
         photon::PhotonCamera                    m_turretCam{"CameraTurret"};

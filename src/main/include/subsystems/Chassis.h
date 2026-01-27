@@ -35,7 +35,7 @@
 #include "ConstantsRoboRio.h"
 #pragma endregion
 
-#pragma region Swerve
+#pragma region Constants
 namespace ChassisConstants
 {
     // NOTE: The absolute encoder range is 0.5 to -0.5
@@ -47,11 +47,11 @@ namespace ChassisConstants
 
     // These make sure to limit how fast the robot can go
     constexpr units::meters_per_second_t                    maxSpeed          {4};
-    constexpr units::angular_velocity::radians_per_second_t maxAngularVelocity{2 * std::numbers::pi};
+    constexpr units::angular_velocity::radians_per_second_t maxAngularVelocity{std::numbers::pi};
 
     // The physical dimensions of the robot
-    constexpr units::meter_t wheelBase {25.0};
-    constexpr units::meter_t trackWidth{25.0};
+    constexpr units::inch_t wheelBase {25.0};
+    constexpr units::inch_t trackWidth{25.0};
 
     constexpr wpi::array<frc::SwerveModuleState, 4> xStates
     {
@@ -155,9 +155,12 @@ class Chassis : public frc2::SubsystemBase
         bool                                  m_isXMode = false;
     
         studica::AHRS m_gyro{studica::AHRS::NavXComType::kMXP_SPI};  // The gyro sensor
-
+   
+        units::degree_t             m_simGyro     {0};
+        units::degrees_per_second_t m_simGyroSpeed{0};
+        
         frc::Timer    m_timer;
-        int           m_perodicCounter = 0;   
+        int           m_perodicCounter = 0;
 
         VisionPose m_vision
         {

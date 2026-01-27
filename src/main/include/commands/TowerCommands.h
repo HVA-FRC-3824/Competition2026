@@ -19,4 +19,4 @@ frc2::CommandPtr TowerAimPassZone(Tower *tower);
 
 /// @brief Creates a command to set the tower to manual control mode.
 /// @param tower A pointer to the tower subsystem.
-frc2::CommandPtr TowerManualControl(Tower *tower, std::function<TowerState()> stateSupplier);
+frc2::CommandPtr TowerManualControl(Tower *tower, TowerState *stateSupplier);

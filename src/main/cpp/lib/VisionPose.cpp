@@ -9,8 +9,7 @@ VisionPose::VisionPose(std::string_view cameraName,
     cameraName{cameraName}, tagLayout{tagLayout}, 
     photonEstimator
     { 
-        tagLayout, 
-        photon::PoseStrategy::MULTI_TAG_PNP_ON_COPROCESSOR, 
+        tagLayout,
         robotToCamPose
     },
     camera{cameraName},
@@ -18,7 +17,6 @@ VisionPose::VisionPose(std::string_view cameraName,
     multiTagStdDevs{multiTagStdDevs},
     estConsumer{estConsumer}
 {
-    photonEstimator.SetMultiTagFallbackStrategy(photon::PoseStrategy::LOWEST_AMBIGUITY);
     // Simulation setup, not really in a working state yet
     if (frc::RobotBase::IsSimulation())
     {
@@ -44,10 +42,10 @@ photon::PhotonPipelineResult VisionPose::GetLatestResult()
 void VisionPose::Periodic()
 {
     // Run each new pipeline result through our pose estimator
-    for (const auto &result : camera.GetAllUnreadResults())
+    for (auto result : camera.GetAllUnreadResults())
     {
         // cache result and update pose estimator
-        auto visionEst = photonEstimator.Update(result);
+        auto visionEst = photonEstimator.EstimateLowestAmbiguityPose(result);
         m_latestResult = result;
 
         // In sim only, add our vision estimate to the sim debug field

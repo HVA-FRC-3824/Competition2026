@@ -2,6 +2,7 @@
 
 #pragma region Includes
 #include <frc2/command/button/JoystickButton.h>
+#include <frc2/command/button/POVButton.h>
 #include <frc2/command/InstantCommand.h>
 #include <frc2/command/RunCommand.h>
 
@@ -63,7 +64,7 @@ class RobotContainer
         Intake                              m_intake{};
 
         // Instantiate subsystem states
-        TowerState                          m_manualTowerState{TowerMode::ManualControl, 0_deg, 0.0_rpm, 0.0_in};
+        TowerState                          m_manualTowerState{TowerMode::ManualControl, 0_deg, 10_rpm, TowerConstants::MinLength};
 
         LedMode                             m_robotStatus = LedMode::Off;
 };

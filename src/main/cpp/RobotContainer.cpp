@@ -70,24 +70,34 @@ RobotContainer::RobotContainer()
         // Tower state
         {constants::controller::A, TowerAimHub(&m_tower)},
         {constants::controller::B, TowerAimPassZone(&m_tower)},
-        {constants::controller::X, TowerManualControl(&m_tower, [&] { return m_manualTowerState; })},
+        {constants::controller::X, TowerManualControl(&m_tower, &m_manualTowerState)},
 
-        // Manual tower controls
-        // TODO: remove magic numbers via testing
-        {constants::controller::Pov_0,   frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed += 10_rpm;}, {&m_tower}}.ToPtr()},
-        {constants::controller::Pov_90,  frc2::InstantCommand{[&] { m_manualTowerState.turretAngle += 0.1_deg;}, {&m_tower}}.ToPtr()},
-
-        {constants::controller::Pov_180, frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed -= 10_rpm;}, {&m_tower}}.ToPtr()},
-        {constants::controller::Pov_270, frc2::InstantCommand{[&] { m_manualTowerState.turretAngle -= 0.1_deg;}, {&m_tower}}.ToPtr()},
-
-        {constants::controller::LeftStickButton,  frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches -= 1_in;}, {&m_tower}}.ToPtr()},
-        {constants::controller::RightStickButton, frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches += 1_in;}, {&m_tower}}.ToPtr()},
+        {constants::controller::LeftStickButton,  frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches -= 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
+        {constants::controller::RightStickButton, frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches += 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
     };
 
     // Configure the run-once controls
     for (auto& [button, command] : runOnceControlsOperator)
     {
         frc2::JoystickButton(&m_operatorController, int(button)).OnTrue(std::move(command));
+    }
+
+    // Operator POV controls
+    std::pair<int, frc2::CommandPtr> runOnceControlsPOV[] =
+    {
+        // Manual tower controls
+        // TODO: remove magic numbers via testing
+        {constants::controller::Pov_0,   frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed += 100_rpm;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
+        {constants::controller::Pov_90,  frc2::InstantCommand{[&] { m_manualTowerState.turretAngle += 10_deg;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
+
+        {constants::controller::Pov_180, frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed -= 100_rpm;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
+        {constants::controller::Pov_270, frc2::InstantCommand{[&] { m_manualTowerState.turretAngle -= 10_deg;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
+
+    };
+
+    for (auto& [button, command] : runOnceControlsPOV)
+    {
+        frc2::POVButton(&m_operatorController, button).OnTrue(std::move(command));
     }
 }
 #pragma endregion
@@ -97,7 +107,7 @@ RobotContainer::RobotContainer()
 /// @return The chassis speeds based on joystick inputs.
 std::function<frc::ChassisSpeeds()> RobotContainer::GetSpeeds()
 {
-    return [&]()
+    return [&]
     {
         // Return the chassis speeds based on joystick inputs
         return frc::ChassisSpeeds{

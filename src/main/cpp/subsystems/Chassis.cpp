@@ -34,7 +34,7 @@ Chassis::Chassis()
         this // Reference to this subsystem to set requirements
     );
 
-    auto path = pathplanner::PathPlannerPath::fromPathFile("Example Path");
+    auto path = pathplanner::PathPlannerPath::fromPathFile("Backup");
 
     // Create a path following command using AutoBuilder. This will also trigger event markers.
     auto command = pathplanner::AutoBuilder::followPath(path);
@@ -78,11 +78,6 @@ void Chassis::DriveRelative(const frc::ChassisSpeeds& speeds)
 
     // Set the desired state for each swerve module
     SetModuleStates(m_desiredStates);
-
-    // // Simulate the gyro in simulation
-    // if (frc::RobotBase::IsSimulation())
-    //    m_gyro.Update(speeds.omega, 0.02_s);
-    //    Log("Sim Angular Velocity ", speeds.omega.value());
 }
 #pragma endregion
 
@@ -103,6 +98,11 @@ void Chassis::SetModuleStates(wpi::array<frc::SwerveModuleState, 4> states)
 /// @brief Method to zero the robot heading.
 void Chassis::ZeroHeading()
 {
+    // Do the sim representation
+    if (frc::RobotBase::IsSimulation())
+        m_simGyro = 0_deg;
+        return;
+        
     // Zero the gyro heading
     m_gyro.Reset();
 }
@@ -112,11 +112,15 @@ void Chassis::ZeroHeading()
 /// @brief Method to reset the wheel angles to zero.
 void Chassis::ResetWheelAnglesToZero()
 {
+    // We dont want to do this in simulation
+    if (frc::RobotBase::IsSimulation())
+        return
+
     // Set the swerve wheel angles to zero
     m_swerveModules[0].SetWheelAngleToForward(ChassisConstants::FrontLeftForwardAngle);
-    // m_swerveModules[1].SetWheelAngleToForward(ChassisConstants::FrontRightForwardAngle);
-    // m_swerveModules[2].SetWheelAngleToForward(ChassisConstants::BackLeftForwardAngle);
-    // m_swerveModules[3].SetWheelAngleToForward(ChassisConstants::BackRightForwardAngle);
+    m_swerveModules[1].SetWheelAngleToForward(ChassisConstants::FrontRightForwardAngle);
+    m_swerveModules[2].SetWheelAngleToForward(ChassisConstants::BackLeftForwardAngle);
+    m_swerveModules[3].SetWheelAngleToForward(ChassisConstants::BackRightForwardAngle);
 }
 #pragma endregion
 
@@ -198,6 +202,10 @@ void Chassis::SetXMode(bool isXMode)
 /// @return The robot heading.
 frc::Rotation2d Chassis::GetHeading()
 {
+    // In sim, return the simulated angle
+    if (frc::RobotBase::IsSimulation())
+        return frc::Rotation2d{m_simGyro};
+
     // Return the gyro rotation
     return m_gyro.GetRotation2d();
 }
@@ -227,12 +235,23 @@ frc::ChassisSpeeds Chassis::GetSpeeds()
 /// @brief Method called once per scheduler run.
 void Chassis::Periodic()
 {
+    // Update gyro sim, advance by the cycle time (20 milliseconds)
+    m_simGyroSpeed = m_desiredSpeeds.omega;
+    m_simGyro += m_simGyroSpeed * 0.02_s;
+
     // Update the pose estimator
     m_poseEstimator.Update(GetHeading(), GetModulePositions());
 
     // This also updates the pose estimator with vision as well as updating photonvisions internal estimators
-    m_vision.Periodic();
-
+    if (frc::RobotBase::IsSimulation())
+    {
+        for (auto& module : m_swerveModules)
+            module.SimPeriodic();
+    }
+    else
+    {
+        m_vision.Periodic();
+    }
     // frc::SmartDashboard::PutNumber("Chassis Timer", m_timer.Get().value());
 
     // if (frc::DriverStation::IsEnabled())
@@ -275,17 +294,15 @@ void Chassis::Periodic()
     frc::SmartDashboard::PutNumber("Chassis FL Speed",    state.speed.value());
 
    /// *** Logging *** ///
-    Log("Swerve Module States ",         GetModuleStates());
-    Log("Desired Swerve Module States ", m_desiredStates);
-
-    Log("Swerve Module Positions ", GetModulePositions());
-
-    Log("Desired Chassis Speeds ", m_desiredSpeeds);
+    Log("Actual Swerve Module States ",  GetModuleStates());
     Log("Actual Chassis Speeds ",  m_kinematics.ToChassisSpeeds(GetModuleStates()));
 
-    Log("Robot Pose ", GetPose());
+    Log("Desired Chassis Speeds ", m_desiredSpeeds);
+    Log("Desired Swerve Module States ", m_desiredStates);
+
+    Log("Actual Robot Pose ", GetPose());
     Log("Gyro ", m_gyro.GetRotation2d().Degrees().value());
 
-    Log("field relative ", m_isFieldRelative);
+    Log("Field relative ", m_isFieldRelative);
 }
 #pragma endregion

@@ -12,6 +12,7 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
     TalonFXConfiguration(&m_turretMotor,
                           40_A,                                  // Current limit
                           true,                                  // Brake mode
+                          false,                                 // Continuous wrap
                           0.0,                                   // P gain
                           0.0,                                   // I gain
                           0.0,                                   // D gain
@@ -24,6 +25,7 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
     TalonFXConfiguration(&m_flywheelMotor,
                           40_A,                                  // Current limit
                           true,                                  // Brake mode
+                          false,                                 // Continuous wrap
                           0.0,                                   // P gain
                           0.0,                                   // I gain
                           0.0,                                   // D gain
@@ -35,6 +37,8 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
 
     // Initialize the pose with the current pose and timestamp
     m_hoodActuator.SetBounds(2.0_us, 1.8_us, 1.5_us, 1.2_us, 1.0_us);
+    
+    frc::SmartDashboard::PutData("Tower", &m_logMechanism);
 }
 #pragma endregion
 
@@ -43,8 +47,19 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
 /// @param newState The new state to set for the Tower subsystem
 void Tower::SetState(TowerState newState)
 {
+    // // Don't do anything new if nothing new has happened
+    // if (m_state.mode == newState.mode && 
+    //     m_state.turretAngle        == newState.turretAngle        && 
+    //     m_state.hoodActuatorInches == newState.hoodActuatorInches && 
+    //     m_state.flywheelSpeed      == newState.flywheelSpeed)
+    // {
+    //     return;
+    // }
+
     // Remember the state
     m_state = newState;
+    // Log the new state
+    Log("Tower", std::string_view{"Setting tower state to " + std::to_string(static_cast<int>(m_state.mode))});
 }
 #pragma endregion
 
@@ -66,13 +81,14 @@ void Tower::Periodic()
     auto chassisPose  = m_chassisPoseSupplier();
     auto chassisSpeed = m_chassisSpeedsSupplier();
 
+    // TODO: add actual Mechanism2d representation to compare against the setpoints here
+
     switch (m_state.mode) 
     {
         case TowerMode::Idle:
         {
-            // Do nothing, just use the provided state
-            m_state = TowerState{TowerMode::Idle, 0.0_deg, 0.0_tps, 0.0_in};
-            break;
+            // Do not power down flywheel, do not move turret, do not move hood, wait until further inputs 
+            return;
         }
 
         case TowerMode::ShootingToHub:
@@ -98,10 +114,7 @@ void Tower::Periodic()
                             frc::Translation2d offset10And26ToHub{23.5_in, 0.0_m};
 
                             // Compensate for the offset from the turret camera to the hub center
-                            frc::Translation2d shootingDistance = relativeDistance + offset10And26ToHub;
-
-                            // Calculate the shot parameters based on the relative distance and chassis speed
-                            m_state = CalculateShot(TowerMode::ShootingToHub, shootingDistance, chassisSpeed);
+                            relativeDistance = relativeDistance + offset10And26ToHub;
                         }
                     }
                 }
@@ -115,14 +128,9 @@ void Tower::Periodic()
             {
                 // Sets our hub based on our alliance
                 frc::Pose3d Hub = m_isBlue ? constants::field::blueHub : constants::field::redHub;
-
-                // TODO: Make constant, Make real/realistic
-                frc::Transform3d offsetTurretFromRobotCenter{frc::Translation3d{0.0_m, 0.0_m, 0.0_m}, frc::Rotation3d{0_deg, 0_deg, 0_deg}};
                 
                 // Calculate the relative distance from the turret center to the hub
-                relativeDistance = Hub.ToPose2d().Translation() - (chassisPose.Translation() + offsetTurretFromRobotCenter.Translation().ToTranslation2d());
-
-                // TODO: How to handle Red and Blue hub positions relative to the robot?
+                relativeDistance = Hub.ToPose2d().Translation() - (chassisPose.Translation() + TowerConstants::OffsetTurretFromRobotCenter.Translation().ToTranslation2d());
  
             }
 
@@ -167,6 +175,22 @@ void Tower::Periodic()
     // Set flywheel speed and hood actuator position
     SetFlywheel(m_state.flywheelSpeed);
     SetActuator(m_state.hoodActuatorInches);
+
+    /// *** Update logging *** ///
+
+    Log("Hood Length ", m_state.hoodActuatorInches.value());
+    Log("Flywheel Speed ", m_state.flywheelSpeed.value());
+    Log("Turret Angle ", m_state.turretAngle.value());
+
+    // Set the hood representation
+    m_logHoodFlywheel->SetAngle(std::clamp(m_state.hoodActuatorInches.value(), TowerConstants::MinLength.value(), TowerConstants::MaxLength.value()) * 1_deg);
+    
+    // Set the flywheel representation
+    // I assume that the flywheelSpeed will be 7000-3000 rpm
+    m_logHoodFlywheel->SetLength((m_state.flywheelSpeed.value() / 1000));
+
+    // Set the turret angle representation
+    m_logTurret->SetAngle(m_state.turretAngle);
 }
 #pragma endregion
 
@@ -192,14 +216,11 @@ void Tower::SetActuator(units::inch_t position)
     // range: 0-1
 	actuatorPosition = std::clamp(actuatorPosition, 0.0, 1.0);
 
-    // range: 0-2.0
-    actuatorPosition *= 2.0;
-
-    // range: -1, 1
-    actuatorPosition -= 1;
+    // range: 2, 1
+    actuatorPosition += 1;
 
     // Although this says SetSpeed, this actually does position
-	m_hoodActuator.SetSpeed(std::clamp(actuatorPosition, TowerConstants::ActuatorLowerBound, TowerConstants::ActuatorUpperBound));
+	m_hoodActuator.SetSpeed(actuatorPosition);
 }
 #pragma endregion
 
@@ -252,7 +273,6 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relative
     // Adjust the angle based on the robot's movement
     newState.turretAngle += newRelativeDistance.Rotation().Degrees();
 
-    // TODO: Implement a real calculation for shot parameters based on distance and speed
     auto distance = std::abs(newRelativeDistance.Translation().Norm().value());
 
     // Calculate hood actuator position based on distance
