@@ -114,7 +114,7 @@ void Chassis::ResetWheelAnglesToZero()
 {
     // We dont want to do this in simulation
     if (frc::RobotBase::IsSimulation())
-        return
+        return;
 
     // Set the swerve wheel angles to zero
     m_swerveModules[0].SetWheelAngleToForward(ChassisConstants::FrontLeftForwardAngle);

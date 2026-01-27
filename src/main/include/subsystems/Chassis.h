@@ -35,7 +35,7 @@
 #include "ConstantsRoboRio.h"
 #pragma endregion
 
-#pragma region Constants
+#pragma region ChassisConstants
 namespace ChassisConstants
 {
     // NOTE: The absolute encoder range is 0.5 to -0.5

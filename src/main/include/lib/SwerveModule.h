@@ -33,10 +33,8 @@ namespace SwerveConstants
     constexpr auto DriveMotorReduction      = 6.75;
     constexpr auto WheelDiameter            = 0.098022_m;
     constexpr auto WheelCircumference       = WheelDiameter * std::numbers::pi;
-    constexpr auto DriveMotorConversion     = WheelCircumference / DriveMotorReduction;
-
-    constexpr auto DegreesPerAngleMotorTurn = 360.0_deg / (150.0 / 7.0); // Degrees per motor turn
-}
+    constexpr auto DriveMotorConversion     = WheelCircumference / DriveMotorReduction;  // Meters per motor turn
+}                                                                                                                  
 #pragma endregion
 
 class SwerveModule

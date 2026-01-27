@@ -5,6 +5,7 @@
 /// @param motor Pointer to the TalonFX motor to configure 
 /// @param currentLimit The current limit for the motor
 /// @param breakMode True to set the motor to brake mode, false for coast mode 
+/// @param continuousWrap Tre to set the motor controller to continuous wrap 
 /// @param P The proportional gain for the motor's PID controller
 /// @param I The integral gain for the motor's PID controller
 /// @param D The derivative gain for the motor's PID controller
@@ -13,21 +14,28 @@
 /// @param A The acceleration feedforward gain for the motor
 /// @param velocityLimit The maximum velocity for Motion Magic control
 /// @param accelerationLimit The maximum acceleration for Motion Magic control
+/// @param sensorToMechanismRatio The ratio of sensor rotation to mechanism rotation (default: 1.0)
 void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
-                          units::ampere_t currentLimit,
-                          bool   breakMode,
-                          bool   continuousWrap,
+                          units::ampere_t                    currentLimit,
+                          bool                               breakMode,
+                          bool                               continuousWrap,
                           double P, double I, double D,
                           double S, double V, double A,
                           units::turns_per_second_t         velocityLimit,
-                          units::turns_per_second_squared_t accelerationLimit)
+                          units::turns_per_second_squared_t accelerationLimit,
+                          double                            sensorToMechanismRatio)
 {
     constexpr int MAX_CONFIG_RETRIES = 3;
     
     // Create the TalonFX configuration
     ctre::phoenix6::configs::TalonFXConfiguration talonFXConfiguration{};
 
+    // Configure Closed Loop General settings
     talonFXConfiguration.ClosedLoopGeneral.ContinuousWrap = continuousWrap;
+
+    // Configure Feedback settings
+    ctre::phoenix6::configs::FeedbackConfigs &feedbackConfigs = talonFXConfiguration.Feedback;
+    feedbackConfigs.SensorToMechanismRatio = sensorToMechanismRatio;
 
     // Configure Motor Output settings
     ctre::phoenix6::configs::MotorOutputConfigs &motorOutputConfigs = talonFXConfiguration.MotorOutput;
