@@ -74,6 +74,137 @@ TowerState Tower::GetState()
 }
 #pragma endregion
 
+<<<<<<< Updated upstream
+=======
+#pragma region Periodic
+/// @brief Periodic method for the Tower subsystem, called periodically by the CommandScheduler
+void Tower::Periodic()
+{
+    // Update the chassis current pose and speed
+    auto chassisPose  = m_chassisPoseSupplier();
+    auto chassisSpeed = m_chassisSpeedsSupplier();
+
+    // TODO: add actual Mechanism2d representation to compare against the setpoints here
+
+    switch (m_state.mode) 
+    {
+        case TowerMode::Idle:
+        {
+            // Do not power down flywheel, do not move turret, do not move hood, wait until further inputs 
+            return;
+        }
+
+        case TowerMode::ShootingToHub:
+        {
+            frc::Translation2d relativeDistance;
+
+            // When using the turret camera, relative distance is based on the turret
+            if (m_usingTurretCamera)
+            {
+                std::vector<photon::PhotonPipelineResult> results = m_turretCam.GetAllUnreadResults();
+                
+                if (!results.empty())
+                {
+                    auto latestResult = results.back();
+                    for (auto tag : latestResult.GetTargets())
+                    {
+                        if (tag.fiducialId == 10 || tag.fiducialId == 26)
+                        {
+                            // Extract the x and y distances to the target
+                            relativeDistance = tag.GetBestCameraToTarget().Translation().ToTranslation2d();
+             
+                            // Offset from fiducials 10 and 26 to hub center
+                            frc::Translation2d offset10And26ToHub{23.5_in, 0.0_m};
+
+                            // Compensate for the offset from the turret camera to the hub center
+                            relativeDistance = relativeDistance + offset10And26ToHub;
+                        }
+                    }
+                }
+                else
+                {
+                    // No targets found, do not shoot
+                    return;
+                }
+            } 
+            else // If not using the turret camera, base relative distance on field pose
+            {
+                // Sets our hub based on our alliance
+                frc::Pose3d Hub = m_isBlue ? constants::field::blueHub : constants::field::redHub;
+                
+                // Calculate the relative distance from the turret center to the hub
+                relativeDistance = Hub.ToPose2d().Translation() - (chassisPose.Translation() + TowerConstants::OffsetTurretFromRobotCenter.Translation().ToTranslation2d());
+ 
+            }
+
+            // Calculate the shot parameters based on the relative distance and chassis speed
+            m_state = CalculateShot(TowerMode::ShootingToHub, relativeDistance, chassisSpeed);
+            break;
+        }
+
+        case TowerMode::PassingToAdjacentZone:
+        {
+            // Based on alliance color, find the nearest point in our alliance zone to pass to
+            // We decide between the close and the far points so that we can avoid hitting the hub net
+            auto targetPoint = chassisPose.Translation().Nearest({m_isBlue ? constants::field::blueAllianceZoneClose.Translation() : constants::field::redAllianceZoneClose.Translation(),
+                                                                  m_isBlue ? constants::field::blueAllianceZoneFar.Translation()   : constants::field::redAllianceZoneFar.Translation()});
+            
+            auto relativeDistance = targetPoint - chassisPose.Translation();
+
+            m_state.turretAngle = 57.2958_deg * std::atan2(relativeDistance.Y().value(), relativeDistance.X().value());
+
+            m_state = CalculateShot(TowerMode::PassingToAdjacentZone, relativeDistance, chassisSpeed);
+            break;
+        }
+
+        default:
+        {
+            break;
+        }
+    }
+
+    // Apply the calculated state to the hardware
+    if (m_usingTurretCamera)
+    {
+        SetTurret(m_state.turretAngle);
+    } 
+    else 
+    {
+        // Compensate for robot rotation
+        // If we are on red, our gyro will be turned around, flip it
+        SetTurret((chassisPose.Rotation().Degrees() - (m_isBlue ? 0_deg : 180_deg)) - m_state.turretAngle);
+    }
+
+    // Set flywheel speed and hood actuator position
+    SetFlywheel(m_state.flywheelSpeed);
+    SetActuator(m_state.hoodActuatorInches);
+
+    /// *** Update logging *** ///
+
+    Log("Hood Length ", m_state.hoodActuatorInches.value());
+    Log("Flywheel Speed ", m_state.flywheelSpeed.value());
+    Log("Turret Angle ", m_state.turretAngle.value());
+
+    // Set the hood representation
+    m_logHoodFlywheel->SetAngle(std::clamp(m_state.hoodActuatorInches.value(), TowerConstants::MinLength.value(), TowerConstants::MaxLength.value()) * 1_deg);
+    
+    // Set the flywheel representation
+    // I assume that the flywheelSpeed will be 7000-3000 rpm
+    m_logHoodFlywheel->SetLength((m_state.flywheelSpeed.value() / 1000));
+
+    // Set the turret angle representation
+    m_logTurret->SetAngle(m_state.turretAngle);
+}
+#pragma endregion
+
+#pragma region IsSpunUp
+bool Tower::IsSpunUp()
+{
+    return std::abs(m_flywheelMotor.GetClosedLoopError().GetValueAsDouble()) >= TowerConstants::FlywheelTolerance.value();
+}
+#pragma endregion
+
+>>>>>>> Stashed changes
 #pragma region SetFlywheel
 /// @brief Spins up the flywheel motor
 /// @param input The input value to set the flywheel motor speed

@@ -61,6 +61,8 @@ namespace TowerConstants
     constexpr auto ActuatorLowerBound = -0.95;      // Comes from 102 too
     constexpr auto ActuatorUpperBound =  0.95;
 
+    constexpr auto FlywheelTolerance = 100_rpm;
+
     // From inches to 0-1 range
     constexpr auto ActuatorDistanceConversionFactor = (TowerConstants::MaxLength - TowerConstants::MinLength);
 
@@ -79,7 +81,13 @@ class Tower : public frc2::SubsystemBase
 
         void             TestActuator(double position) { m_hoodActuator.SetSpeed(position); }
 
+<<<<<<< Updated upstream
         void             AimUsingTurretCamera(bool usingTurretCamera) { m_usingTurretCamera = usingTurretCamera; }
+=======
+        bool        IsSpunUp();
+
+        void        TestActuator(double position) { m_hoodActuator.SetSpeed(position); }
+>>>>>>> Stashed changes
 
         void             Periodic() override;
 

@@ -69,10 +69,10 @@ class SwerveModule
 
         frc::sim::DCMotorSim m_simTurnModel = frc::sim::DCMotorSim(
             frc::LinearSystemId::DCMotorSystem(
-                frc::DCMotor::KrakenX60(1),
+                frc::DCMotor::KrakenX44(1),
                 0.001_kg_sq_m,
                 150.0 / 7.0
             ),
-            frc::DCMotor::KrakenX60(1)
+            frc::DCMotor::KrakenX44(1)
         );
 };

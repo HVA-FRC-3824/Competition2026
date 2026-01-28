@@ -64,15 +64,15 @@ void Robot::AutonomousInit()
     // Set the swerve wheels to zero
     m_robotContainer->ResetWheelAnglesToZero();
 
-    // // Get the selected autonomous command
-    // m_autonomousCommand = m_robotContainer->GetAutonomousCommand();
+    // Get the selected autonomous command
+    m_autonomousCommand = m_robotContainer->GetAutonomousCommand();
 
-    // // Determine if the chooser returned a pointer to a command
-    // if (m_autonomousCommand != nullptr)
-    // {
-    //     // Schedule the autonomous command
-    //     m_autonomousCommand->Schedule();
-    // }
+    // Determine if the chooser returned a pointer to a command
+    if (m_autonomousCommand != nullptr)
+    {
+        // Schedule the autonomous command
+        m_autonomousCommand->Schedule();
+    }
 }
 #pragma endregion
 

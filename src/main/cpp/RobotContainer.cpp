@@ -24,6 +24,77 @@ RobotContainer *RobotContainer::GetInstance()
 /// @brief Method to configure the robot and SmartDashboard configuration.
 RobotContainer::RobotContainer()
 {
+    // *************** //
+    // * PATHPLANNER * //
+    // *************** //
+
+    // Register Commands
+    pathplanner::NamedCommands::registerCommand("Shoot All",     std::move(ShootToHub(&m_spindexer, &m_tower)));
+    pathplanner::NamedCommands::registerCommand("Stop Shooting", std::move(StopShooting(&m_spindexer)));
+
+    pathplanner::NamedCommands::registerCommand("Spin Up For Hub", std::move(TowerAimHub(&m_tower)));
+    pathplanner::NamedCommands::registerCommand("Spin Up For Zone", std::move(TowerAimPassZone(&m_tower)));
+
+    pathplanner::NamedCommands::registerCommand("Deploy Intake", std::move(IntakeSetState(&m_intake, IntakeState::DeployedRollerOn)));
+    pathplanner::NamedCommands::registerCommand("Stow Intake", std::move(IntakeSetState(&m_intake, IntakeState::Stowed)));
+
+    pathplanner::NamedCommands::registerCommand("Deploy Climb", std::move(ClimbDeploy(&m_climb)));
+    pathplanner::NamedCommands::registerCommand("Retract Climb", std::move(ClimbRetract(&m_climb)));
+
+    pathplanner::NamedCommands::registerCommand("X MODE", std::move(ChassisXMode(&m_chassis)));
+
+    // Send the Auto-Chooser
+    m_autoChooser = pathplanner::AutoBuilder::buildAutoChooser();
+
+    auto location = frc::DriverStation::GetLocation();
+
+    auto isCompetition = true;
+
+    if (location)
+    {
+        switch (location.value())
+        {
+            case 1:
+            {
+                m_autoChooser = pathplanner::AutoBuilder::buildAutoChooserFilter(
+                    [=](const pathplanner::PathPlannerAuto& autoCommand)
+                    {
+                        return isCompetition ? autoCommand.GetName().starts_with("Close") : true;
+                    }
+                );
+                break;
+            }
+            case 2:
+            {
+                m_autoChooser = pathplanner::AutoBuilder::buildAutoChooserFilter(
+                    [=](const pathplanner::PathPlannerAuto& autoCommand)
+                    {
+                        return isCompetition ? autoCommand.GetName().starts_with("Middle") : true;
+                    }
+                );
+                break;
+            }
+            case 3:
+            {
+                m_autoChooser = pathplanner::AutoBuilder::buildAutoChooserFilter(
+                    [=](const pathplanner::PathPlannerAuto& autoCommand)
+                    {
+                        return isCompetition ? autoCommand.GetName().starts_with("Far") : true;
+                    }
+                );
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    frc::SmartDashboard::PutData("Auto Chooser", &m_autoChooser);
+
+    // ****************************** //
+    // * SUBSYSTEM DEFAULT COMMANDS * //
+    // ****************************** //
+
     m_leds.SetDefaultCommand(SetLedStatus(&m_leds, [this]() { return m_robotStatus;}));
   
     // ******************* //
