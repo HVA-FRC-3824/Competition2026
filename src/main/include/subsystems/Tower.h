@@ -56,7 +56,7 @@ namespace TowerConstants
     constexpr auto MaxAngle           =  180_deg;
  
     constexpr auto MaxLength          = 14.336_in;  // TODO: test these lengths, they're most likely accurate
-    constexpr auto MinLength          = 8.946_in;   // I got these from team 102 from 2022, they used the same actuator
+    constexpr auto MinLength          =  8.946_in;  // I got these from team 102 from 2022, they used the same actuator
 
     constexpr auto ActuatorLowerBound = -0.95;      // Comes from 102 too
     constexpr auto ActuatorUpperBound =  0.95;
@@ -72,48 +72,46 @@ class Tower : public frc2::SubsystemBase
 {
     public:
         
-        explicit    Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc::ChassisSpeeds()> chassisSpeedsSupplier);
+        explicit         Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc::ChassisSpeeds()> chassisSpeedsSupplier);
 
-        void        SetState(TowerState newState);
-        TowerState  GetState();
+        void             SetState(TowerState newState);
+        TowerState       GetState();
 
-        void        Periodic() override;
+        void             TestActuator(double position) { m_hoodActuator.SetSpeed(position); }
 
-        void        TestActuator(double position) { m_hoodActuator.SetSpeed(position); }
+        void             AimUsingTurretCamera(bool usingTurretCamera) { m_usingTurretCamera = usingTurretCamera; }
 
-        void        AimUsingTurretCamera(bool usingTurretCamera) { m_usingTurretCamera = usingTurretCamera; }
+        void             Periodic() override;
 
     private: 
     
-        void SetActuator(units::inch_t position);
+        void            SetActuator(units::inch_t position);
+        void            SetFlywheel(units::turns_per_second_t input);
+    
+        void            SetTurretAngle(units::degree_t angle);
+        units::degree_t GetTurretAngle();
 
-        void SetFlywheel(units::turns_per_second_t input);
+        TowerState      CalculateShot(TowerMode towerMode, frc::Translation2d relativeDistance, frc::ChassisSpeeds chassisSpeed);
+
+        bool                                m_isBlue = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) 
+                                                            == frc::DriverStation::Alliance::kBlue;
+
+        bool                                m_usingTurretCamera = true;
+
+        frc::Mechanism2d                    m_logMechanism{20, 20, frc::Color{0.0, 0.0, 0.0}}; // Width height
+        frc::MechanismRoot2d               *m_logMechanismRoot = m_logMechanism.GetRoot("Tower", 10, 10);
         
-        void SetTurret(units::degree_t angle);
+        frc::MechanismLigament2d           *m_logHoodFlywheel = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Hood&Flywheel", 3, 0_deg);
+        frc::MechanismLigament2d           *m_logTurret       = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Turret",        3, 90_deg);
 
-        TowerState CalculateShot(TowerMode towerMode, frc::Translation2d relativeDistance, frc::ChassisSpeeds chassisSpeed);
+        photon::PhotonCamera                m_turretCamera{"CameraTurret"};
 
-        bool                                    m_isBlue = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) 
-                                                                == frc::DriverStation::Alliance::kBlue;
+        std::function<frc::Pose2d()>        m_chassisPoseSupplier;
+        std::function<frc::ChassisSpeeds()> m_chassisSpeedsSupplier;   
 
-        bool                                    m_usingTurretCamera = false;
+        TowerState                          m_state{TowerMode::ManualControl, 0_deg, 0_rpm, 0_in}; 
 
-        frc::Mechanism2d                        m_logMechanism{20, 20, frc::Color{0.0, 0.0, 0.0}}; // Width height
-        frc::MechanismRoot2d                   *m_logMechanismRoot = m_logMechanism.GetRoot("Tower", 10, 10);
-        
-        frc::MechanismLigament2d               *m_logHoodFlywheel = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Hood&Flywheel", 3, 0_deg);
-        frc::MechanismLigament2d               *m_logTurret       = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Turret",        3, 90_deg);
-
-
-        // Do not use this to do pose estimatation. Because its on a turret, it is unreliable
-        photon::PhotonCamera                    m_turretCam{"CameraTurret"};
-
-        std::function<frc::Pose2d()>            m_chassisPoseSupplier;
-        std::function<frc::ChassisSpeeds()>     m_chassisSpeedsSupplier;   
-
-        TowerState                              m_state{TowerMode::ManualControl, 0_deg, 0_rpm, 0_in}; 
-
-        ctre::phoenix6::hardware::TalonFX       m_turretMotor  {ConstantsCanIds::turretMotorId};
-        ctre::phoenix6::hardware::TalonFX       m_flywheelMotor{ConstantsCanIds::flywheelMotorId};
-        frc::Servo                              m_hoodActuator {ConstantsPwmPorts::actuatorPort};
+        ctre::phoenix6::hardware::TalonFX   m_turretMotor  {ConstantsCanIds::turretMotorId};
+        ctre::phoenix6::hardware::TalonFX   m_flywheelMotor{ConstantsCanIds::flywheelMotorId};
+        frc::Servo                          m_hoodActuator {ConstantsPwmPorts::actuatorPort};
 };

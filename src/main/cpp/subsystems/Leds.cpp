@@ -20,45 +20,6 @@ Leds::Leds()
 }
 #pragma endregion
 
-#pragma region Periodic
-/// @brief This method will be called once periodically.
-void Leds::Periodic()
-{
-    switch (m_ledMode)
-    {
-        case LedMode::Off:
-        case LedMode::SolidGreen:
-        case LedMode::SolidRed:
-            break;
-
-        case LedMode::HvaColors:
-            HvaColors();
-            break;
-
-        case LedMode::Strobe:
-            Strobe();
-            break;
-
-        case LedMode::ShootingAnimation:
-        {
-            // Apply the shootime pattern to the data buffer
-            m_shooting.ApplyTo(m_ledBuffer);
-            break;
-        }
-
-        case LedMode::Rainbow:
-        {
-            // Run the rainbow pattern and apply it to the buffer
-            m_scrollingRainbow.ApplyTo(m_ledBuffer);
-            break;
-        }
-    }
-
-    // Set the LEDs
-    m_led.SetData(m_ledBuffer);
-}
-#pragma endregion
-
 #pragma region SetMode
 /// @brief Setting the Led's mode to the given parameter.
 /// @param ledMode mode to set the Leds.
@@ -70,30 +31,42 @@ void Leds::SetMode(LedMode ledMode)
     // Set the LEDs based on the LED mode
     switch (m_ledMode)
     {
-    case LedMode::Off:
-        SolidColor(0, 0, 0);
-        break;
+        case LedMode::Off:
+        {
+            SolidColor(0, 0, 0);
+            break;
+        }
+    
+        case LedMode::SolidGreen:
+        {
+            SolidColor(0, LedConstants::Green, 0);
+            break;
+        }
 
-    case LedMode::SolidGreen:
-        SolidColor(0, LedConstants::Green, 0);
-        break;
+        case LedMode::SolidRed:
+        {
+            SolidColor(LedConstants::Red, 0, 0);
+            break;
+        }
 
-    case LedMode::SolidRed:
-        SolidColor(LedConstants::Red, 0, 0);
-        break;
+        case LedMode::HvaColors:
+        {
+            m_cycleCounter = 0;
+            HvaColors();
+            break;
+        }
 
-    case LedMode::HvaColors:
-        m_cycleCounter = 0;
-        HvaColors();
-        break;
+        case LedMode::Strobe:
+        {
+            m_cycleCounter = 0;
+            Strobe();
+            break;
+        }
 
-    case LedMode::Strobe:
-        m_cycleCounter = 0;
-        Strobe();
-        break;
-
-    default:
-        break;
+        default:
+        {
+            break;
+        }
     }
 
     // Set the LEDs
@@ -154,5 +127,50 @@ void Leds::Strobe()
 
     // Update the cycle counter
     m_cycleCounter++;
+}
+#pragma endregion
+
+#pragma region Periodic
+/// @brief This method will be called once periodically.
+void Leds::Periodic()
+{
+    switch (m_ledMode)
+    {
+        case LedMode::Off:
+        case LedMode::SolidGreen:
+        case LedMode::SolidRed:
+        {
+            break;
+        }
+
+        case LedMode::HvaColors:
+        {
+            HvaColors();
+            break;
+        }
+
+        case LedMode::Strobe:
+        {
+            Strobe();
+            break;
+        }
+        
+        case LedMode::ShootingAnimation:
+        {
+            // Apply the shootime pattern to the data buffer
+            m_shooting.ApplyTo(m_ledBuffer);
+            break;
+        }
+
+        case LedMode::Rainbow:
+        {
+            // Run the rainbow pattern and apply it to the buffer
+            m_scrollingRainbow.ApplyTo(m_ledBuffer);
+            break;
+        }
+    }
+
+    // Set the LEDs
+    m_led.SetData(m_ledBuffer);
 }
 #pragma endregion
