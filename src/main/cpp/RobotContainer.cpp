@@ -143,6 +143,7 @@ RobotContainer::RobotContainer()
         // Tower state
         {constants::controller::A, TowerAimHub(&m_tower)},
         {constants::controller::B, TowerAimPassZone(&m_tower)},
+        {constants::controller::B, TowerIdle(&m_tower)},
         {constants::controller::X, TowerManualControl(&m_tower, &m_manualTowerState)},
 
         {constants::controller::LeftStickButton,  frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches -= 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},

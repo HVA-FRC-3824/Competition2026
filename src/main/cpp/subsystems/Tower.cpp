@@ -169,16 +169,26 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relative
     // Adjust the angle based on the robot's movement
     newState.turretAngle += newRelativeDistance.Rotation().Degrees();
 
-    auto distance = std::abs(newRelativeDistance.Translation().Norm().value());
+    units::meter_t distance = units::meter_t{std::abs(newRelativeDistance.Translation().Norm().value())};
 
+    // TODO: remove after testing
+    distance = 20_m;
     // Calculate hood actuator position based on distance
-    newState.hoodActuatorInches = std::clamp(units::inch_t{0.1_in + (0.05_in * distance)}, TowerConstants::MinLength, TowerConstants::MaxLength);
+    newState.hoodActuatorInches = 1_in * CalculatePolynomial(distance, TowerConstants::HoodA, TowerConstants::HoodB, TowerConstants::HoodC);
+    // newState.hoodActuatorInches = std::clamp(newState.hoodActuatorInches, TowerConstants::MinLength, TowerConstants::MaxLength);
 
     // Calculate the flywheel speed based on distance
-    newState.flywheelSpeed = units::turns_per_second_t{(0.5_tps * distance) + 5.0_tps};
+    newState.flywheelSpeed = 1_rpm * CalculatePolynomial(distance, TowerConstants::FlywheelA, TowerConstants::FlywheelB, TowerConstants::FlywheelC);
 
     // Return the new calculated state
     return newState;
+}
+#pragma endregion
+
+#pragma region CalculatePolynomial
+double Tower::CalculatePolynomial(units::meter_t distance, double a, double b, double c)
+{
+    return a * std::pow(distance.value(), 2) + b * distance.value() + c;
 }
 #pragma endregion
 
@@ -201,18 +211,17 @@ void Tower::Periodic()
     // Update the chassis current pose and speed
     auto chassisPose  = m_chassisPoseSupplier();
     auto chassisSpeed = m_chassisSpeedsSupplier();
-	
-    // TODO: add actual Mechanism2d representation to compare against the setpoints here
 
-    // TODO: For bench testing
-    m_state.mode = TowerMode::ShootingToHub;
-    
+    m_state.mode = TowerMode::Idle;
+
     switch (m_state.mode) 
     {
         case TowerMode::Idle:
         {
-            // Do not power down flywheel, do not move turret, do not move hood, wait until further inputs 
-            return;
+            // Do not power down flywheel, do not move turret, do not move hood, wait until further inputs
+            m_state.flywheelSpeed      = 0_rpm;
+            m_state.hoodActuatorInches = 0_in;
+            m_state.turretAngle        = 0_deg;
         }
 
         case TowerMode::ShootingToHub:
@@ -231,7 +240,7 @@ void Tower::Periodic()
                     // Get a list of currently tracked targets.
                     for (auto target : result.GetTargets())
                     {
-                        frc::SmartDashboard::PutNumber("ID",    target.fiducialId);
+                        frc::SmartDashboard::PutNumber("ID", target.fiducialId);
         
                         // Camera offset angles (small values - how far target is from camera center)
                         frc::SmartDashboard::PutNumber("Camera Offset Skew",  target.GetSkew());
@@ -323,7 +332,7 @@ void Tower::Periodic()
     {
         SetTurretAngle(m_state.turretAngle);
     } 
-    else 
+    else
     {
         // Compensate for robot rotation
         // If we are on red, our gyro will be turned around, flip it

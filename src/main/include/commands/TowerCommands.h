@@ -9,14 +9,10 @@
 #include "subsystems/Tower.h"
 #pragma endregion
 
-/// @brief Creates a command to aim the tower at the hub.
-/// @param tower A pointer to the tower subsystem.
 frc2::CommandPtr TowerAimHub(Tower *tower);
 
-/// @brief Creates a command to aim the tower at the adjacent pass zone.
-/// @param tower A pointer to the tower subsystem.
+frc2::CommandPtr TowerIdle(Tower *tower);
+
 frc2::CommandPtr TowerAimPassZone(Tower *tower);
 
-/// @brief Creates a command to set the tower to manual control mode.
-/// @param tower A pointer to the tower subsystem.
 frc2::CommandPtr TowerManualControl(Tower *tower, TowerState *stateSupplier);
