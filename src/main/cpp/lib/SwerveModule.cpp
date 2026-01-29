@@ -115,12 +115,13 @@ frc::SwerveModulePosition SwerveModule::GetPosition()
 }
 #pragma endregion
 
-#pragma region ResetDriveEncoder
+#pragma region ResetEncoders
 // Reset the drive encoder position.
-void SwerveModule::ResetDriveEncoder()
+void SwerveModule::ResetEncoders()
 {
     // Ensure the drive motor encoder is reset to zero
     m_driveMotor.SetPosition(0_tr);
+    m_angleMotor.SetPosition(0_tr);
 }
 #pragma endregion
 
@@ -202,7 +203,7 @@ void SwerveModule::SimPeriodic()
    // apply the new rotor position and velocity to the TalonFX;
    // note that this is rotor position/velocity (before gear ratio), but
    // DCMotorSim returns mechanism position/velocity (after gear ratio)
-   angleSim.SetRawRotorPosition((150.0 / 7.0) * m_simTurnModel.GetAngularPosition());
-   angleSim.SetRotorVelocity(   (150.0 / 7.0) * m_simTurnModel.GetAngularVelocity());
+   angleSim.SetRawRotorPosition(m_simTurnModel.GetAngularPosition());
+   angleSim.SetRotorVelocity(m_simTurnModel.GetAngularVelocity());
 }
 #pragma endregion

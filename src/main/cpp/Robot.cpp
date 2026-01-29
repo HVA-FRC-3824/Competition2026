@@ -71,7 +71,7 @@ void Robot::AutonomousInit()
     if (m_autonomousCommand != nullptr)
     {
         // Schedule the autonomous command
-        m_autonomousCommand->Schedule();
+        frc2::CommandScheduler::GetInstance().Schedule(m_autonomousCommand);
     }
 }
 #pragma endregion

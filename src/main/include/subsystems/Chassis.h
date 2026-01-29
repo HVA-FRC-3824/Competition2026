@@ -69,7 +69,7 @@ namespace ChassisConstants
 
     constexpr frc::Transform3d            RobotToCamera{frc::Translation3d{0_m, 4_in, 15_in}, frc::Rotation3d{}};
 
-    const     frc::AprilTagFieldLayout    TagLayout = frc::AprilTagFieldLayout::LoadField(frc::AprilTagField::k2025ReefscapeWelded);
+    const     frc::AprilTagFieldLayout    TagLayout = frc::AprilTagFieldLayout::LoadField(frc::AprilTagField::k2026RebuiltWelded);
 
     const     Eigen::Matrix<double, 3, 1> SingleTagStdDevs{4, 4, 8};
     const     Eigen::Matrix<double, 3, 1> MultiTagStdDevs{0.5, 0.5, 1};
@@ -90,7 +90,7 @@ class Chassis : public frc2::SubsystemBase
         void                                     ZeroHeading();
     
         void                                     ResetWheelAnglesToZero();
-        void                                     ResetDriveEncoders();
+        void                                     ResetPose(frc::Pose2d pose);
 
         wpi::array<frc::SwerveModuleState, 4>    GetModuleStates();
         wpi::array<frc::SwerveModulePosition, 4> GetModulePositions();

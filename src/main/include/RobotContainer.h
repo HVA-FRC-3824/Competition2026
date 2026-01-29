@@ -1,6 +1,9 @@
 #pragma once
 
 #pragma region Includes
+#include <pathplanner/lib/auto/NamedCommands.h>
+#include <pathplanner/lib/commands/PathPlannerAuto.h>
+
 #include <frc2/command/button/JoystickButton.h>
 #include <frc2/command/button/POVButton.h>
 #include <frc2/command/InstantCommand.h>
@@ -25,6 +28,7 @@
 #include "commands/SpindexerCommands.h"
 #include "commands/TowerCommands.h"
 #include "commands/ClimbCommands.h"
+#include "commands/complex/Shooting.h"
 
 #include "Constants.h"
 #pragma endregion
@@ -40,6 +44,8 @@ class RobotContainer
         // Method to reset swerve wheel angles to zero
         void ResetWheelAnglesToZero();
 
+        frc2::Command* GetAutonomousCommand() { return m_autoChooser.GetSelected(); }; 
+
     private:
 
         // Static pointer to singleton instance
@@ -54,6 +60,8 @@ class RobotContainer
 
         frc::XboxController                 m_driveController   {constants::controller::DrivePort};
         frc::XboxController                 m_operatorController{constants::controller::OperatorPort};
+
+        frc::SendableChooser<frc2::Command*> m_autoChooser;
 
         // Instantiate the robot subsystems
         Chassis                             m_chassis{};

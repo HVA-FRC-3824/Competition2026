@@ -13,9 +13,3 @@ frc2::CommandPtr ShootToZone(Spindexer *spindexer, Tower *tower)
     return TowerAimPassZone(tower).Until([tower] { return tower->IsSpunUp(); })
         .AndThen(SpindexerSetState(spindexer, SpindexerState::Spindexing));
 }
-
-frc2::CommandPtr StopShooting(Spindexer *spindexer)
-{
-    // Do not stop tower, we dont want to have to constantly spin up and spin down the flywheel
-    return SpindexerSetState(spindexer, SpindexerState::Stopped);
-}

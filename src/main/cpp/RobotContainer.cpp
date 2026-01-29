@@ -30,7 +30,7 @@ RobotContainer::RobotContainer()
 
     // Register Commands
     pathplanner::NamedCommands::registerCommand("Shoot All",     std::move(ShootToHub(&m_spindexer, &m_tower)));
-    pathplanner::NamedCommands::registerCommand("Stop Shooting", std::move(StopShooting(&m_spindexer)));
+    pathplanner::NamedCommands::registerCommand("Stop Shooting", std::move(SpindexerSetState(&m_spindexer, SpindexerState::Stopped)));
 
     pathplanner::NamedCommands::registerCommand("Spin Up For Hub", std::move(TowerAimHub(&m_tower)));
     pathplanner::NamedCommands::registerCommand("Spin Up For Zone", std::move(TowerAimPassZone(&m_tower)));
@@ -50,44 +50,46 @@ RobotContainer::RobotContainer()
 
     auto isCompetition = true;
 
-    if (location)
-    {
-        switch (location.value())
-        {
-            case 1:
-            {
-                m_autoChooser = pathplanner::AutoBuilder::buildAutoChooserFilter(
-                    [=](const pathplanner::PathPlannerAuto& autoCommand)
-                    {
-                        return isCompetition ? autoCommand.GetName().starts_with("Close") : true;
-                    }
-                );
-                break;
-            }
-            case 2:
-            {
-                m_autoChooser = pathplanner::AutoBuilder::buildAutoChooserFilter(
-                    [=](const pathplanner::PathPlannerAuto& autoCommand)
-                    {
-                        return isCompetition ? autoCommand.GetName().starts_with("Middle") : true;
-                    }
-                );
-                break;
-            }
-            case 3:
-            {
-                m_autoChooser = pathplanner::AutoBuilder::buildAutoChooserFilter(
-                    [=](const pathplanner::PathPlannerAuto& autoCommand)
-                    {
-                        return isCompetition ? autoCommand.GetName().starts_with("Far") : true;
-                    }
-                );
-                break;
-            }
-            default:
-                break;
-        }
-    }
+    // if (location)
+    // {
+    //     switch (location.value())
+    //     {
+    //         case 1:
+    //         {
+    //             m_autoChooser = pathplanner::AutoBuilder::buildAutoChooserFilter(
+    //                 [=](const pathplanner::PathPlannerAuto& autoCommand)
+    //                 {
+    //                     return isCompetition ? autoCommand.GetName().starts_with("Close") : true;
+    //                 }
+    //             );
+    //             break;
+    //         }
+    //         case 2:
+    //         {
+    //             m_autoChooser = pathplanner::AutoBuilder::buildAutoChooserFilter(
+    //                 [=](const pathplanner::PathPlannerAuto& autoCommand)
+    //                 {
+    //                     return isCompetition ? autoCommand.GetName().starts_with("Middle") : true;
+    //                 }
+    //             );
+    //             break;
+    //         }
+    //         case 3:
+    //         {
+    //             m_autoChooser = pathplanner::AutoBuilder::buildAutoChooserFilter(
+    //                 [=](const pathplanner::PathPlannerAuto& autoCommand)
+    //                 {
+    //                     return isCompetition ? autoCommand.GetName().starts_with("Far") : true;
+    //                 }
+    //             );
+    //             break;
+    //         }
+    //         default:
+    //             break;
+    //     }
+    // }
+
+    m_autoChooser = pathplanner::AutoBuilder::buildAutoChooser();
 
     frc::SmartDashboard::PutData("Auto Chooser", &m_autoChooser);
 

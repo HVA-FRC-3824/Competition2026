@@ -4,18 +4,19 @@
 /// @brief Constructor for the Chassis subsystem
 Chassis::Chassis()
 {
+    // TODO: When the robot CAD is done, update the pathplanner robot settings
     pathplanner::RobotConfig config = pathplanner::RobotConfig::fromGUISettings();
 
     // Configure the AutoBuilder
     pathplanner::AutoBuilder::configure(
-        [this] () { return GetPose(); },                                    // Robot pose supplier
-        [this] (frc::Pose2d pose) { m_poseEstimator.ResetPose(pose); },     // Method to reset odometry (will be called if your auto has a starting pose)
-        [this] () { return m_desiredSpeeds; },                              // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+        [this] { return GetPose(); },                                    // Robot pose supplier
+        [this] (frc::Pose2d pose) { ResetPose(pose); },                     // Method to reset odometry (will be called if your auto has a starting pose)
+        [this] { return m_kinematics.ToChassisSpeeds(GetModuleStates()); }, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
         [this] (auto speeds, auto feedforwards) { DriveRelative(speeds); }, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
         std::make_shared<pathplanner::PPHolonomicDriveController>(          // PPHolonomicController is the built in path following controller for holonomic drive trains
             // TODO: magic numbers, test these
-            pathplanner::PIDConstants(1.0, 0.0, 0.0), // Translation PID constants
-            pathplanner::PIDConstants(1.0, 0.0, 0.0)  // Rotation PID constants
+            pathplanner::PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
+            pathplanner::PIDConstants(5.0, 0.0, 0.0)  // Rotation PID constants
         ),
         config,  // The robot configuration
         []() {
@@ -100,8 +101,10 @@ void Chassis::ZeroHeading()
 {
     // Do the sim representation
     if (frc::RobotBase::IsSimulation())
+    {
         m_simGyro = 0_deg;
         return;
+    }
         
     // Zero the gyro heading
     m_gyro.Reset();
@@ -121,18 +124,6 @@ void Chassis::ResetWheelAnglesToZero()
     m_swerveModules[1].SetWheelAngleToForward(ChassisConstants::FrontRightForwardAngle);
     m_swerveModules[2].SetWheelAngleToForward(ChassisConstants::BackLeftForwardAngle);
     m_swerveModules[3].SetWheelAngleToForward(ChassisConstants::BackRightForwardAngle);
-}
-#pragma endregion
-
-#pragma region ResetDriveEncoders
-/// @brief Method to reset the drive encoders.
-void Chassis::ResetDriveEncoders()
-{
-    // Reset the swerve motor encoders
-    for (auto& swerveModule : m_swerveModules)
-    {
-        swerveModule.ResetDriveEncoder();
-    }
 }
 #pragma endregion
 
@@ -242,7 +233,6 @@ void Chassis::Periodic()
     // Update the pose estimator
     m_poseEstimator.Update(GetHeading(), GetModulePositions());
 
-    // This also updates the pose estimator with vision as well as updating photonvisions internal estimators
     if (frc::RobotBase::IsSimulation())
     {
         for (auto& module : m_swerveModules)
@@ -250,6 +240,7 @@ void Chassis::Periodic()
     }
     else
     {
+        // This also updates the pose estimator with vision as well as updating photonvisions internal estimators
         m_vision.Periodic();
     }
     // frc::SmartDashboard::PutNumber("Chassis Timer", m_timer.Get().value());
@@ -304,5 +295,24 @@ void Chassis::Periodic()
     Log("Gyro ", m_gyro.GetRotation2d().Degrees().value());
 
     Log("Field relative ", m_isFieldRelative);
+}
+#pragma endregion
+
+#pragma region ResetPose
+/// @brief Resets Pose and odometry
+void Chassis::ResetPose(frc::Pose2d pose)
+{
+    for (auto& swerveModule : m_swerveModules)
+    {
+        swerveModule.ResetEncoders();
+    }
+
+    m_poseEstimator.Update(pose.Rotation(), GetModulePositions());
+
+    m_poseEstimator.ResetPose(pose);
+    static int counter = 0;
+    Log("Reset Pose ", pose.X().value());
+    Log("reset counter ", counter++);
+
 }
 #pragma endregion

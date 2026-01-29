@@ -46,7 +46,7 @@ class SwerveModule
         void                       SetDesiredState(frc::SwerveModuleState& state, std::string description);  // Sets the desired state for the module
         frc::SwerveModuleState     GetState();                                                               // Returns the current state of the module
         frc::SwerveModulePosition  GetPosition();                                                            // Returns the current position of the module
-        void                       ResetDriveEncoder();                                                      // Zeroes all the  encoders
+        void                       ResetEncoders();                                                          // Zeroes all the  encoders
         void                       SetWheelAngleToForward(units::angle::degree_t desiredAngle);              // Sets the wheel angle to the forward position
         void                       SimPeriodic();
 
@@ -71,7 +71,7 @@ class SwerveModule
             frc::LinearSystemId::DCMotorSystem(
                 frc::DCMotor::KrakenX44(1),
                 0.001_kg_sq_m,
-                150.0 / 7.0
+                1.0
             ),
             frc::DCMotor::KrakenX44(1)
         );

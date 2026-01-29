@@ -45,7 +45,7 @@ void VisionPose::Periodic()
     for (auto result : camera.GetAllUnreadResults())
     {
         // cache result and update pose estimator
-        auto visionEst = photonEstimator.EstimateLowestAmbiguityPose(result);
+        auto visionEst = photonEstimator.EstimateCoprocMultiTagPose(result);
         m_latestResult = result;
 
         // In sim only, add our vision estimate to the sim debug field
