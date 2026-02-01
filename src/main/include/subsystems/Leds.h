@@ -13,9 +13,7 @@
 #pragma region LedConstants
 namespace LedConstants
 {
-
-
-    constexpr auto Length      = 400;  // The length of the LED string
+    constexpr auto Length      = 60U;  // The length of the LED string
     constexpr auto Brightness  = 0.5;
 
     constexpr auto Red         = 255;

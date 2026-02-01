@@ -186,8 +186,15 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relative
 #pragma endregion
 
 #pragma region CalculatePolynomial
+/// @brief  Calculates a polynomial value based on the given distance and coefficients
+/// @param distance The distance value in meters to the HUD
+/// @param a The a coefficient of the polynomial
+/// @param b The b coefficient of the polynomial
+/// @param c The c coefficient of the polynomial
+/// @return The calculated polynomial value
 double Tower::CalculatePolynomial(units::meter_t distance, double a, double b, double c)
 {
+    // Calculate the polynomial value
     return a * std::pow(distance.value(), 2) + b * distance.value() + c;
 }
 #pragma endregion
@@ -208,11 +215,11 @@ double Tower::CalculatePolynomial(units::meter_t distance, double a, double b, d
 ///
 void Tower::Periodic()
 {
+    frc::SmartDashboard::PutNumber("Turret Mode", m_state.mode);
+
     // Update the chassis current pose and speed
     auto chassisPose  = m_chassisPoseSupplier();
     auto chassisSpeed = m_chassisSpeedsSupplier();
-
-    m_state.mode = TowerMode::Idle;
 
     switch (m_state.mode) 
     {
@@ -362,12 +369,17 @@ void Tower::Periodic()
 #pragma endregion
 
 #pragma region IsSpunUp
+/// @brief Checks if the flywheel is spun up to the desired speed within tolerance
+/// @return true if the flywheel is spun up, false otherwise
 bool Tower::IsSpunUp()
 {
+    // Get the current PID error
     auto pidError = m_flywheelMotor.GetClosedLoopError().GetValueAsDouble();
 
+    // Calculate the acceptable error tolerance
     auto errorTolerance = m_flywheelMotor.GetClosedLoopReference().GetValueAsDouble() * TowerConstants::FlywheelTolerance;
 
+    // Return whether the PID error is within the tolerance
     return std::abs(pidError) < errorTolerance;
 }
 #pragma endregion

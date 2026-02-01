@@ -10,6 +10,8 @@
 #include <photon/simulation/VisionSystemSim.h>
 #include <photon/targeting/PhotonPipelineResult.h>
 
+#include <frc/estimator/SwerveDrivePoseEstimator.h>
+
 #include <frc/apriltag/AprilTagFieldLayout.h>
 #include <frc/RobotBase.h>
 
@@ -24,40 +26,34 @@ class VisionPose
                     frc::Transform3d            robotToCamPose,
                     frc::AprilTagFieldLayout    tagLayout,
                     Eigen::Matrix<double, 3, 1> singleTagStdDevs,
-                    Eigen::Matrix<double, 3, 1> multiTagStdDevs,
-                    std::function<void(frc::Pose2d, units::second_t, Eigen::Matrix<double, 3, 1>)> estConsumer);
+                    Eigen::Matrix<double, 3, 1>       multiTagStdDevs,
+                    frc::SwerveDrivePoseEstimator<4> *poseEstimator);
         
-        photon::PhotonPipelineResult GetLatestResult() ;
+        void                         Periodic();
 
-        void Periodic();
+        Eigen::Matrix<double, 3, 1>  GetEstimationStdDevs(frc::Pose2d estimatedPose);
 
-        Eigen::Matrix<double, 3, 1> GetEstimationStdDevs(frc::Pose2d estimatedPose);
+        void                         SimPeriodic(frc::Pose2d robotSimPose);
 
-        void SimPeriodic(frc::Pose2d robotSimPose);
+        void                         ResetSimPose(frc::Pose2d pose);
 
-        void ResetSimPose(frc::Pose2d pose);
-
-        frc::Field2d& GetSimDebugField();
+        frc::Field2d&                GetSimDebugField();
 
     private:
 
-        std::string_view         cameraName;
-        frc::Transform3d         robotToCamPose;
-        frc::AprilTagFieldLayout tagLayout;
+        photon::PhotonPoseEstimator m_photonEstimator;
 
-        photon::PhotonPoseEstimator photonEstimator;
+        photon::PhotonCamera        m_camera;
 
-        photon::PhotonCamera camera;
+        Eigen::Matrix<double, 3, 1> m_singleTagStdDevs;
+        Eigen::Matrix<double, 3, 1> m_multiTagStdDevs;
 
-        Eigen::Matrix<double, 3, 1> singleTagStdDevs;
-        Eigen::Matrix<double, 3, 1> multiTagStdDevs;
-
-        std::unique_ptr<photon::VisionSystemSim>     visionSim;
-        std::unique_ptr<photon::SimCameraProperties> cameraProp;
-        std::shared_ptr<photon::PhotonCameraSim>     cameraSim;
+        std::unique_ptr<photon::VisionSystemSim>     m_visionSim;
+        std::unique_ptr<photon::SimCameraProperties> m_cameraProp;
+        std::shared_ptr<photon::PhotonCameraSim>     m_cameraSim;
 
         // The most recent result, cached for calculating std devs
         photon::PhotonPipelineResult                 m_latestResult;
         
-        std::function<void(frc::Pose2d, units::second_t, Eigen::Matrix<double, 3, 1>)> estConsumer;
+        frc::SwerveDrivePoseEstimator<4U>           *m_poseEstimator;
 };

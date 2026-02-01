@@ -44,6 +44,8 @@ class RobotContainer
         // Method to reset swerve wheel angles to zero
         void ResetWheelAnglesToZero();
 
+        void ResetHeading();
+
         frc2::Command* GetAutonomousCommand() { return m_autoChooser.GetSelected(); }; 
 
     private:

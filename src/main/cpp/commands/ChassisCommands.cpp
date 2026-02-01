@@ -6,7 +6,6 @@
 /// @return A CommandPtr that resets the gyro yaw to zero.
 frc2::CommandPtr ChassisZeroHeading(Chassis *chassis)
 {
-    
     // Create and return a InstantCommand that resets the gyro yaw
     return frc2::InstantCommand{
         [=] () {chassis->ZeroHeading();},

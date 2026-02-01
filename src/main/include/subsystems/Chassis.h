@@ -71,11 +71,32 @@ namespace ChassisConstants
 
     const     frc::AprilTagFieldLayout    TagLayout = frc::AprilTagFieldLayout::LoadField(frc::AprilTagField::k2026RebuiltWelded);
 
-    const     Eigen::Matrix<double, 3, 1> SingleTagStdDevs{4, 4, 8};
-    const     Eigen::Matrix<double, 3, 1> MultiTagStdDevs{0.5, 0.5, 1};
+    const     Eigen::Matrix<double, 3, 1> SingleTagStdDevs{1.0, 1.0, 1.0}; // Reduced by 1/4
+    const     Eigen::Matrix<double, 3, 1> MultiTagStdDevs {0.5, 0.5, 0.5}; // Reduced by 1/2
 }
 #pragma endregion
 
+/// @brief Chassis subsystem for swerve drive control
+///
+///       Red                      <----- Zero Angle                       Blue
+///                            <--- 0 degrees    180 degres ---->     X  <-----
+///   ---  +-------------------------------------------------------------------+ (0, 0)
+///    ^   |                7  6              |             17 28           29 |  
+///    |   |                                  |                             30 |  |
+///    |   |                                  |                                |  |
+///    |   |                                  |                                |  V
+///    |   |                                  |                                |
+///    |   |                8  5              |             18 27              |  Y
+/// 8.07 m | 16          9       4            |          19       26        31 |
+///    |   | 15         10       3            |          20       25        32 |
+///    |   |               11  2              |             21 24              |
+///    |   |                                  |                                |
+///    |   |                                  |                                |
+///    |   | 14                               |                                |
+///    V   | 13            12  1              |             22 23              |
+///   ---  +-------------------------------------------------------------------+
+///        |<----------------------------- 16.56 m --------------------------->|
+///                                       Top View
 class Chassis : public frc2::SubsystemBase
 {
     public:
@@ -137,7 +158,8 @@ class Chassis : public frc2::SubsystemBase
         frc::SwerveDrivePoseEstimator<4> m_poseEstimator
         {
             m_kinematics,         // Kinematics object
-            frc::Rotation2d(),    // Initial gyro angle
+            frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) == frc::DriverStation::Alliance::kBlue 
+                ? frc::Rotation2d{0_deg} : frc::Rotation2d{180_deg}, // Initial gyro angle
             GetModulePositions(), // Initial module positions
             frc::Pose2d()         // Initial pose, will be overriden by vision
         };
@@ -169,11 +191,6 @@ class Chassis : public frc2::SubsystemBase
             ChassisConstants::TagLayout,
             ChassisConstants::SingleTagStdDevs,
             ChassisConstants::MultiTagStdDevs,
-
-            // Pose consumer to add vision measurements to the pose estimator
-            [this] (frc::Pose2d pose, units::second_t timestamp, Eigen::Matrix<double, 3, 1> stddevs)
-            {
-                m_poseEstimator.AddVisionMeasurement(pose, timestamp, {stddevs[0], stddevs[1], stddevs[2]});
-            }
+            &m_poseEstimator
         };
 };

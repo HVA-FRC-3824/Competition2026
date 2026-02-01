@@ -218,3 +218,10 @@ void RobotContainer::ResetWheelAnglesToZero()
     m_chassis.ResetWheelAnglesToZero();
 }
 #pragma endregion
+
+#pragma region ResetHeading
+void RobotContainer::ResetHeading()
+{
+    m_chassis.ZeroHeading();
+}
+#pragma endregion

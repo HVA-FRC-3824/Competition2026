@@ -54,6 +54,8 @@ void Robot::RobotPeriodic()
     {
         //Code for no data received yet
     }
+
+
 }
 #pragma endregion
 
@@ -61,6 +63,9 @@ void Robot::RobotPeriodic()
 /// @brief Method is called when switching to autonomous mode.
 void Robot::AutonomousInit()
 {
+    // Reset the robot gyro
+    m_robotContainer->ResetHeading();
+
     // Set the swerve wheels to zero
     m_robotContainer->ResetWheelAnglesToZero();
 
