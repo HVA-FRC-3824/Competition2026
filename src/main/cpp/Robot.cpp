@@ -54,8 +54,6 @@ void Robot::RobotPeriodic()
     {
         //Code for no data received yet
     }
-
-
 }
 #pragma endregion
 

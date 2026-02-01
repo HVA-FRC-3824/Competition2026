@@ -157,18 +157,16 @@ void Leds::Periodic()
         
         case LedMode::ShootingAnimation:
         {
+            // // Apply the shootime pattern to the data buffer
+            // //m_shooting.ApplyTo(m_ledBuffer);
+            // std::array<frc::AddressableLED::LEDData, LedConstants::Length / 3> leftBuf   = m_ledBuffer.data;
+            // std::array<frc::AddressableLED::LEDData, LedConstants::Length / 3> centerBuf;
+            // std::array<frc::AddressableLED::LEDData, LedConstants::Length / 3> rightBuf;
+            // m_shooting.ApplyTo(leftBuf);
+            // m_shooting.ApplyTo(centerBuf);
+            // m_shooting.ApplyTo(rightBuf);
 
-            // Apply the shootime pattern to the data buffer
-            //m_shooting.ApplyTo(m_ledBuffer);
-            std::array<frc::AddressableLED::LEDData, LedConstants::Length / 3> leftBuf   = m_ledBuffer.data;
-            std::array<frc::AddressableLED::LEDData, LedConstants::Length / 3> centerBuf;
-            std::array<frc::AddressableLED::LEDData, LedConstants::Length / 3> rightBuf;
-            m_shooting.ApplyTo(leftBuf);
-            m_shooting.ApplyTo(centerBuf);
-            m_shooting.ApplyTo(rightBuf);
-
-            Shoot:
-
+            // Shoot:
 
             break;
         }
