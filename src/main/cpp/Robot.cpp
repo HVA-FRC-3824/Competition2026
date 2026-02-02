@@ -10,8 +10,7 @@ void Robot::RobotInit()
     // Report the robot framework usage
     HAL_Report(HALUsageReporting::kResourceType_Framework, HALUsageReporting::kFramework_RobotBuilder);
 
-    // Instantiate after robot init
-    // This must be done here so that we can actually use the motors
+    // Get the singleton instance of the RobotContainer
     m_robotContainer = RobotContainer::GetInstance();
 }
 #pragma endregion
@@ -22,38 +21,6 @@ void Robot::RobotPeriodic()
 {
     // Run the command scheduler
     frc2::CommandScheduler::GetInstance().Run();
-
-    // Check which Hub is active
-    std::string gameData;
-    gameData = frc::DriverStation::GetGameSpecificMessage();
-
-    if(gameData.length() > 0)
-    {
-        switch (gameData[0])
-        {
-            case 'B':
-            {
-                //Blue case code
-                break;
-            }
-
-            case 'R':
-            {
-                //Red case code
-                break;
-            }
-
-            default:
-            {
-                //This is corrupt data
-                break;
-            } 
-        }
-    }
-    else 
-    {
-        //Code for no data received yet
-    }
 }
 #pragma endregion
 
@@ -62,7 +29,7 @@ void Robot::RobotPeriodic()
 void Robot::AutonomousInit()
 {
     // Reset the robot gyro
-    m_robotContainer->ResetHeading();
+    m_robotContainer->ResetGyroAngle();
 
     // Set the swerve wheels to zero
     m_robotContainer->ResetWheelAnglesToZero();
@@ -92,6 +59,7 @@ void Robot::AutonomousPeriodic()
 void Robot::TeleopInit()
 {
     // Set the swerve wheels to zero
+    // Note: Only needed if autonomous was not executed (i.e., during testing)
     m_robotContainer->ResetWheelAnglesToZero();
 
     // This makes sure that the autonomous stops running when teleop starts running.

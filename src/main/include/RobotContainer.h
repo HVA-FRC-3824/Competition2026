@@ -43,21 +43,25 @@ class RobotContainer
 
         void                   ResetWheelAnglesToZero();  // Method to reset swerve wheel angles to zero
 
-        void                   ResetHeading();
+        void                   ResetGyroAngle();
 
         frc2::Command*         GetAutonomousCommand() { return m_autoChooser.GetSelected(); }; 
 
     private:
 
-        // Static pointer to singleton instance
-        static RobotContainer              *m_robotContainer;
-
         // Private class constructor to configure the robot and SmartDashboard configuration
         RobotContainer();
+
+        void                                 InitializePathPlanner();
+        void                                 InitializeDriverControls();
+        void                                 InitializeOperatorControls();
 
         std::function<frc::ChassisSpeeds()>  GetSpeeds();
 
         double                               GetExponentialValue(double joystickValue, double exponent);
+
+        // Static pointer to singleton instance
+        static RobotContainer               *m_robotContainer;
 
         frc::XboxController                  m_driveController   {constants::controller::DrivePort};
         frc::XboxController                  m_operatorController{constants::controller::OperatorPort};

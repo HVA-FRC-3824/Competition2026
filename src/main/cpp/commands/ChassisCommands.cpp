@@ -8,7 +8,7 @@ frc2::CommandPtr ChassisZeroHeading(Chassis *chassis)
 {
     // Create and return a InstantCommand that resets the gyro yaw
     return frc2::InstantCommand{
-        [=] () {chassis->ZeroHeading();},
+        [=] () {chassis->ResetGyroAngle();},
         { chassis } // Requirements (subsystems required by this command)
     }.ToPtr();
 }

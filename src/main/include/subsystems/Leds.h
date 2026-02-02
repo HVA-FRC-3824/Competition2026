@@ -51,12 +51,9 @@ class Leds : public frc2::SubsystemBase
 
     private:
 
-        void Off();
         void SolidColor(int red, int green, int blue);
-        void Rainbow();
         void HvaColors();
         void Strobe();
-        void ShootingAnimation();
 
         LedMode             m_ledMode;            // The LED mode
 

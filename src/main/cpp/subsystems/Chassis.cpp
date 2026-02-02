@@ -91,9 +91,9 @@ void Chassis::SetModuleStates(wpi::array<frc::SwerveModuleState, 4> states)
 }
 #pragma endregion
 
-#pragma region ZeroHeading
+#pragma region ResetGyroAngle
 /// @brief Method to zero the robot heading.
-void Chassis::ZeroHeading()
+void Chassis::ResetGyroAngle()
 {
     // Do the sim representation
     if (frc::RobotBase::IsSimulation())

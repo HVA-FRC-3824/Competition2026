@@ -86,19 +86,20 @@ class Tower : public frc2::SubsystemBase
 
         void             SetState(TowerState newState);
         TowerState       GetState();
-
-        void             TestActuator(double position) { m_hoodActuator.SetSpeed(position); }
+ 
+        bool             IsSpunUp();
 
         void             AimUsingTurretCamera(bool usingTurretCamera) { m_usingTurretCamera = usingTurretCamera; }
-        bool             IsSpunUp();
+
+        void             TestActuator(double position) { m_hoodActuator.SetSpeed(position); }
 
         void             Periodic() override;
 
     private: 
     
-        void             SetActuator(units::inch_t position);
         void             SetFlywheel(units::turns_per_second_t input);
-    
+        void             SetActuator(units::inch_t position);
+
         void             SetTurretAngle(units::degree_t angle);
         units::degree_t  GetTurretAngle();
 

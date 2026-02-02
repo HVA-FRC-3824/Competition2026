@@ -42,9 +42,9 @@ class Spindexer : public frc2::SubsystemBase
         SpindexerState GetState() const { return m_state; }
 
     private:
+        
+        SpindexerState                    m_state{SpindexerState::Stopped};
 
         ctre::phoenix6::hardware::TalonFX m_spinnerMotor{ConstantsCanIds::SpinnerMotorId};
         ctre::phoenix6::hardware::TalonFX m_kickerMotor {ConstantsCanIds::KickerMotorId};
-        
-        SpindexerState                    m_state{SpindexerState::Stopped};
 };

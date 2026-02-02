@@ -1,32 +1,36 @@
 #include "subsystems/Spindexer.h"
 
+#pragma region Spindexer
+/// @brief Constructor for the Spindexer subsystem
 Spindexer::Spindexer()
 {
+    // Configure the spindexer motor
     TalonFXConfiguration(&m_spinnerMotor,
-                          20.0_A, // Maximum Amperage
-                          true,  // Break mode
-                          false, // Continuous wrap
-                          0.1, // P
-                          0.0, // I
-                          0.0, // D
-                          0.0, // S
-                          0.0, // V
-                          0.0, // A
-                          0_tps, // Velocity Limit
-                          units::turns_per_second_squared_t{0}); // Acceleration Limit
+                          20.0_A,                                 // Maximum Amperage
+                          true,                                   // Break mode
+                          false,                                  // Continuous wrap
+                          0.1,                                    // P
+                          0.0,                                    // I
+                          0.0,                                    // D
+                          0.0,                                    // S
+                          0.0,                                    // V
+                          0.0,                                    // A
+                          0_tps,                                  // Velocity Limit
+                          units::turns_per_second_squared_t{0});  // Acceleration Limit
 
+    // Configure the kicker motor
     TalonFXConfiguration(&m_kickerMotor,
-                          20.0_A, // Maximum Amperage
-                          true,  // Break mode
-                          false, // Continuous wrap
-                          0.1, // P
-                          0.0, // I
-                          0.0, // D
-                          0.0, // S
-                          0.0, // V
-                          0.0, // A
-                          0_tps, // Velocity Limit
-                          units::turns_per_second_squared_t{0}); // Acceleration Limit
+                          20.0_A,                                 // Maximum Amperage
+                          true,                                   // Break mode
+                          false,                                  // Continuous wrap
+                          0.1,                                    // P
+                          0.0,                                    // I
+                          0.0,                                    // D
+                          0.0,                                    // S
+                          0.0,                                    // V
+                          0.0,                                    // A
+                          0_tps,                                  // Velocity Limit
+                          units::turns_per_second_squared_t{0});  // Acceleration Limit
 }
 #pragma endregion
 
@@ -35,24 +39,24 @@ Spindexer::Spindexer()
 /// @param input The input value for the motors
 void Spindexer::SetState(SpindexerState newState)
 {
+    // Do nothing if the state is the same as the current state
     if (newState == m_state)
-    {
-        // Do nothing if the state is the same as the current state
         return;
-    }
 
     // Remember the state of the spindexer
     m_state = newState;
     Log("Spindexer", std::string_view{"Setting spindexer state to " + std::to_string(static_cast<int>(newState))});
 
+    // Default the speeds to zero
     auto spindexerSpeed = 0.0_tps;
     auto kickerSpeed    = 0.0_tps;
 
+    // Set the speeds based on the state
     switch (m_state) 
     {
         case SpindexerState::Stopped:
         {
-            // Stop both motors
+            // Stop both motors (speeds are already default to zero)
             break;
         }
 
@@ -66,6 +70,8 @@ void Spindexer::SetState(SpindexerState newState)
     }
 
     Log("Spindexer", std::string_view{"Setting spinner speed to " + std::to_string(spindexerSpeed.value()) + " turns per second and kicker speed to " + std::to_string(kickerSpeed.value()) + " turns per second"});
+
+    // Set the motor speeds
     m_spinnerMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{spindexerSpeed});
     m_kickerMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{kickerSpeed});
 }

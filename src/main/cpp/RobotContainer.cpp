@@ -24,10 +24,22 @@ RobotContainer *RobotContainer::GetInstance()
 /// @brief Method to configure the robot and SmartDashboard configuration.
 RobotContainer::RobotContainer()
 {
-    // *************** //
-    // * PATHPLANNER * //
-    // *************** //
+    // Initialize the Path Planner configuration
+    InitializePathPlanner();
 
+    // Initialize the driver and operator controls
+    InitializeDriverControls();
+    InitializeOperatorControls();
+
+    // Set the default command for the LEDs to reflect the robot status
+    m_leds.SetDefaultCommand(SetLedStatus(&m_leds, [this]() { return m_robotStatus;}));
+}
+#pragma endregion
+
+#pragma region InitializePathPlanner
+/// @brief Method to initialize the Path Planner configuration.
+void RobotContainer::InitializePathPlanner()
+{
     // Register Commands
     pathplanner::NamedCommands::registerCommand("Shoot All",     std::move(ShootToHub(&m_spindexer, &m_tower)));
     pathplanner::NamedCommands::registerCommand("Stop Shooting", std::move(SpindexerSetState(&m_spindexer, SpindexerState::Stopped)));
@@ -50,6 +62,7 @@ RobotContainer::RobotContainer()
 
     auto isCompetition = true;
 
+    // TODO: Is the following source needed?
     // if (location)
     // {
     //     switch (location.value())
@@ -91,17 +104,22 @@ RobotContainer::RobotContainer()
 
     m_autoChooser = pathplanner::AutoBuilder::buildAutoChooser();
 
-    frc::SmartDashboard::PutData("Auto Chooser", &m_autoChooser);
+    frc::SmartDashboard::PutData("Auto Chooser", &m_autoChooser);    
+}
+#pragma endregion
 
-    // ****************************** //
-    // * SUBSYSTEM DEFAULT COMMANDS * //
-    // ****************************** //
-
-    m_leds.SetDefaultCommand(SetLedStatus(&m_leds, [this]() { return m_robotStatus;}));
-  
-    // ******************* //
-    // * DRIVER CONTROLS * //
-    // ******************* //
+#pragma region InitializeDriverControls
+/// @brief Method to initialize the driver controls.
+///    A                  - Zero Heading
+///    B                  - Flip Field Centricity
+///    X                  - Chassis X Mode
+///    Left Stick Button  - Climb Deploy
+///    Right Stick Button - Climb Retract
+///    Right Bumper       - Spindexer Spindexing (while held)
+void RobotContainer::InitializeDriverControls()
+{
+    // Set the default command for the chassis to be driving with the joystick inputs
+    m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetSpeeds()));
 
     // Array of run-once controls, organized like this for simplicity and readability
     std::pair<Button, frc2::CommandPtr> runOnceControls[] =
@@ -120,37 +138,48 @@ RobotContainer::RobotContainer()
         frc2::JoystickButton(&m_driveController, int(button)).OnTrue(std::move(command));
     }
 
-    // This takes the axis inputs and drives the robot
-    m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetSpeeds()));
-
     // This is effectively a shoot command, the flywheel should already be spun up
     // and the rest of the tower should be configured by the operator
     frc2::JoystickButton(&m_driveController, constants::controller::RightBumper)
         .OnTrue( std::move(SpindexerSetState(&m_spindexer, SpindexerState::Spindexing)))
         .OnFalse(std::move(SpindexerSetState(&m_spindexer, SpindexerState::Stopped)));
+}
+#pragma endregion
 
-    // ********************* //
-    // * OPERATOR CONTROLS * //
-    // ********************* //
-
-    // Array of run-once controls, organized like this for simplicity and readability
+#pragma region InitializeOperatorControls
+/// @brief Method to initialize the operator controls.
+///    A                  - Tower Aim Hub
+///    B                  - Tower Aim Pass Zone
+///    X                  - Tower Manual Control
+///    Left Bumper        - Intake Deployed with Roller On
+///    Right Bumper       - Intake Stowed
+///    Left Stick Button  - Decrease Hood Actuator Length by 2 inches
+///    Right Stick Button - Increase Hood Actuator Length by 2 inches
+///    POV Up             - Increase Flywheel Speed by 100 rpm
+///    POV Right          - Increase Turret Angle by 10 degrees
+///    POV Down           - Decrease Flywheel Speed by 100 rpm
+///    POV Left           - Decrease Turret Angle by 10 degrees
+void RobotContainer::InitializeOperatorControls()
+{
+    // Configure the X-box controller buttons to commands
     std::pair<Button, frc2::CommandPtr> runOnceControlsOperator[] =
     {
-        // Intake Controls
-        {constants::controller::LeftBumper,  IntakeSetState(&m_intake, IntakeState::DeployedRollerOn)},
-        {constants::controller::RightBumper, IntakeSetState(&m_intake, IntakeState::Stowed)},
-        
         // Tower state
         {constants::controller::A, TowerAimHub(&m_tower)},
         {constants::controller::B, TowerAimPassZone(&m_tower)},
         {constants::controller::B, TowerIdle(&m_tower)},
         {constants::controller::X, TowerManualControl(&m_tower, &m_manualTowerState)},
 
+        // Intake Controls
+        {constants::controller::LeftBumper,  IntakeSetState(&m_intake, IntakeState::DeployedRollerOn)},
+        {constants::controller::RightBumper, IntakeSetState(&m_intake, IntakeState::Stowed)},
+        
+        // Manual tower controls
         {constants::controller::LeftStickButton,  frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches -= 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
         {constants::controller::RightStickButton, frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches += 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
     };
 
-    // Configure the run-once controls
+    // Configure the the X-box controller buttons
     for (auto& [button, command] : runOnceControlsOperator)
     {
         frc2::JoystickButton(&m_operatorController, int(button)).OnTrue(std::move(command));
@@ -169,10 +198,29 @@ RobotContainer::RobotContainer()
 
     };
 
+    // Configure the the X-box controller POV buttons
     for (auto& [button, command] : runOnceControlsPOV)
     {
         frc2::POVButton(&m_operatorController, button).OnTrue(std::move(command));
     }
+}
+#pragma endregion
+
+#pragma region ResetWheelAnglesToZero
+/// @brief Method to reset the swerve wheel angles to zero position.
+void RobotContainer::ResetWheelAnglesToZero()
+{
+    // Reset the wheel angles to zero position
+    m_chassis.ResetWheelAnglesToZero();
+}
+#pragma endregion
+
+#pragma region ResetGyroAngle
+/// @brief Method to reset the gyro angle to zero position.
+void RobotContainer::ResetGyroAngle()
+{
+    // Reset the gyro angle to zero position
+    m_chassis.ResetGyroAngle();
 }
 #pragma endregion
 
@@ -208,20 +256,5 @@ double RobotContainer::GetExponentialValue(double joystickValue, double exponent
 
     // Return the output value
     return output;
-}
-#pragma endregion
-
-#pragma region ResetWheelAnglesToZero
-/// @brief Method to reset the swerve wheel angles to zero position.
-void RobotContainer::ResetWheelAnglesToZero()
-{
-    m_chassis.ResetWheelAnglesToZero();
-}
-#pragma endregion
-
-#pragma region ResetHeading
-void RobotContainer::ResetHeading()
-{
-    m_chassis.ZeroHeading();
 }
 #pragma endregion

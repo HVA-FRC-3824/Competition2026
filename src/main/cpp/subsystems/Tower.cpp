@@ -10,30 +10,30 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
 {
     // Configure the tower motors
     TalonFXConfiguration(&m_turretMotor,
-                          40_A,                                  // Current limit
-                          true,                                  // Brake mode
-                          false,                                 // Continuous wrap
-                          0.0,                                   // P gain
-                          0.0,                                   // I gain
-                          0.0,                                   // D gain
-                          0.0,                                   // S (static friction feedforward)
-                          0.0,                                   // V (velocity feedforward)
-                          0.0,                                   // A (acceleration feedforward)
-                          0_tps,                                 // Velocity limit
-                          units::turns_per_second_squared_t{0}); // Acceleration limit
+                          40_A,                                   // Current limit
+                          true,                                   // Brake mode
+                          false,                                  // Continuous wrap
+                          0.0,                                    // P gain
+                          0.0,                                    // I gain
+                          0.0,                                    // D gain
+                          0.0,                                    // S (static friction feedforward)
+                          0.0,                                    // V (velocity feedforward)
+                          0.0,                                    // A (acceleration feedforward)
+                          0_tps,                                  // Velocity limit
+                          units::turns_per_second_squared_t{0});  // Acceleration limit
 
     TalonFXConfiguration(&m_flywheelMotor,
-                          40_A,                                  // Current limit
-                          true,                                  // Brake mode
-                          false,                                 // Continuous wrap
-                          0.0,                                   // P gain
-                          0.0,                                   // I gain
-                          0.0,                                   // D gain
-                          0.0,                                   // S (static friction feedforward)
-                          0.0,                                   // V (velocity feedforward)
-                          0.0,                                   // A (acceleration feedforward)
-                          0_tps,                                 // Velocity limit
-                          units::turns_per_second_squared_t{0}); // Acceleration limit
+                          40_A,                                   // Current limit
+                          true,                                   // Brake mode
+                          false,                                  // Continuous wrap
+                          0.0,                                    // P gain
+                          0.0,                                    // I gain
+                          0.0,                                    // D gain
+                          0.0,                                    // S (static friction feedforward)
+                          0.0,                                    // V (velocity feedforward)
+                          0.0,                                    // A (acceleration feedforward)
+                          0_tps,                                  // Velocity limit
+                          units::turns_per_second_squared_t{0});  // Acceleration limit
 
     // Initialize the pose with the current pose and timestamp
     m_hoodActuator.SetBounds(2.0_us, 1.8_us, 1.5_us, 1.2_us, 1.0_us);
@@ -74,6 +74,22 @@ TowerState Tower::GetState()
 }
 #pragma endregion
 
+#pragma region IsSpunUp
+/// @brief Checks if the flywheel is spun up to the desired speed within tolerance
+/// @return true if the flywheel is spun up, false otherwise
+bool Tower::IsSpunUp()
+{
+    // Get the current PID error
+    auto pidError = m_flywheelMotor.GetClosedLoopError().GetValueAsDouble();
+
+    // Calculate the acceptable error tolerance
+    auto errorTolerance = m_flywheelMotor.GetClosedLoopReference().GetValueAsDouble() * TowerConstants::FlywheelTolerance;
+
+    // Return whether the PID error is within the tolerance
+    return std::abs(pidError) < errorTolerance;
+}
+#pragma endregion
+
 #pragma region SetFlywheel
 /// @brief Spins up the flywheel motor
 /// @param input The input value to set the flywheel motor speed
@@ -89,14 +105,14 @@ void Tower::SetFlywheel(units::turns_per_second_t input)
 /// @param position The position input value to set the hood actuator 
 void Tower::SetActuator(units::inch_t position)
 {
+    // Do not allow actuator to move past the min or max lengths
     position = std::clamp(position, TowerConstants::MinLength, TowerConstants::MaxLength);
 
+    // Convert position in inches to actuator position (0-1)
     double actuatorPosition = (position.value() - TowerConstants::MinLength.value()) / TowerConstants::ActuatorDistanceConversionFactor.value();
-
-    // range: 0-1
 	actuatorPosition = std::clamp(actuatorPosition, 0.0, 1.0);
 
-    // range: 2, 1
+    // TODO: Verify this +1 is correct
     actuatorPosition += 1;
 
     // Although this says SetSpeed, this actually does position
@@ -173,6 +189,7 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relative
 
     // TODO: remove after testing
     distance = 20_m;
+
     // Calculate hood actuator position based on distance
     newState.hoodActuatorInches = 1_in * CalculatePolynomial(distance, TowerConstants::HoodA, TowerConstants::HoodB, TowerConstants::HoodC);
     // newState.hoodActuatorInches = std::clamp(newState.hoodActuatorInches, TowerConstants::MinLength, TowerConstants::MaxLength);
@@ -365,21 +382,5 @@ void Tower::Periodic()
 
     // Set the turret angle representation
     m_logTurret->SetAngle(m_state.turretAngle);
-}
-#pragma endregion
-
-#pragma region IsSpunUp
-/// @brief Checks if the flywheel is spun up to the desired speed within tolerance
-/// @return true if the flywheel is spun up, false otherwise
-bool Tower::IsSpunUp()
-{
-    // Get the current PID error
-    auto pidError = m_flywheelMotor.GetClosedLoopError().GetValueAsDouble();
-
-    // Calculate the acceptable error tolerance
-    auto errorTolerance = m_flywheelMotor.GetClosedLoopReference().GetValueAsDouble() * TowerConstants::FlywheelTolerance;
-
-    // Return whether the PID error is within the tolerance
-    return std::abs(pidError) < errorTolerance;
 }
 #pragma endregion
