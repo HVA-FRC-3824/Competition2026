@@ -59,8 +59,8 @@ void Spindexer::SetState(SpindexerState newState)
         case SpindexerState::Spindexing:
         {
             // Set both motors to their respective speeds
-            spindexerSpeed = SpindexerConstants::spinnerWheelTurns;
-            kickerSpeed    = SpindexerConstants::kickerWheelTurns;
+            spindexerSpeed = SpindexerConstants::SpinnerWheelTurns;
+            kickerSpeed    = SpindexerConstants::KickerWheelTurns;
             break;
         }
     }

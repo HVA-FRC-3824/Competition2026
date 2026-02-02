@@ -61,20 +61,20 @@ namespace TowerConstants
     constexpr auto ActuatorLowerBound = -0.95;      // Comes from 102 too
     constexpr auto ActuatorUpperBound =  0.95;
 
-    constexpr auto FlywheelTolerance = 0.10; // Percent of the target
+    constexpr auto FlywheelTolerance  = 0.10; // Percent of the target
 
+    constexpr auto HoodA              = -0.0007;
+    constexpr auto HoodB              =  0.045;
+    constexpr auto HoodC              =  0.8;
+    
+    constexpr auto FlywheelA          = -0.2;
+    constexpr auto FlywheelB          = 13.571;
+    constexpr auto FlywheelC          = 37.143;  
+    
     // From inches to 0-1 range
     constexpr auto ActuatorDistanceConversionFactor = (TowerConstants::MaxLength - TowerConstants::MinLength);
 
-    constexpr auto OffsetTurretFromRobotCenter = frc::Transform3d{frc::Translation3d{0.0_m, 0.0_m, 0.0_m}, frc::Rotation3d{0.0_deg, 0.0_deg, 0.0_deg}};
-
-    constexpr auto HoodA = -0.0007;
-    constexpr auto HoodB = 0.045;
-    constexpr auto HoodC = 0.8;
-    
-    constexpr auto FlywheelA = -0.2;
-    constexpr auto FlywheelB = 13.571;
-    constexpr auto FlywheelC = 37.143;    
+    constexpr auto OffsetTurretFromRobotCenter      = frc::Transform3d{frc::Translation3d{0.0_m, 0.0_m, 0.0_m}, frc::Rotation3d{0.0_deg, 0.0_deg, 0.0_deg}};    
 }
 #pragma endregion
 
@@ -96,21 +96,21 @@ class Tower : public frc2::SubsystemBase
 
     private: 
     
-        void            SetActuator(units::inch_t position);
-        void            SetFlywheel(units::turns_per_second_t input);
+        void             SetActuator(units::inch_t position);
+        void             SetFlywheel(units::turns_per_second_t input);
     
-        void            SetTurretAngle(units::degree_t angle);
-        units::degree_t GetTurretAngle();
+        void             SetTurretAngle(units::degree_t angle);
+        units::degree_t  GetTurretAngle();
 
-        TowerState      CalculateShot(TowerMode towerMode, frc::Translation2d relativeDistance, frc::ChassisSpeeds chassisSpeed);
-        double          CalculatePolynomial(units::meter_t distance, double a, double b, double c);
+        TowerState       CalculateShot(TowerMode towerMode, frc::Translation2d relativeDistance, frc::ChassisSpeeds chassisSpeed);
+        double           CalculatePolynomial(units::meter_t distance, double a, double b, double c);
 
         bool                                m_isBlue = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) 
                                                             == frc::DriverStation::Alliance::kBlue;
 
         bool                                m_usingTurretCamera = true;
 
-        frc::Mechanism2d                    m_logMechanism{20, 20, frc::Color{0.0, 0.0, 0.0}}; // Width height
+        frc::Mechanism2d                    m_logMechanism{20, 20, frc::Color{0.0, 0.0, 0.0}};  // Width height
         frc::MechanismRoot2d               *m_logMechanismRoot = m_logMechanism.GetRoot("Tower", 10, 10);
         
         frc::MechanismLigament2d           *m_logHoodFlywheel = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Hood&Flywheel", 3, 0_deg);
@@ -123,7 +123,7 @@ class Tower : public frc2::SubsystemBase
 
         TowerState                          m_state{TowerMode::ManualControl, 0_deg, 0_rpm, 0_in}; 
 
-        ctre::phoenix6::hardware::TalonFX   m_turretMotor  {ConstantsCanIds::turretMotorId};
-        ctre::phoenix6::hardware::TalonFX   m_flywheelMotor{ConstantsCanIds::flywheelMotorId};
-        frc::Servo                          m_hoodActuator {ConstantsPwmPorts::actuatorPort};
+        ctre::phoenix6::hardware::TalonFX   m_turretMotor  {ConstantsCanIds::TurretMotorId};
+        ctre::phoenix6::hardware::TalonFX   m_flywheelMotor{ConstantsCanIds::FlywheelMotorId};
+        frc::Servo                          m_hoodActuator {ConstantsPwmPorts::ActuatorPort};
 };

@@ -26,22 +26,21 @@ namespace ClimbConstants
     constexpr auto ClimbMotorMaxRotations = 10_tr;
 }
 
-
 class Climb : public frc2::SubsystemBase
 {
     public:
 
-        explicit Climb();
+        explicit   Climb();
 
-        void SetState(ClimbState state);
+        void       SetMotor(units::turn_t rotations);
 
-        void SetMotor(units::turn_t rotations);
+        void       SetState(ClimbState state);
 
         ClimbState GetState() const { return m_climbState; }
 
     private:
 
-        ctre::phoenix6::hardware::TalonFX m_climbMotor{ConstantsCanIds::climbMotorId};
+        ctre::phoenix6::hardware::TalonFX m_climbMotor{ConstantsCanIds::ClimbMotorId};
 
-        ClimbState m_climbState;        
+        ClimbState                        m_climbState;        
 };

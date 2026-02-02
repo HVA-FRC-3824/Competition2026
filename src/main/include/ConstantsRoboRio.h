@@ -9,31 +9,31 @@ namespace ConstantsCanIds
     const     auto    CanBus                 = "rio";
 
     // Swerve motor and encoders CAN IDs
-    constexpr CANid_t frontLeftDriveId       = 01;
-    constexpr CANid_t frontLeftTurnId        = 02;
-    constexpr CANid_t frontLeftEncoderId     = 03;
+    constexpr CANid_t FrontLeftDriveId       = 01;
+    constexpr CANid_t FrontLeftTurnId        = 02;
+    constexpr CANid_t FrontLeftEncoderId     = 03;
 
-    constexpr CANid_t frontRightDriveId      = 11;
-    constexpr CANid_t frontRightTurnId       = 12;
-    constexpr CANid_t frontRightEncoderId    = 13;
+    constexpr CANid_t FrontRightDriveId      = 11;
+    constexpr CANid_t FrontRightTurnId       = 12;
+    constexpr CANid_t FrontRightEncoderId    = 13;
 
-    constexpr CANid_t backLeftDriveId        = 21;
-    constexpr CANid_t backLeftTurnId         = 22;
-    constexpr CANid_t backLeftEncoderId      = 23;
+    constexpr CANid_t BackLeftDriveId        = 21;
+    constexpr CANid_t BackLeftTurnId         = 22;
+    constexpr CANid_t BackLeftEncoderId      = 23;
+    
+    constexpr CANid_t BackRightDriveId       = 31;
+    constexpr CANid_t BackRightTurnId        = 32;
+    constexpr CANid_t BackRightEncoderId     = 33;
 
-    constexpr CANid_t backRightDriveId       = 31;
-    constexpr CANid_t backRightTurnId        = 32;
-    constexpr CANid_t backRightEncoderId     = 33;
+    constexpr CANid_t IntakePositionMotorId  = 40;
+    constexpr CANid_t FuelIntakeMotorId      = 41;
 
-    constexpr CANid_t intakePositionMotorId  = 40;
-    constexpr CANid_t fuelIntakeMotorId      = 41;
+    constexpr CANid_t SpinnerMotorId         = 50;
+    constexpr CANid_t KickerMotorId          = 51;
+    constexpr CANid_t TurretMotorId          = 52;
+    constexpr CANid_t FlywheelMotorId        = 53;
 
-    constexpr CANid_t spinnerMotorId         = 50;
-    constexpr CANid_t kickerMotorId          = 51;
-    constexpr CANid_t turretMotorId          = 52;
-    constexpr CANid_t flywheelMotorId        = 53;
-
-    constexpr CANid_t climbMotorId         = 60;
+    constexpr CANid_t ClimbMotorId           = 60;
 }
 #pragma endregion
 
@@ -41,7 +41,7 @@ namespace ConstantsCanIds
 namespace ConstantsPwmPorts
 {
     // PWM Ports
-    constexpr auto actuatorPort              =  2;
-    constexpr auto ledPort                   =  9;
+    constexpr auto ActuatorPort              =  2;
+    constexpr auto LedPort                   =  9;
 }
 #pragma endregion

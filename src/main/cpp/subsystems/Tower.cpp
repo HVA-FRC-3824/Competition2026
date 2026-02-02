@@ -302,7 +302,7 @@ void Tower::Periodic()
             else // If not using the turret camera, base relative distance on field pose
             {
                 // Sets our hub based on our alliance
-                frc::Pose3d Hub = m_isBlue ? constants::field::blueHub : constants::field::redHub;
+                frc::Pose3d Hub = m_isBlue ? constants::Field::BlueHub : constants::Field::RedHub;
                 
                 // Calculate the relative distance from the turret center to the hub
                 relativeDistance = Hub.ToPose2d().Translation() - (chassisPose.Translation() + TowerConstants::OffsetTurretFromRobotCenter.Translation().ToTranslation2d());
@@ -317,8 +317,8 @@ void Tower::Periodic()
         {
             // Based on alliance color, find the nearest point in our alliance zone to pass to
             // We decide between the close and the far points so that we can avoid hitting the hub net
-            auto targetPoint = chassisPose.Translation().Nearest({m_isBlue ? constants::field::blueAllianceZoneClose.Translation() : constants::field::redAllianceZoneClose.Translation(),
-                                                                  m_isBlue ? constants::field::blueAllianceZoneFar.Translation()   : constants::field::redAllianceZoneFar.Translation()});
+            auto targetPoint = chassisPose.Translation().Nearest({m_isBlue ? constants::Field::BlueAllianceZoneClose.Translation() : constants::Field::RedAllianceZoneClose.Translation(),
+                                                                  m_isBlue ? constants::Field::BlueAllianceZoneFar.Translation()   : constants::Field::RedAllianceZoneFar.Translation()});
             
             auto relativeDistance = targetPoint - chassisPose.Translation();
 

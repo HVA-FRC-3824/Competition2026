@@ -39,10 +39,6 @@ Chassis::Chassis()
 
     // Create a path following command using AutoBuilder. This will also trigger event markers.
     auto command = pathplanner::AutoBuilder::followPath(path);
-
-    m_timer.Reset();
-    m_timer.Start();
-    m_perodicCounter = 0;
 }
 #pragma endregion
 
@@ -243,37 +239,6 @@ void Chassis::Periodic()
         // This also updates the pose estimator with vision as well as updating photonvisions internal estimators
         m_vision.Periodic();
     }
-    // frc::SmartDashboard::PutNumber("Chassis Timer", m_timer.Get().value());
-
-    // if (frc::DriverStation::IsEnabled())
-    // {
-    //     // Determine if 10 seconds have elapsed
-    //     if (m_timer.HasElapsed(5_s))
-    //     {
-    //         // Reset the timer
-    //         m_timer.Reset();
-    
-    //         m_perodicCounter++;
-    
-    //         frc::SmartDashboard::PutNumber("Chassis Counter", m_perodicCounter);
-    
-    //         frc::SwerveModuleState swerveModuleState;
-    //         swerveModuleState.angle = frc::Rotation2d{360_deg * m_perodicCounter};
-    //         swerveModuleState.speed = 0_mps;
-    
-    //         frc::SmartDashboard::PutNumber("Swerve Rotation", swerveModuleState.angle.Degrees().value());
-    
-    //         // The Swerve module angles in increments of 360 degrees
-    //         m_swerveModules[0].SetDesiredState(swerveModuleState, "Front Left " );
-    //         m_swerveModules[1].SetDesiredState(swerveModuleState, "Front Right ");
-    //         m_swerveModules[2].SetDesiredState(swerveModuleState, "Rear Left "  );
-    //         m_swerveModules[3].SetDesiredState(swerveModuleState, "Rear Right " );
-    //     }
-    // }
-    // else 
-    // {
-    //     m_timer.Reset();
-    // } 
 
     frc::SwerveModulePosition position =  m_swerveModules[0].GetPosition(); // Hack to get around compiler optimization removing unused code
     frc::SwerveModuleState    state     = m_swerveModules[0].GetState();    // Hack to get around compiler optimization removing unused code

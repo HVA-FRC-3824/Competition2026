@@ -18,30 +18,30 @@ typedef int Button;
 namespace constants
 {
     #pragma region Field
-    namespace field
+    namespace Field
     {
         /// *** Field Dimensions *** ///
-        constexpr units::inch_t fieldLength  = 652.11_in;
-        constexpr units::inch_t fieldWidth   = 317.69_in;
+        constexpr units::inch_t FieldLength  = 652.11_in;
+        constexpr units::inch_t FieldWidth   = 317.69_in;
 
-        constexpr units::inch_t allianceWallToAllianceZone = 182.11_in;
+        constexpr units::inch_t AllianceWallToAllianceZone = 182.11_in;
 
-        constexpr units::inch_t hubHeight = 72_in;
+        constexpr units::inch_t HubHeight = 72_in;
 
         /// *** Field Locations *** ///
 
-        constexpr frc::Pose3d blueHub{allianceWallToAllianceZone,               fieldWidth / 2, hubHeight, frc::Rotation3d(0_deg)};
-        constexpr frc::Pose3d redHub {fieldLength - allianceWallToAllianceZone, fieldWidth / 2, hubHeight, frc::Rotation3d(0_deg)};
+        constexpr frc::Pose3d BlueHub{AllianceWallToAllianceZone,               FieldWidth / 2, HubHeight, frc::Rotation3d(0_deg)};
+        constexpr frc::Pose3d RedHub {FieldLength - AllianceWallToAllianceZone, FieldWidth / 2, HubHeight, frc::Rotation3d(0_deg)};
 
         // For passing we want to aim towards the inside of our alliance zone or towards the neutral zone whichever is closer
         // Either way we want the balls to be going as close to our alliance zone as possible, so aim for that
         // - "Aim for the stars and maybe you'll reach the neutral zone" or something like that...
 
-        constexpr frc::Pose2d blueAllianceZoneClose{allianceWallToAllianceZone, fieldWidth / 4, 0_rad};
-        constexpr frc::Pose2d blueAllianceZoneFar  {allianceWallToAllianceZone, fieldWidth - (fieldWidth / 4), 0_rad};
+        constexpr frc::Pose2d BlueAllianceZoneClose{AllianceWallToAllianceZone, FieldWidth / 4, 0_rad};
+        constexpr frc::Pose2d BlueAllianceZoneFar  {AllianceWallToAllianceZone, FieldWidth - (FieldWidth / 4), 0_rad};
 
-        constexpr frc::Pose2d redAllianceZoneClose{fieldLength - allianceWallToAllianceZone, fieldWidth / 4, 0_rad};
-        constexpr frc::Pose2d redAllianceZoneFar  {fieldLength - allianceWallToAllianceZone, fieldWidth - (fieldWidth / 4), 0_rad};
+        constexpr frc::Pose2d RedAllianceZoneClose{FieldLength - AllianceWallToAllianceZone, FieldWidth / 4, 0_rad};
+        constexpr frc::Pose2d RedAllianceZoneFar  {FieldLength - AllianceWallToAllianceZone, FieldWidth - (FieldWidth / 4), 0_rad};
     }
     #pragma endregion
 

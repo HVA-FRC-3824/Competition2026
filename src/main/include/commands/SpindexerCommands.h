@@ -9,7 +9,4 @@
 #include "subsystems/Spindexer.h"
 #pragma endregion
 
-#pragma region SpindexerOn
-// This turns the indexer on
 frc2::CommandPtr SpindexerSetState(Spindexer* spindexer, SpindexerState state);
-#pragma endregion

@@ -72,7 +72,7 @@ class Leds : public frc2::SubsystemBase
         frc::LEDPattern     m_shooting = frc::LEDPattern::Gradient(frc::LEDPattern::kDiscontinuous, std::array<frc::Color, 2>{frc::Color::kRed, frc::Color::kBlack}).
                                                           ScrollAtAbsoluteSpeed(0.5_mps, units::meter_t{1 / 120.0});
 
-        frc::AddressableLED m_led{ConstantsPwmPorts::ledPort};
+        frc::AddressableLED m_led{ConstantsPwmPorts::LedPort};
 
         std::array<frc::AddressableLED::LEDData, LedConstants::Length> m_ledBuffer;  // Instatntiate the LED data buffer
 };

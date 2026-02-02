@@ -14,7 +14,6 @@
 #include <ctre/phoenix6/TalonFX.hpp>
 #pragma endregion
 
-#pragma region TalonFXConfiguration
 void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
                           units::ampere_t                    currentLimit,
                           bool                               breakMode,
@@ -28,4 +27,3 @@ void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
                           units::turns_per_second_t          velocityLimit,
                           units::turns_per_second_squared_t  accelerationLimit,
                           double                             sensorToMechanismRatio = 1.0);
-#pragma endregion

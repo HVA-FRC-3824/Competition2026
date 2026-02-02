@@ -8,10 +8,5 @@
 #include "subsystems/Climb.h"
 #pragma endregion
 
-#pragma region ClimbDeploy
 frc2::CommandPtr ClimbDeploy(Climb* climb);
-#pragma endregion
-
-#pragma region ClimbRetract
 frc2::CommandPtr ClimbRetract(Climb* climb);
-#pragma endregion

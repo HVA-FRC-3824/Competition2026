@@ -22,7 +22,6 @@
 #include <rev/config/SparkMaxConfig.h>
 #pragma endregion
 
-#pragma region SparkMaxConfiguration
 void SparkMaxConfiguration(rev::spark::SparkMax *motor,
                           units::ampere_t currentLimit,
                           bool   breakMode,
@@ -34,4 +33,4 @@ void SparkMaxConfiguration(rev::spark::SparkMax *motor,
                           double A,
                           units::turns_per_second_t         velocityLimit,
                           units::turns_per_second_squared_t accelerationLimit);
-#pragma endregion
+                          

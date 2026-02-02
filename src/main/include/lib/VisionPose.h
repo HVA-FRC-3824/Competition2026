@@ -22,12 +22,12 @@ class VisionPose
 {
     public:
 
-        VisionPose(std::string_view             cameraName,
-                    frc::Transform3d            robotToCamPose,
-                    frc::AprilTagFieldLayout    tagLayout,
-                    Eigen::Matrix<double, 3, 1> singleTagStdDevs,
-                    Eigen::Matrix<double, 3, 1>       multiTagStdDevs,
-                    frc::SwerveDrivePoseEstimator<4> *poseEstimator);
+        VisionPose(std::string_view                  cameraName,
+                   frc::Transform3d                  robotToCamPose,
+                   frc::AprilTagFieldLayout          tagLayout,
+                   Eigen::Matrix<double, 3, 1>       singleTagStdDevs,
+                   Eigen::Matrix<double, 3, 1>       multiTagStdDevs,
+                   frc::SwerveDrivePoseEstimator<4> *poseEstimator);
         
         void                         Periodic();
 
@@ -41,18 +41,17 @@ class VisionPose
 
     private:
 
-        photon::PhotonPoseEstimator m_photonEstimator;
+        photon::PhotonPoseEstimator                  m_photonEstimator;
 
-        photon::PhotonCamera        m_camera;
+        photon::PhotonCamera                         m_camera;
 
-        Eigen::Matrix<double, 3, 1> m_singleTagStdDevs;
-        Eigen::Matrix<double, 3, 1> m_multiTagStdDevs;
+        Eigen::Matrix<double, 3, 1>                  m_singleTagStdDevs;
+        Eigen::Matrix<double, 3, 1>                  m_multiTagStdDevs;
 
         std::unique_ptr<photon::VisionSystemSim>     m_visionSim;
         std::unique_ptr<photon::SimCameraProperties> m_cameraProp;
         std::shared_ptr<photon::PhotonCameraSim>     m_cameraSim;
 
-        // The most recent result, cached for calculating std devs
         photon::PhotonPipelineResult                 m_latestResult;
         
         frc::SwerveDrivePoseEstimator<4U>           *m_poseEstimator;
