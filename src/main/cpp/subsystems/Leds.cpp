@@ -33,33 +33,52 @@ void Leds::SetMode(LedMode ledMode)
     {
         case LedMode::Off:
         {
+            // Turn off all LEDs
             SolidColor(0, 0, 0);
             break;
         }
     
         case LedMode::SolidGreen:
         {
+            // Set solid green color
             SolidColor(0, LedConstants::Green, 0);
             break;
         }
 
         case LedMode::SolidRed:
         {
+            // Set solid red color
             SolidColor(LedConstants::Red, 0, 0);
             break;
         }
 
         case LedMode::HvaColors:
         {
+            // Reset the cycle counter
             m_cycleCounter = 0;
+
+            // Set the HVA colors
             HvaColors();
             break;
         }
 
         case LedMode::Strobe:
         {
+            // Reset the cycle counter
             m_cycleCounter = 0;
+
+            // Set the strobe pattern
             Strobe();
+            break;
+        }
+
+        case LedMode::ShootingAnimation:
+        {
+            // Reset the cycle counter
+            m_cycleCounter = 0;
+
+            // Reset the shooting animation
+            ShootingAnimation();
             break;
         }
 
@@ -130,6 +149,30 @@ void Leds::Strobe()
 }
 #pragma endregion
 
+#pragma region ShootingAnimation
+/// @brief Method to run the shooting animation on the LED string.
+void Leds::ShootingAnimation()
+{
+    constexpr auto sectionSize = LedConstants::Length / 3;
+
+    std::array<frc::AddressableLED::LEDData, sectionSize> leftBuffer;
+    std::array<frc::AddressableLED::LEDData, sectionSize> centerBuffer;
+    std::array<frc::AddressableLED::LEDData, sectionSize> rightBuffer;
+
+    std::copy_n(m_ledBuffer.begin(),                   sectionSize, leftBuffer.begin());
+    std::copy_n(m_ledBuffer.begin() + sectionSize,     sectionSize, centerBuffer.begin());
+    std::copy_n(m_ledBuffer.begin() + sectionSize * 2, sectionSize, rightBuffer.begin());
+
+    m_shooting.ApplyTo(leftBuffer);
+    m_shooting.ApplyTo(centerBuffer);
+    m_shooting.ApplyTo(rightBuffer);
+
+    std::copy(leftBuffer.begin(), leftBuffer.end(), m_ledBuffer.begin());
+    std::copy(centerBuffer.begin(), centerBuffer.end(), m_ledBuffer.begin() + sectionSize);
+    std::reverse_copy(rightBuffer.begin(), rightBuffer.end(), m_ledBuffer.begin() + sectionSize * 2);
+}
+#pragma endregion
+
 #pragma region Periodic
 /// @brief This method will be called once periodically.
 void Leds::Periodic()
@@ -157,23 +200,7 @@ void Leds::Periodic()
         
         case LedMode::ShootingAnimation:
         {
-            constexpr auto sectionSize = LedConstants::Length / 3;
-
-            std::array<frc::AddressableLED::LEDData, sectionSize> leftBuf;
-            std::array<frc::AddressableLED::LEDData, sectionSize> centerBuf;
-            std::array<frc::AddressableLED::LEDData, sectionSize> rightBuf;
-
-            std::copy_n(m_ledBuffer.begin(), sectionSize, leftBuf.begin());
-            std::copy_n(m_ledBuffer.begin() + sectionSize, sectionSize, centerBuf.begin());
-            std::copy_n(m_ledBuffer.begin() + sectionSize * 2, sectionSize, rightBuf.begin());
-
-            m_shooting.ApplyTo(leftBuf);
-            m_shooting.ApplyTo(centerBuf);
-            m_shooting.ApplyTo(rightBuf);
-
-            std::copy(leftBuf.begin(), leftBuf.end(), m_ledBuffer.begin());
-            std::copy(centerBuf.begin(), centerBuf.end(), m_ledBuffer.begin() + sectionSize);
-            std::reverse_copy(rightBuf.begin(), rightBuf.end(), m_ledBuffer.begin() + sectionSize * 2);
+            ShootingAnimation();
             break;
         }
 
