@@ -32,7 +32,7 @@ RobotContainer::RobotContainer()
     InitializeOperatorControls();
 
     m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetSpeeds()));
-    m_leds.SetDefaultCommand(SetLedStatus(&m_leds, &m_robotStatus));
+    m_leds.SetDefaultCommand(SetLedStatus(&m_leds, &m_ledMode));
     m_spindexer.SetDefaultCommand(SpindexerSetState(&m_spindexer, SpindexerState::Stopped));
 }
 #pragma endregion

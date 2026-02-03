@@ -274,9 +274,18 @@ void Tower::Periodic()
             // When using the turret camera, relative distance is based on the turret
             if (m_usingTurretCamera)
             {
-                photon::PhotonPipelineResult result = m_turretCamera.GetAllUnreadResults().back();
+                std::vector<photon::PhotonPipelineResult> results = m_turretCamera.GetAllUnreadResults();
 
-                frc::SmartDashboard::PutBoolean("Has Targets", result.HasTargets());
+                photon::PhotonPipelineResult result;
+                if (results.empty())
+                {
+                    // There are no results
+                    return;
+                }
+                else
+                {
+                    result = results.back();
+                }
 
                 if (result.HasTargets())
                 {

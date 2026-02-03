@@ -2,7 +2,9 @@
 
 #include <array>
 
+#include <frc/RobotController.h>
 #include <frc2/command/SubsystemBase.h>
+
 #include <frc/AddressableLED.h>
 #include <frc/LEDPattern.h>
 #include <frc/LEDPattern.h>
@@ -20,8 +22,8 @@ namespace LedConstants
     constexpr auto Green       = 255;
     constexpr auto Blue        = 255;
 
-    constexpr auto StrobeDelay =  20;  // The delay between strobe flashes
-    constexpr auto HvaDelay    =  20;  // The delay between HVA color changes
+    constexpr auto StrobeDelay =  20_ms;  // The delay between strobe flashes
+    constexpr auto HvaDelay    =  20_Hz;  // The delay between HVA color changes
 }
 #pragma endregion
 
@@ -51,6 +53,8 @@ class Leds : public frc2::SubsystemBase
 
     private:
 
+        void SetLeds(frc::LEDPattern pattern);
+
         void SolidColor(int red, int green, int blue);
         void HvaColors();
         void Strobe();
@@ -68,7 +72,7 @@ class Leds : public frc2::SubsystemBase
         // Create an LED pattern that displays a red-to-blue gradient, then scroll at one quarter of the LED strip's length per second.
         // For a half-meter length of a 120 LED-per-meter strip, this is equivalent to scrolling at 12.5 centimeters per second.
         frc::LEDPattern     m_shooting = frc::LEDPattern::Gradient(frc::LEDPattern::kDiscontinuous, std::array<frc::Color, 2>{frc::Color::kRed, frc::Color::kBlack}).
-                                                          ScrollAtAbsoluteSpeed(0.5_mps, units::meter_t{1 / 120.0});
+                                                          ScrollAtAbsoluteSpeed(2_in / 1_s, units::meter_t{1 / 120.0});
 
         frc::AddressableLED m_led{ConstantsPwmPorts::LedPort};
 
