@@ -155,32 +155,21 @@ wpi::array<frc::SwerveModulePosition, 4> Chassis::GetModulePositions()
 }
 #pragma endregion
 
-#pragma region FlipFieldCentric
+#pragma region ToggleFieldCentric
 /// @brief Method to flip the field centric mode.
-void Chassis::FlipFieldCentric()
+void Chassis::ToggleFieldCentric()
 {
     // Toggle the field relative mode
     m_isFieldRelative = !m_isFieldRelative;
 }
 #pragma endregion
 
-#pragma region GetXMode
-/// @brief Method to get whether the chassis is in X mode.
-/// @return True if the chassis is in X mode, false otherwise.
-bool Chassis::GetXMode()
-{
-    // Return whether the chassis is in X mode
-    return m_isXMode;
-}
-#pragma endregion
-
-#pragma region SetXMode
-/// @brief Method to set whether the chassis is in X mode.
-/// @param isXMode True to set X mode, false otherwise.
-void Chassis::SetXMode(bool isXMode)
+#pragma region ToggleXMode
+/// @brief Method to flip X mode.
+void Chassis::ToggleXMode()
 {
     // Set whether the chassis in x mode
-    m_isXMode = isXMode;
+    m_isXMode = !m_isXMode;
 }
 #pragma endregion
 

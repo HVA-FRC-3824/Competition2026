@@ -21,8 +21,8 @@ namespace constants
     namespace Field
     {
         /// *** Field Dimensions *** ///
-        constexpr units::inch_t FieldLength  = 652.11_in;
-        constexpr units::inch_t FieldWidth   = 317.69_in;
+        constexpr units::inch_t FieldLength  = 652.11_in; // 16.56 meters
+        constexpr units::inch_t FieldWidth   = 317.69_in; //  8.07 meters
 
         constexpr units::inch_t AllianceWallToAllianceZone = 182.11_in;
 

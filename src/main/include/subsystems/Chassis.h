@@ -116,10 +116,9 @@ class Chassis : public frc2::SubsystemBase
         wpi::array<frc::SwerveModuleState, 4>    GetModuleStates();
         wpi::array<frc::SwerveModulePosition, 4> GetModulePositions();
     
-        void                                     FlipFieldCentric();
+        void                                     ToggleFieldCentric();
         
-        bool                                     GetXMode();
-        void                                     SetXMode(bool isXMode);
+        void                                     ToggleXMode();
 
         frc::Rotation2d                          GetHeading();
         frc::Pose2d                              GetPose();

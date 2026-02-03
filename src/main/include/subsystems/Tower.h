@@ -37,7 +37,8 @@ enum TowerMode
     Idle,
     ShootingToHub,
     PassingToAdjacentZone,
-    ManualControl
+    ManualControl,
+    Automatic
 };
 
 struct TowerState

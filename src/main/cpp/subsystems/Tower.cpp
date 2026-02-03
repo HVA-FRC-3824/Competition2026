@@ -238,6 +238,24 @@ void Tower::Periodic()
     auto chassisPose  = m_chassisPoseSupplier();
     auto chassisSpeed = m_chassisSpeedsSupplier();
 
+    // We'll assign the state based on our location. 
+    // After the calculations, we'll reassign the state to Automatic for the next cycle
+    bool isAutomatic = m_state.mode == TowerMode::Automatic;
+    if (isAutomatic)
+    {
+        // If were in the neutral zone (or opposing zone), pass fuel to our alliance zone
+        if (m_isBlue ? chassisPose.X() < constants::Field::AllianceWallToAllianceZone :
+                       chassisPose.X() < constants::Field::FieldLength - constants::Field::AllianceWallToAllianceZone)
+        {
+            m_state.mode = TowerMode::PassingToAdjacentZone;
+        }
+        // Otherwise shoot to the hub
+        else
+        {
+            m_state.mode = TowerMode::ShootingToHub;
+        }
+    }
+
     switch (m_state.mode) 
     {
         case TowerMode::Idle:
@@ -246,6 +264,7 @@ void Tower::Periodic()
             m_state.flywheelSpeed      = 0_rpm;
             m_state.hoodActuatorInches = 0_in;
             m_state.turretAngle        = 0_deg;
+            break;
         }
 
         case TowerMode::ShootingToHub:
@@ -255,7 +274,7 @@ void Tower::Periodic()
             // When using the turret camera, relative distance is based on the turret
             if (m_usingTurretCamera)
             {
-                photon::PhotonPipelineResult result = m_turretCamera.GetLatestResult();
+                photon::PhotonPipelineResult result = m_turretCamera.GetAllUnreadResults().back();
 
                 frc::SmartDashboard::PutBoolean("Has Targets", result.HasTargets());
 
@@ -382,5 +401,9 @@ void Tower::Periodic()
 
     // Set the turret angle representation
     m_logTurret->SetAngle(m_state.turretAngle);
+
+    // If its in automatic mode, prepare the state for the next cycle
+    if (isAutomatic)
+        m_state.mode = TowerMode::Automatic;
 }
 #pragma endregion

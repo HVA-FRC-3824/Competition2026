@@ -7,4 +7,4 @@
 
 #include "subsystems/Leds.h"
 
-frc2::CommandPtr SetLedStatus(Leds* leds, std::function<LedMode()> robotStatus);
+frc2::CommandPtr SetLedStatus(Leds* leds, LedMode *robotStatus);

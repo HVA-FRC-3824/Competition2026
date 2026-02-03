@@ -157,17 +157,23 @@ void Leds::Periodic()
         
         case LedMode::ShootingAnimation:
         {
-            // // Apply the shootime pattern to the data buffer
-            // //m_shooting.ApplyTo(m_ledBuffer);
-            // std::array<frc::AddressableLED::LEDData, LedConstants::Length / 3> leftBuf   = m_ledBuffer.data;
-            // std::array<frc::AddressableLED::LEDData, LedConstants::Length / 3> centerBuf;
-            // std::array<frc::AddressableLED::LEDData, LedConstants::Length / 3> rightBuf;
-            // m_shooting.ApplyTo(leftBuf);
-            // m_shooting.ApplyTo(centerBuf);
-            // m_shooting.ApplyTo(rightBuf);
+            constexpr auto sectionSize = LedConstants::Length / 3;
 
-            // Shoot:
+            std::array<frc::AddressableLED::LEDData, sectionSize> leftBuf;
+            std::array<frc::AddressableLED::LEDData, sectionSize> centerBuf;
+            std::array<frc::AddressableLED::LEDData, sectionSize> rightBuf;
 
+            std::copy_n(m_ledBuffer.begin(), sectionSize, leftBuf.begin());
+            std::copy_n(m_ledBuffer.begin() + sectionSize, sectionSize, centerBuf.begin());
+            std::copy_n(m_ledBuffer.begin() + sectionSize * 2, sectionSize, rightBuf.begin());
+
+            m_shooting.ApplyTo(leftBuf);
+            m_shooting.ApplyTo(centerBuf);
+            m_shooting.ApplyTo(rightBuf);
+
+            std::copy(leftBuf.begin(), leftBuf.end(), m_ledBuffer.begin());
+            std::copy(centerBuf.begin(), centerBuf.end(), m_ledBuffer.begin() + sectionSize);
+            std::reverse_copy(rightBuf.begin(), rightBuf.end(), m_ledBuffer.begin() + sectionSize * 2);
             break;
         }
 

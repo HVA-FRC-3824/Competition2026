@@ -39,6 +39,19 @@ frc2::CommandPtr TowerAimPassZone(Tower *tower)
 }
 #pragma endregion
 
+#pragma region TowerAutomatic
+/// @brief Creates a command to aim the tower based on the current position of the robot
+/// @param tower A pointer to the tower subsystem.
+frc2::CommandPtr TowerAutomatic(Tower *tower)
+{
+    // Create and return a InstantCommand that aims the tower at the adjacent pass zone
+    return frc2::InstantCommand{
+        [=] () { tower->SetState(TowerState{TowerMode::Automatic, 0_deg, 0_rpm, 0_in}); }, // Execution function
+        {tower} // Requirements (subsystems required by this command)
+    }.ToPtr();
+}
+#pragma endregion
+
 #pragma region TowerManualControl
 /// @brief Creates a command to set the tower to manual control mode.
 /// @param tower A pointer to the tower subsystem.

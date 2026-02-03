@@ -27,6 +27,6 @@ frc2::CommandPtr ChassisDrive(Chassis* chassis, std::function<frc::ChassisSpeeds
 frc2::CommandPtr ChassisDrivePose(Chassis* chassis, std::string CommandName);
 frc2::CommandPtr ChassisDrivePose(Chassis* chassis, frc::Pose2d targetPose);
 
-frc2::CommandPtr FlipFieldCentricity(Chassis* chassis);
+frc2::CommandPtr ToggleFieldCentricity(Chassis* chassis);
 
 frc2::CommandPtr AlignToNearestTag(Chassis* chassis, frc::Transform2d targetOffset);

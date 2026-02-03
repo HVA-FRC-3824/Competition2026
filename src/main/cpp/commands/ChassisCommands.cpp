@@ -19,17 +19,8 @@ frc2::CommandPtr ChassisZeroHeading(Chassis *chassis)
 frc2::CommandPtr ChassisXMode(Chassis *chassis)
 {
     return frc2::InstantCommand{
-        [=] {
-            if (!chassis->GetXMode())
-            {
-                chassis->SetXMode(true);
-            } 
-            else
-            {
-                chassis->SetXMode(false);
-            }
-        }, 
-        {chassis}
+        [=] { chassis->ToggleXMode(); }, 
+        { chassis }
     }.ToPtr();
 }
 #pragma endregion
@@ -108,40 +99,16 @@ frc2::CommandPtr ChassisDrivePose(Chassis *chassis, frc::Pose2d targetPose)
 }
 #pragma endregion
 
-#pragma region FlipFieldCentricity(Chassis *chassis)
+#pragma region ToggleFieldCentricity(Chassis *chassis)
 /// @brief Creates a command to flip the field centricity of the chassis.
 /// @param chassis A pointer to the chassis subsystem.
 /// @return A CommandPtr that flips the field centricity.
-frc2::CommandPtr FlipFieldCentricity(Chassis *chassis)
+frc2::CommandPtr ToggleFieldCentricity(Chassis *chassis)
 {
     // Create and return a InstantCommand that flips the field centricity
     return frc2::InstantCommand{
-        [chassis] () { chassis->FlipFieldCentric(); }, // Execution function
+        [chassis] () { chassis->ToggleFieldCentric(); }, // Execution function
         { chassis } // Requirements (subsystems required by this command)
     }.ToPtr();
 }
 #pragma endregion
-
-// Effectively dead code, this is replaced by frc lib 
-// #pragma region AlignToNearestTag(Chassis *chassis, frc::Transform2d targetOffset)
-// // This command will align the robot to the nearest AprilTag
-// // It will use the AprilTag's pose to determine the target position and rotation
-// // The robot will drive towards the target position and rotate to face the target rotation
-// frc2::CommandPtr AlignToNearestTag(Chassis *chassis, frc::Transform2d targetOffset)
-// {
-//         // Rotate offset and offset it relative to the target position's orientation
-//         // This does actually work trust chat
-//         frc::Pose2d targetWithOffset{
-//             targetPosition.X() + targetOffset.Translation().X() * std::cos(targetPosition.Rotation().Radians().value())
-//                                - targetOffset.Translation().Y() * std::sin(targetPosition.Rotation().Radians().value()),
-
-//             targetPosition.Y() + targetOffset.Translation().X() * std::sin(targetPosition.Rotation().Radians().value())
-//                                + targetOffset.Translation().Y() * std::cos(targetPosition.Rotation().Radians().value()),
-
-//             targetPosition.Rotation().Degrees() + targetOffset.Rotation().Degrees()
-//         };
-
-//     return ChassisDrivePose(chassis, targetWithOffset);
-// }
-// #pragma endregion
-

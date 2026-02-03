@@ -67,7 +67,7 @@ void Robot::TeleopInit()
     {
         // Cancel the autonomous command and set the pointer to null
         m_autonomousCommand->Cancel();
-        m_autonomousCommand = nullptr;
+        m_autonomousCommand = nullptr
     }
 }
 #pragma endregion

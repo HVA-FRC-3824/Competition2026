@@ -15,4 +15,6 @@ frc2::CommandPtr TowerIdle(Tower *tower);
 
 frc2::CommandPtr TowerAimPassZone(Tower *tower);
 
+frc2::CommandPtr TowerAutomatic(Tower *tower);
+
 frc2::CommandPtr TowerManualControl(Tower *tower, TowerState *stateSupplier);

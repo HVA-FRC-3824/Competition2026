@@ -31,8 +31,9 @@ RobotContainer::RobotContainer()
     InitializeDriverControls();
     InitializeOperatorControls();
 
-    // Set the default command for the LEDs to reflect the robot status
-    m_leds.SetDefaultCommand(SetLedStatus(&m_leds, [this]() { return m_robotStatus;}));
+    m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetSpeeds()));
+    m_leds.SetDefaultCommand(SetLedStatus(&m_leds, &m_robotStatus));
+    m_spindexer.SetDefaultCommand(SpindexerSetState(&m_spindexer, SpindexerState::Stopped));
 }
 #pragma endregion
 
@@ -57,139 +58,95 @@ void RobotContainer::InitializePathPlanner()
 
     // Send the Auto-Chooser
     m_autoChooser = pathplanner::AutoBuilder::buildAutoChooser();
-
-    auto location = frc::DriverStation::GetLocation();
-
-    auto isCompetition = true;
-
-    // TODO: Is the following source needed?
-    // if (location)
-    // {
-    //     switch (location.value())
-    //     {
-    //         case 1:
-    //         {
-    //             m_autoChooser = pathplanner::AutoBuilder::buildAutoChooserFilter(
-    //                 [=](const pathplanner::PathPlannerAuto& autoCommand)
-    //                 {
-    //                     return isCompetition ? autoCommand.GetName().starts_with("Close") : true;
-    //                 }
-    //             );
-    //             break;
-    //         }
-    //         case 2:
-    //         {
-    //             m_autoChooser = pathplanner::AutoBuilder::buildAutoChooserFilter(
-    //                 [=](const pathplanner::PathPlannerAuto& autoCommand)
-    //                 {
-    //                     return isCompetition ? autoCommand.GetName().starts_with("Middle") : true;
-    //                 }
-    //             );
-    //             break;
-    //         }
-    //         case 3:
-    //         {
-    //             m_autoChooser = pathplanner::AutoBuilder::buildAutoChooserFilter(
-    //                 [=](const pathplanner::PathPlannerAuto& autoCommand)
-    //                 {
-    //                     return isCompetition ? autoCommand.GetName().starts_with("Far") : true;
-    //                 }
-    //             );
-    //             break;
-    //         }
-    //         default:
-    //             break;
-    //     }
-    // }
-
-    m_autoChooser = pathplanner::AutoBuilder::buildAutoChooser();
-
-    frc::SmartDashboard::PutData("Auto Chooser", &m_autoChooser);    
+    frc::SmartDashboard::PutData("Auto Chooser", &m_autoChooser);
 }
 #pragma endregion
 
 #pragma region InitializeDriverControls
 /// @brief Method to initialize the driver controls.
-///    A                  - Zero Heading
-///    B                  - Flip Field Centricity
-///    X                  - Chassis X Mode
-///    Left Stick Button  - Climb Deploy
-///    Right Stick Button - Climb Retract
-///    Right Bumper       - Spindexer Spindexing (while held)
 void RobotContainer::InitializeDriverControls()
 {
-    // Set the default command for the chassis to be driving with the joystick inputs
-    m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetSpeeds()));
+    /// *** Bindings *** ///
+    // A - Zeros the gyro heading
+    // B - Toggles between field centric and robot centric driving
+    // X - Locks the chassis in a defensive position
+    // Y - Retracts the climb mechanism, double tap to deploy
+    // Left Bumper  - Deploy the intake mechanism, double tap to retract
+    // Right Bumper - Deploy the intake mechanism, double tap to retract
 
-    // Array of run-once controls, organized like this for simplicity and readability
-    std::pair<Button, frc2::CommandPtr> runOnceControls[] =
+    // A tuple of a button, a press once command, and a double-tap command
+    std::tuple<Button, frc2::CommandPtr, std::optional<frc2::CommandPtr>> driverBindings[] =
     {
-        {constants::controller::A, ChassisZeroHeading(&m_chassis)},
-        {constants::controller::B, FlipFieldCentricity(&m_chassis)},
-        {constants::controller::X, ChassisXMode(&m_chassis)},
+        // Chassis heading controls
+        {constants::controller::A, ChassisZeroHeading(&m_chassis),  std::nullopt},
+        {constants::controller::B, ToggleFieldCentricity(&m_chassis), std::nullopt},
+        // Chassis module controls
+        {constants::controller::X, ChassisXMode(&m_chassis),        std::nullopt},
 
-        {constants::controller::LeftStickButton,  ClimbDeploy(&m_climb)},
-        {constants::controller::RightStickButton, ClimbRetract(&m_climb)}
+        // Climb controls
+        {constants::controller::Y,  ClimbRetract(&m_climb),  ClimbDeploy(&m_climb)},
+
+        // Intake controls
+        {constants::controller::LeftBumper, IntakeSetState(&m_intake, IntakeState::DeployedRollerOn), IntakeSetState(&m_intake, IntakeState::Stowed)},
+    
+        // Spindexer Controls
+        {constants::controller::RightBumper, SpindexerSetState(&m_spindexer, SpindexerState::Spindexing), std::nullopt}
     };
 
-    // Configure the run-once controls
-    for (auto& [button, command] : runOnceControls)
+    // Add the bindings to the driver controller
+    for (auto& [button, once, twice] : driverBindings)
     {
-        frc2::JoystickButton(&m_driveController, int(button)).OnTrue(std::move(command));
+        frc2::JoystickButton(&m_driveController, int(button)).Debounce(50_ms)
+            .OnTrue(std::move(once))
+        .MultiPress(2, 0.4_s)
+            .OnTrue(twice.has_value() ? std::move(twice.value()) : frc2::cmd::None());
     }
 
-    // This is effectively a shoot command, the flywheel should already be spun up
-    // and the rest of the tower should be configured by the operator
-    frc2::JoystickButton(&m_driveController, constants::controller::RightBumper)
-        .OnTrue( std::move(SpindexerSetState(&m_spindexer, SpindexerState::Spindexing)))
-        .OnFalse(std::move(SpindexerSetState(&m_spindexer, SpindexerState::Stopped)));
 }
 #pragma endregion
 
 #pragma region InitializeOperatorControls
-/// @brief Method to initialize the operator controls.
-///    A                  - Tower Aim Hub
-///    B                  - Tower Aim Pass Zone
-///    X                  - Tower Manual Control
-///    Left Bumper        - Intake Deployed with Roller On
-///    Right Bumper       - Intake Stowed
-///    Left Stick Button  - Decrease Hood Actuator Length by 2 inches
-///    Right Stick Button - Increase Hood Actuator Length by 2 inches
-///    POV Up             - Increase Flywheel Speed by 100 rpm
-///    POV Right          - Increase Turret Angle by 10 degrees
-///    POV Down           - Decrease Flywheel Speed by 100 rpm
-///    POV Left           - Decrease Turret Angle by 10 degrees
 void RobotContainer::InitializeOperatorControls()
 {
-    // Configure the X-box controller buttons to commands
-    std::pair<Button, frc2::CommandPtr> runOnceControlsOperator[] =
-    {
-        // Tower state
-        {constants::controller::A, TowerAimHub(&m_tower)},
-        {constants::controller::B, TowerAimPassZone(&m_tower)},
-        {constants::controller::B, TowerIdle(&m_tower)},
-        {constants::controller::X, TowerManualControl(&m_tower, &m_manualTowerState)},
+    /// *** Bindings *** ///
+    // A - Aim the tower to the hub
+    // B - Aim the tower to pass to our alliance zone
+    // Y - Idles the tower, double tap to make the tower automatic based on the current position of the bot
+    // X - Aims the tower based on manual parameters
+    // * Manual Controls * //
+    // Left Stick Button  - Lower the hood
+    // Right Stick Button - Raise the hood
+    // Up POV             - Increases flywheel speed
+    // Right POV          - Turns the turret right
+    // Down POV           - Decreases flywheel speed
+    // Left POV           - Turns the turret left
 
-        // Intake Controls
-        {constants::controller::LeftBumper,  IntakeSetState(&m_intake, IntakeState::DeployedRollerOn)},
-        {constants::controller::RightBumper, IntakeSetState(&m_intake, IntakeState::Stowed)},
-        
-        // Manual tower controls
-        {constants::controller::LeftStickButton,  frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches -= 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
-        {constants::controller::RightStickButton, frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches += 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
+    // A tuple of a button, a press once command and a double-tap command
+    std::tuple<Button, frc2::CommandPtr, std::optional<frc2::CommandPtr>> operatorBindings[] =
+    {   
+        // Tower state
+        {constants::controller::A, TowerAimHub(&m_tower),                             std::nullopt},
+        {constants::controller::B, TowerAimPassZone(&m_tower),                        std::nullopt},
+        {constants::controller::Y, TowerIdle(&m_tower),                               TowerAutomatic(&m_tower)},
+        {constants::controller::X, TowerManualControl(&m_tower, &m_manualTowerState), std::nullopt},
+
+        {constants::controller::LeftStickButton,  frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches -= 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState)), std::nullopt},
+        {constants::controller::RightStickButton, frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches += 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState)), std::nullopt},
     };
 
-    // Configure the the X-box controller buttons
-    for (auto& [button, command] : runOnceControlsOperator)
+    // Add the bindings to the operator controller
+    for (auto& [button, once, twice] : operatorBindings)
     {
-        frc2::JoystickButton(&m_operatorController, int(button)).OnTrue(std::move(command));
+        frc2::JoystickButton(&m_driveController, int(button)).Debounce(50_ms)
+            .OnTrue(std::move(once))
+        .MultiPress(2, 0.4_s)
+            .OnTrue(twice.has_value() ? std::move(twice.value()) : frc2::cmd::None());
     }
 
     // Operator POV controls
-    std::pair<int, frc2::CommandPtr> runOnceControlsPOV[] =
+    std::pair<int, frc2::CommandPtr> operatorPOVBindings[] =
     {
         // Manual tower controls
-        // TODO: remove magic numbers via testing
         {constants::controller::Pov_0,   frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed += 100_rpm;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
         {constants::controller::Pov_90,  frc2::InstantCommand{[&] { m_manualTowerState.turretAngle += 10_deg;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
 
@@ -198,10 +155,9 @@ void RobotContainer::InitializeOperatorControls()
 
     };
 
-    // Configure the the X-box controller POV buttons
-    for (auto& [button, command] : runOnceControlsPOV)
+    for (auto& [direction, command] : operatorPOVBindings)
     {
-        frc2::POVButton(&m_operatorController, button).OnTrue(std::move(command));
+        frc2::POVButton(&m_operatorController, direction).OnTrue(std::move(command));
     }
 }
 #pragma endregion
