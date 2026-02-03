@@ -23,7 +23,7 @@ class VisionPose
     public:
 
         VisionPose(std::string_view                  cameraName,
-                   frc::Transform3d                  robotToCamPose,
+                   frc::Transform3d                  robotToCameraPose,
                    frc::AprilTagFieldLayout          tagLayout,
                    Eigen::Matrix<double, 3, 1>       singleTagStdDevs,
                    Eigen::Matrix<double, 3, 1>       multiTagStdDevs,

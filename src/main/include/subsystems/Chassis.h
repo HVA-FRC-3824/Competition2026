@@ -109,7 +109,6 @@ class Chassis : public frc2::SubsystemBase
         void                                     SetModuleStates(wpi::array<frc::SwerveModuleState, 4> states);
 
         void                                     ResetGyroAngle();
-    
         void                                     ResetWheelAnglesToZero();
         void                                     ResetPose(frc::Pose2d pose);
 

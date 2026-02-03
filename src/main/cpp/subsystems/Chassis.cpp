@@ -35,6 +35,7 @@ Chassis::Chassis()
         this // Reference to this subsystem to set requirements
     );
 
+    // Load a path from the pathplanner path files to verify things are working
     auto path = pathplanner::PathPlannerPath::fromPathFile("Backup");
 
     // Create a path following command using AutoBuilder. This will also trigger event markers.
@@ -47,6 +48,7 @@ Chassis::Chassis()
 /// @param speeds The desired chassis speeds.
 void Chassis::Drive(const frc::ChassisSpeeds& speeds)
 {
+    // Call the relative drive method with the correct frame of reference
     DriveRelative(m_isFieldRelative ? frc::ChassisSpeeds::FromFieldRelativeSpeeds(speeds, GetHeading()) : speeds);
 }
 #pragma endregion
@@ -120,6 +122,25 @@ void Chassis::ResetWheelAnglesToZero()
     m_swerveModules[1].SetWheelAngleToForward(ChassisConstants::FrontRightForwardAngle);
     m_swerveModules[2].SetWheelAngleToForward(ChassisConstants::BackLeftForwardAngle);
     m_swerveModules[3].SetWheelAngleToForward(ChassisConstants::BackRightForwardAngle);
+}
+#pragma endregion
+
+#pragma region ResetPose
+/// @brief Resets Pose and odometry
+void Chassis::ResetPose(frc::Pose2d pose)
+{
+    for (auto& swerveModule : m_swerveModules)
+    {
+        swerveModule.ResetEncoders();
+    }
+
+    m_poseEstimator.Update(pose.Rotation(), GetModulePositions());
+
+    m_poseEstimator.ResetPose(pose);
+    static int counter = 0;
+    Log("Reset Pose ", pose.X().value());
+    Log("reset counter ", counter++);
+
 }
 #pragma endregion
 
@@ -249,24 +270,5 @@ void Chassis::Periodic()
     Log("Gyro ", m_gyro.GetRotation2d().Degrees().value());
 
     Log("Field relative ", m_isFieldRelative);
-}
-#pragma endregion
-
-#pragma region ResetPose
-/// @brief Resets Pose and odometry
-void Chassis::ResetPose(frc::Pose2d pose)
-{
-    for (auto& swerveModule : m_swerveModules)
-    {
-        swerveModule.ResetEncoders();
-    }
-
-    m_poseEstimator.Update(pose.Rotation(), GetModulePositions());
-
-    m_poseEstimator.ResetPose(pose);
-    static int counter = 0;
-    Log("Reset Pose ", pose.X().value());
-    Log("reset counter ", counter++);
-
 }
 #pragma endregion
