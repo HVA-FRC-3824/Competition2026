@@ -6,14 +6,15 @@
 /// @param angleMotorCanId The CAN ID for the swerve module angle motor.
 /// @param angleEncoderCanId The CAN ID for the swerve module angle encoder.
 SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEncoderCanId) :
-        m_driveMotor          {driveMotorCanId},
-        m_angleMotor          {angleMotorCanId},
-        m_angleAbsoluteEncoder{angleEncoderCanId}
+                           m_driveMotor          {driveMotorCanId},
+                           m_angleMotor          {angleMotorCanId},
+                           m_angleAbsoluteEncoder{angleEncoderCanId}
 {
     // Ensure the drive and angle motor encoders are reset to zero
     m_driveMotor.SetPosition(0.0_tr);
     m_angleMotor.SetPosition(0.0_tr);
 
+    // Support simulation configuration
     if (frc::RobotBase::IsSimulation())
     {
         auto& driveSim = m_driveMotor.GetSimState();
@@ -27,7 +28,7 @@ SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEn
         return;
     }
 
-    // Configure the motors
+    // Configure the swerve drive and angle motors
     TalonFXConfiguration(&m_driveMotor,    // Drive motor configuration
                           60_A,            // Maximum Amperage
                           true,            // Brake mode enabled
@@ -67,7 +68,6 @@ void SwerveModule::SetDesiredState(frc::SwerveModuleState &desiredState, std::st
     frc::SmartDashboard::PutNumber(description + "Angle", (double) desiredState.angle.Degrees().value());
 
     // Optimize the reference state to avoid spinning further than 90 degrees
-    // desiredState.Optimize(frc::Rotation2d(GetPosition().angle.Degrees()));
     desiredState.Optimize(GetPosition().angle);
 
     // Convert angle to motor posiition (1.0 turn = 360 degrees)
@@ -166,6 +166,7 @@ units::angle::degree_t SwerveModule::GetAbsoluteEncoderAngle()
 #pragma endregion
 
 #pragma SimPeriodic
+/// @brief Method to simulate the swerve module behavior.
 void SwerveModule::SimPeriodic()
 {
     auto& driveSim = m_driveMotor.GetSimState();

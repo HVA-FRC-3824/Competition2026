@@ -6,5 +6,6 @@
 /// @return Command that sets the LEDs to the desired state
 frc2::CommandPtr SetLedStatus(Leds* leds, LedMode *robotStatus)
 {
+    // Create and return a RunCommand that sets the LED mode
     return frc2::RunCommand{[=]() { leds->SetMode(*robotStatus); }, {leds}}.ToPtr();
 }

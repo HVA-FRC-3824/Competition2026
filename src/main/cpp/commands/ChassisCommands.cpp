@@ -1,6 +1,6 @@
 #include "commands/ChassisCommands.h"
 
-#pragma region ChassisZeroHeading(Chassis *chassis)
+#pragma region ChassisZeroHeading
 /// @brief Creates a command to zero the heading of the gyro.
 /// @param chassis A pointer to the chassis subsystem.
 /// @return A CommandPtr that resets the gyro yaw to zero.
@@ -9,7 +9,7 @@ frc2::CommandPtr ChassisZeroHeading(Chassis *chassis)
     // Create and return a InstantCommand that resets the gyro yaw
     return frc2::InstantCommand{
         [=] () {chassis->ResetGyroAngle();},
-        { chassis } // Requirements (subsystems required by this command)
+        { chassis }  // Requirements (subsystems required by this command)
     }.ToPtr();
 }
 #pragma endregion
@@ -18,6 +18,7 @@ frc2::CommandPtr ChassisZeroHeading(Chassis *chassis)
 /// @brief A command that toggles in between XMode and driving mode
 frc2::CommandPtr ChassisXMode(Chassis *chassis)
 {
+    // Create and return a InstantCommand that toggles XMode
     return frc2::InstantCommand{
         [=] { chassis->ToggleXMode(); }, 
         { chassis }
@@ -25,7 +26,7 @@ frc2::CommandPtr ChassisXMode(Chassis *chassis)
 }
 #pragma endregion
 
-#pragma region ChassisDrive(Chassis* chassis, std::function<frc::ChassisSpeeds()> chassisSpeedsSupplier)
+#pragma region ChassisDrive
  /// @brief Creates a command to drive the chassis using the provided speeds supplier.
 ///  @param chassis A pointer to the chassis subsystem.
 ///  @param chassisSpeedsSupplier A function that supplies the desired chassis speeds.
@@ -42,18 +43,19 @@ frc2::CommandPtr ChassisDrive(Chassis *chassis, std::function<frc::ChassisSpeeds
 }
 #pragma endregion
 
-#pragma region ChassisDrivePose(Chassis *chassis, frc::Pose2d targetPose)
+#pragma region ChassisDrivePose
 /// @brief Creates a command to drive the chassis to a specified pose.
 /// @param chassis A pointer to the chassis subsystem.
 /// @param targetPose The target pose to drive to. End goal state relative to the origin, blue alliance side.
 /// @return A CommandPtr that drives the chassis to the specified pose.
 frc2::CommandPtr ChassisDrivePose(Chassis *chassis, frc::Pose2d targetPose)
 {
+    // Use Pathplanner to generate the trajectory and command
     if (ChassisConstants::usingPathplanner)
     {
         return pathplanner::AutoBuilder::pathfindToPose(targetPose, ChassisConstants::constraints);
     }
-    else
+    else  // Fallback to WPILib trajectory generation
     {
         // // Set up config for trajectory
         // frc::TrajectoryConfig trajectoryConfig(m_speed, ChassisPoseConstants::MaxAcceleration);
@@ -99,7 +101,7 @@ frc2::CommandPtr ChassisDrivePose(Chassis *chassis, frc::Pose2d targetPose)
 }
 #pragma endregion
 
-#pragma region ToggleFieldCentricity(Chassis *chassis)
+#pragma region ToggleFieldCentricity
 /// @brief Creates a command to flip the field centricity of the chassis.
 /// @param chassis A pointer to the chassis subsystem.
 /// @return A CommandPtr that flips the field centricity.
