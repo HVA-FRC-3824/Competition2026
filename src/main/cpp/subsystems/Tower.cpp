@@ -34,6 +34,13 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
                           0.0,                                    // A (acceleration feedforward)
                           0_tps,                                  // Velocity limit
                           units::turns_per_second_squared_t{0});  // Acceleration limit
+    
+        // TODO: VERIFY THESE CONFIGS
+        // Set the second follower motor to be the *inverse* of the other flywheel motor
+        m_flywheelFollowerMotor.SetControl(
+            ctre::phoenix6::controls::Follower(m_flywheelMotor.GetDeviceID(), 
+                                               ctre::phoenix6::signals::MotorAlignmentValue::Opposed)
+        );
 
     // Initialize the pose with the current pose and timestamp
     m_hoodActuator.SetBounds(2.0_us, 1.8_us, 1.5_us, 1.2_us, 1.0_us);

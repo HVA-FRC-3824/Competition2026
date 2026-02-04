@@ -41,7 +41,7 @@ class SwerveModule
 {
     public:
     
-        explicit                   SwerveModule(CANid_t driveMotorCanId, CANid_t angleMotorCanId, CANid_t angleEncoderCanId);
+        explicit                   SwerveModule(CanId_t driveMotorCanId, CanId_t angleMotorCanId, CanId_t angleEncoderCanId);
 
         void                       SetDesiredState(frc::SwerveModuleState& state, std::string description);  // Sets the desired state for the module
         frc::SwerveModuleState     GetState();                                                               // Returns the current state of the module

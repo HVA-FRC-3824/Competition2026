@@ -125,7 +125,9 @@ class Tower : public frc2::SubsystemBase
 
         TowerState                          m_state{TowerMode::ManualControl, 0_deg, 0_rpm, 0_in}; 
 
-        ctre::phoenix6::hardware::TalonFX   m_turretMotor  {ConstantsCanIds::TurretMotorId};
-        ctre::phoenix6::hardware::TalonFX   m_flywheelMotor{ConstantsCanIds::FlywheelMotorId};
+        ctre::phoenix6::hardware::TalonFX   m_turretMotor          {ConstantsCanIds::TurretMotorId};
+        ctre::phoenix6::hardware::TalonFX   m_flywheelMotor        {ConstantsCanIds::FlywheelMotorId};
+        ctre::phoenix6::hardware::TalonFX   m_flywheelFollowerMotor{ConstantsCanIds::FlywheelMotorId};
+        
         frc::Servo                          m_hoodActuator {ConstantsPwmPorts::ActuatorPort};
 };

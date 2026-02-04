@@ -8,6 +8,8 @@
 #include <frc/kinematics/ChassisSpeeds.h>
 #include <frc/kinematics/SwerveModuleState.h>
 #include <frc/kinematics/SwerveModulePosition.h>
+
+#include <frc/geometry/Pose3d.h>
 #pragma endregion
 
 inline void Log(std::string_view name, bool value)
@@ -43,6 +45,11 @@ inline void Log(std::string_view name, wpi::array<frc::SwerveModulePosition, 4> 
 inline void Log(std::string_view name, frc::Pose2d value)
 {
     nt::NetworkTableInstance::GetDefault().GetStructTopic<frc::Pose2d>(name).Publish().Set(value);
+}
+
+inline void Log(std::string_view name, frc::Pose3d value)
+{
+    nt::NetworkTableInstance::GetDefault().GetStructTopic<frc::Pose3d>(name).Publish().Set(value);
 }
 
 inline void Log(std::string_view name, frc::ChassisSpeeds value)

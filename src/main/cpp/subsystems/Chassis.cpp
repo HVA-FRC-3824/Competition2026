@@ -266,7 +266,8 @@ void Chassis::Periodic()
     Log("Desired Chassis Speeds ", m_desiredSpeeds);
     Log("Desired Swerve Module States ", m_desiredStates);
 
-    Log("Actual Robot Pose ", GetPose());
+    Log("Actual Robot Pose ", frc::Pose3d{frc::Translation3d{GetPose().Translation()}, 
+                                          frc::Rotation3d   {GetHeading().Degrees(), 90_deg, 0_deg}});
     Log("Gyro ", m_gyro.GetRotation2d().Degrees().value());
 
     Log("Field relative ", m_isFieldRelative);

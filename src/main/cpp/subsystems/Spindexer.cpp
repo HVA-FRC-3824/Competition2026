@@ -31,6 +31,13 @@ Spindexer::Spindexer()
                           0.0,                                    // A
                           0_tps,                                  // Velocity Limit
                           units::turns_per_second_squared_t{0});  // Acceleration Limit
+
+    // TODO: VERIFY THESE CONFIGS
+    // Set the second motor to follow the other motor
+    m_kickerFollowerMotor.SetControl(
+        ctre::phoenix6::controls::Follower(m_kickerMotor.GetDeviceID(), 
+                                            ctre::phoenix6::signals::MotorAlignmentValue::Aligned)
+    );
 }
 #pragma endregion
 
