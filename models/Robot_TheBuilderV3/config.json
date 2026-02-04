@@ -3,8 +3,8 @@
   "isFTC": false,
   "rotations": [
     {
-      "axis": "z",
-      "degrees": 0
+      "axis": "x",
+      "degrees": 90
     }
   ],
   "position": [
