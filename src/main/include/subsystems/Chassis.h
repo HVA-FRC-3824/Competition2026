@@ -177,7 +177,6 @@ class Chassis : public frc2::SubsystemBase
         studica::AHRS                m_gyro{studica::AHRS::NavXComType::kMXP_SPI};  // The gyro sensor
    
         units::degree_t              m_simGyro{0};
-        units::degrees_per_second_t  m_simGyroSpeed{0};
 
         VisionPose m_vision
         {

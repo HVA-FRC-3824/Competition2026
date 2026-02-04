@@ -233,8 +233,7 @@ frc::ChassisSpeeds Chassis::GetSpeeds()
 void Chassis::Periodic()
 {
     // Update gyro sim, advance by the cycle time (20 milliseconds)
-    m_simGyroSpeed = m_desiredSpeeds.omega;
-    m_simGyro += m_simGyroSpeed * 0.02_s;
+    m_simGyro += m_desiredSpeeds.omega * 0.02_s;
 
     // Update the pose estimator
     m_poseEstimator.Update(GetHeading(), GetModulePositions());
@@ -250,26 +249,14 @@ void Chassis::Periodic()
         m_vision.Periodic();
     }
 
-    frc::SwerveModulePosition position =  m_swerveModules[0].GetPosition(); // Hack to get around compiler optimization removing unused code
-    frc::SwerveModuleState    state     = m_swerveModules[0].GetState();    // Hack to get around compiler optimization removing unused code
-    
-    frc::SmartDashboard::PutNumber("Chassis FL Position", position.angle.Degrees().value());
-    frc::SmartDashboard::PutNumber("Chassis FL Distance", position.distance.value());
-    
-    frc::SmartDashboard::PutNumber("Chassis FL State",    state.angle.Degrees().value());
-    frc::SmartDashboard::PutNumber("Chassis FL Speed",    state.speed.value());
-
-   /// *** Logging *** ///
+    /// *** Logging *** ///
     Log("Actual Swerve Module States ",  GetModuleStates());
-    Log("Actual Chassis Speeds ",  m_kinematics.ToChassisSpeeds(GetModuleStates()));
+    Log("Actual Chassis Speeds ",        m_kinematics.ToChassisSpeeds(GetModuleStates()));
 
-    Log("Desired Chassis Speeds ", m_desiredSpeeds);
+    Log("Desired Chassis Speeds ",       m_desiredSpeeds);
     Log("Desired Swerve Module States ", m_desiredStates);
 
-    Log("Actual Robot Pose ", frc::Pose3d{frc::Translation3d{GetPose().Translation()}, 
-                                          frc::Rotation3d   {GetHeading().Degrees(), 90_deg, 0_deg}});
-    Log("Gyro ", m_gyro.GetRotation2d().Degrees().value());
-
-    Log("Field relative ", m_isFieldRelative);
+    Log("Actual Robot Pose ", GetPose());
+    Log("Field relative ",    m_isFieldRelative);
 }
 #pragma endregion
