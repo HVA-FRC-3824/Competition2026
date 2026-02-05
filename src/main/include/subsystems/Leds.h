@@ -22,8 +22,8 @@ namespace LedConstants
     constexpr auto Green       = 255;
     constexpr auto Blue        = 255;
 
-    constexpr auto StrobeDelay =  20_ms;  // The delay between strobe flashes
-    constexpr auto HvaDelay    =  20_Hz;  // The delay between HVA color changes
+    constexpr auto StrobeDelay =  250_ms;  // The delay between strobe flashes
+    constexpr auto HvaDelay    =    1_Hz;  // The cycle speed for HVA colors
 }
 #pragma endregion
 
