@@ -113,10 +113,10 @@ class Tower : public frc2::SubsystemBase
         bool                                m_usingTurretCamera = true;
 
         frc::Mechanism2d                    m_logMechanism{20, 20, frc::Color{0.0, 0.0, 0.0}};  // Width height
-        frc::MechanismRoot2d               *m_logMechanismRoot = m_logMechanism.GetRoot("Tower", 10, 10);
+        frc::MechanismRoot2d               *m_logMechanismRoot = m_logMechanism.GetRoot("Tower", 0, 0);
         
-        frc::MechanismLigament2d           *m_logHoodFlywheel = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Hood&Flywheel", 3, 0_deg);
-        frc::MechanismLigament2d           *m_logTurret       = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Turret",        3, 90_deg);
+        frc::MechanismLigament2d           *m_logHoodFlywheel = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Hood&Flywheel", 6, 0_deg);
+        frc::MechanismLigament2d           *m_logTurret       = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Turret",        6, 90_deg);
 
         photon::PhotonCamera                m_turretCamera{"CameraTurret"};
 

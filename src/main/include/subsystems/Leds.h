@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <optional>
 
 #include <frc/RobotController.h>
 #include <frc2/command/SubsystemBase.h>
@@ -24,6 +25,7 @@ namespace LedConstants
 
     constexpr auto StrobeDelay =  250_ms;  // The delay between strobe flashes
     constexpr auto HvaDelay    =    1_Hz;  // The cycle speed for HVA colors
+    constexpr auto ShootingSpeed = 2_Hz;   // The cycle speed for shooting
 }
 #pragma endregion
 
@@ -35,7 +37,8 @@ enum LedMode
     SolidRed,
     HvaColors,
     Strobe,
-    ShootingAnimation,
+    ShootingOnTarget,
+    ShootingOffTarget,
     Rainbow
 };
 
@@ -53,14 +56,14 @@ class Leds : public frc2::SubsystemBase
 
     private:
 
-        void SetLeds(frc::LEDPattern pattern);
+        void SetLeds(frc::LEDPattern pattern, std::optional<frc::LEDPattern> inside = std::nullopt);
 
         void SolidColor(int red, int green, int blue);
         void HvaColors();
         void Strobe();
         void ShootingAnimation();
 
-        LedMode             m_ledMode;            // The LED mode
+        LedMode             m_ledMode = LedMode::HvaColors;            // The LED mode
 
         int                 m_firstPixelHue = 0;  // Store the hue of the first pixel for rainbow mode
         int                 m_cycleCounter  = 0;  // Counter for dynamic LED modes
@@ -71,8 +74,17 @@ class Leds : public frc2::SubsystemBase
 
         // Create an LED pattern that displays a red-to-blue gradient, then scroll at one quarter of the LED strip's length per second.
         // For a half-meter length of a 120 LED-per-meter strip, this is equivalent to scrolling at 12.5 centimeters per second.
-        frc::LEDPattern     m_shooting = frc::LEDPattern::Gradient(frc::LEDPattern::kDiscontinuous, std::array<frc::Color, 2>{frc::Color::kRed, frc::Color::kBlack}).
-                                                          ScrollAtAbsoluteSpeed(2_in / 1_s, units::meter_t{1 / 120.0});
+        frc::LEDPattern     m_shooting = frc::LEDPattern::Gradient(frc::LEDPattern::kDiscontinuous, std::array<frc::Color, 2>{frc::Color::kBlack, frc::Color::kRed}).
+                                                          ScrollAtRelativeSpeed(LedConstants::ShootingSpeed);
+
+        frc::LEDPattern     m_shootingOnTarget = frc::LEDPattern::Solid(frc::Color::kGreen);
+  
+        frc::LEDPattern     m_shootingOffTarget = frc::LEDPattern::Solid(frc::Color::kYellow);
+
+        frc::LEDPattern     m_hvaColors = frc::LEDPattern::Steps({std::pair{0.0, frc::Color::kWhite}, std::pair{0.5, frc::Color::kBlue}}).
+                                                          ScrollAtRelativeSpeed(LedConstants::HvaDelay);  
+                                                          
+        frc::LEDPattern     m_strobe = frc::LEDPattern::Solid(frc::Color::kWhite).Blink(LedConstants::StrobeDelay);  
 
         frc::AddressableLED m_led{ConstantsPwmPorts::LedPort};
 

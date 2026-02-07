@@ -79,5 +79,5 @@ class RobotContainer
         // Instantiate subsystem states
         TowerState                           m_manualTowerState{TowerMode::ManualControl, 0_deg, 10_rpm, TowerConstants::MinLength};
 
-        LedMode                              m_ledMode{LedMode::HvaColors};
+        LedMode                              m_ledMode{LedMode::ShootingOnTarget};
 };

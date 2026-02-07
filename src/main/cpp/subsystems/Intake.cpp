@@ -9,27 +9,27 @@ Intake::Intake()
                          40.0_A,                                 // Maximum Amperage
                          true,                                   // Brake mode
                          false,                                  // Continuous wrap
-                         0.1,                                    // P gain
+                         0.4,                                    // P gain
                          0.0,                                    // I gain
                          0.0,                                    // D gain
                          0.0,                                    // S
                          0.0,                                    // V
                          0.0,                                    // A
                          0_tps,                                  // Velocity limit
-                         units::turns_per_second_squared_t{0});  // Acceleration limit
+                         0_tr_per_s_sq);  // Acceleration limit
 
     TalonFXConfiguration(&m_intakePositionMotor,
                          20.0_A,                                 // Maximum Amperage
                          true,                                   // Brake mode
                          false,                                  // Continuous wrap
-                         0.1,                                    // P gain
-                         0.0,                                    // I gain
+                         10.0,                                   // P gain
+                         1.0,                                    // I gain
                          0.0,                                    // D gain
                          0.0,                                    // S
                          0.0,                                    // V
                          0.0,                                    // A
-                         0_tps,                                  // Velocity limit
-                         units::turns_per_second_squared_t{0});  // Acceleration limit
+                         20_tps,                                  // Velocity limit
+                         40_tr_per_s_sq);  // Acceleration limit
 
     // Initially zero all motors
     m_fuelIntakeMotor.SetPosition(0.0_tr);

@@ -9,14 +9,14 @@ Climb::Climb()
                          40.0_A,                                 // Maximum Amperage
                          true,                                   // Brake mode
                          false,                                  // Continuous wrap
-                         0.1,                                    // P gain
+                         10,                                     // P gain
                          0.0,                                    // I gain
                          0.0,                                    // D gain
                          0.0,                                    // S
                          0.0,                                    // V
                          0.0,                                    // A
                          0_tps,                                  // Velocity limit
-                         units::turns_per_second_squared_t{0});  // Acceleration limit
+                         0_tr_per_s_sq);  // Acceleration limit
 }
 #pragma endregion
 
@@ -65,6 +65,6 @@ void Climb::SetState(ClimbState state)
 void Climb::SetMotor(units::turn_t rotations)
 {
     // Set the climb motor to the desired position
-    m_climbMotor.SetControl(ctre::phoenix6::controls::PositionDutyCycle(rotations));
+    m_climbMotor.SetControl(ctre::phoenix6::controls::PositionVoltage(rotations));
 }
 #pragma endregion
