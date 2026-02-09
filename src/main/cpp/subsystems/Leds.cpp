@@ -31,21 +31,24 @@ void Leds::SetMode(LedMode ledMode)
 #pragma endregion
 
 #pragma region SetLeds
-void Leds::SetLeds(frc::LEDPattern pattern)
+void Leds::SetLeds(frc::LEDPattern outside, std::optional<frc::LEDPattern> inside)
 {
-    std::array<frc::AddressableLED::LEDData, 15> sectionBuffer;
-    pattern.ApplyTo(sectionBuffer);
+    std::array<frc::AddressableLED::LEDData, 15> outsideBuffer;
+    outside.ApplyTo(outsideBuffer);
+    
+    std::array<frc::AddressableLED::LEDData, 15> insideBuffer;
+    inside.value_or(outside).ApplyTo(insideBuffer);
     
     // Normal sections
-    std::copy(sectionBuffer.begin(), sectionBuffer.end(), 
+    std::copy(outsideBuffer.begin(), outsideBuffer.end(), 
               m_ledBuffer.begin());      // left up
-    std::copy(sectionBuffer.begin(), sectionBuffer.end(), 
+    std::copy(insideBuffer.begin(), insideBuffer.end(), 
               m_ledBuffer.begin() + 15); // middle first
     
     // Mirrored sections
-    std::reverse_copy(sectionBuffer.begin(), sectionBuffer.end(), 
+    std::reverse_copy(insideBuffer.begin(), insideBuffer.end(), 
                       m_ledBuffer.begin() + 30); // middle second (mirrored)
-    std::reverse_copy(sectionBuffer.begin(), sectionBuffer.end(), 
+    std::reverse_copy(outsideBuffer.begin(), outsideBuffer.end(), 
                       m_ledBuffer.begin() + 45); // right down (mirrored)
     
     m_led.SetData(m_ledBuffer);
@@ -76,19 +79,25 @@ void Leds::Periodic()
 
         case LedMode::HvaColors:
         {
-            SetLeds(frc::LEDPattern::Steps({std::pair{0.0, frc::Color::kWhite}, std::pair{0.5, frc::Color::kBlue}}).ScrollAtRelativeSpeed(LedConstants::HvaDelay));
+            SetLeds(m_hvaColors);
             break;
         }
 
         case LedMode::Strobe:
         {
-            SetLeds(frc::LEDPattern::Solid(frc::Color::kWhite).Blink(LedConstants::StrobeDelay));
+            SetLeds(m_strobe);
             break;
         }
         
-        case LedMode::ShootingAnimation:
+        case LedMode::ShootingOnTarget:
         {
-            SetLeds(m_shooting);
+            SetLeds(m_shooting, m_shootingOnTarget);
+            break;
+        }
+
+        case LedMode::ShootingOffTarget:
+        {
+            SetLeds(m_shooting, m_shootingOffTarget);
             break;
         }
 

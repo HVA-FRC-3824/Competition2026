@@ -10,30 +10,30 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
 {
     // Configure the tower motors
     TalonFXConfiguration(&m_turretMotor,
-                          40_A,                                   // Current limit
-                          true,                                   // Brake mode
-                          false,                                  // Continuous wrap
-                          0.0,                                    // P gain
-                          0.0,                                    // I gain
-                          0.0,                                    // D gain
-                          0.0,                                    // S (static friction feedforward)
-                          0.0,                                    // V (velocity feedforward)
-                          0.0,                                    // A (acceleration feedforward)
-                          0_tps,                                  // Velocity limit
-                          units::turns_per_second_squared_t{0});  // Acceleration limit
+                          40_A,            // Current limit
+                          true,            // Brake mode
+                          false,           // Continuous wrap
+                          0.0,             // P gain
+                          0.0,             // I gain
+                          0.0,             // D gain
+                          0.0,             // S (static friction feedforward)
+                          0.0,             // V (velocity feedforward)
+                          0.0,             // A (acceleration feedforward)
+                          0_tps,           // Velocity limit
+                          0_tr_per_s_sq);  // Acceleration limit
 
     TalonFXConfiguration(&m_flywheelMotor,
-                          40_A,                                   // Current limit
-                          true,                                   // Brake mode
-                          false,                                  // Continuous wrap
-                          0.0,                                    // P gain
-                          0.0,                                    // I gain
-                          0.0,                                    // D gain
-                          0.0,                                    // S (static friction feedforward)
-                          0.0,                                    // V (velocity feedforward)
-                          0.0,                                    // A (acceleration feedforward)
-                          0_tps,                                  // Velocity limit
-                          units::turns_per_second_squared_t{0});  // Acceleration limit
+                          40_A,            // Current limit
+                          true,            // Brake mode
+                          false,           // Continuous wrap
+                          0.0,             // P gain
+                          0.0,             // I gain
+                          0.0,             // D gain
+                          0.0,             // S (static friction feedforward)
+                          0.0,             // V (velocity feedforward)
+                          0.0,             // A (acceleration feedforward)
+                          0_tps,           // Velocity limit
+                          0_tr_per_s_sq);  // Acceleration limit
     
         // TODO: VERIFY THESE CONFIGS
         // Set the second follower motor to be the *inverse* of the other flywheel motor
@@ -103,7 +103,7 @@ bool Tower::IsSpunUp()
 void Tower::SetFlywheel(units::turns_per_second_t input)
 {
     // Set the flywheel motor speed
-    m_flywheelMotor.SetControl(ctre::phoenix6::controls::VelocityDutyCycle{input});
+    m_flywheelMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{input});
 }
 #pragma endregion
 
@@ -142,7 +142,7 @@ void Tower::SetTurretAngle(units::degree_t angle)
     units::angle::turn_t rotations{angle.value() / 360.0};
 
     // Set the motor to the desired position
-    m_turretMotor.SetControl(ctre::phoenix6::controls::PositionDutyCycle{rotations});
+    m_turretMotor.SetControl(ctre::phoenix6::controls::PositionVoltage{rotations});
 }
 #pragma endregion
 

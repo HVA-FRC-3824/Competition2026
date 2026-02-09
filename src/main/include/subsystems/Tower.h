@@ -53,7 +53,7 @@ struct TowerState
 #pragma region TowerConstants
 namespace TowerConstants
 {
-    constexpr auto MinAngle           = -180_deg;  // TODO: Make these real. 
+    constexpr auto MinAngle           = -180_deg;   // TODO: Make these real. 
     constexpr auto MaxAngle           =  180_deg;
  
     constexpr auto MaxLength          = 14.336_in;  // TODO: test these lengths, they're most likely accurate
@@ -62,7 +62,7 @@ namespace TowerConstants
     constexpr auto ActuatorLowerBound = -0.95;      // Comes from 102 too
     constexpr auto ActuatorUpperBound =  0.95;
 
-    constexpr auto FlywheelTolerance  = 0.10; // Percent of the target
+    constexpr auto FlywheelTolerance  = 0.10;       // Percent of the target
 
     constexpr auto HoodA              = -0.0007;
     constexpr auto HoodB              =  0.045;
@@ -113,10 +113,10 @@ class Tower : public frc2::SubsystemBase
         bool                                m_usingTurretCamera = true;
 
         frc::Mechanism2d                    m_logMechanism{20, 20, frc::Color{0.0, 0.0, 0.0}};  // Width height
-        frc::MechanismRoot2d               *m_logMechanismRoot = m_logMechanism.GetRoot("Tower", 10, 10);
+        frc::MechanismRoot2d               *m_logMechanismRoot = m_logMechanism.GetRoot("Tower", 0, 0);
         
-        frc::MechanismLigament2d           *m_logHoodFlywheel = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Hood&Flywheel", 3, 0_deg);
-        frc::MechanismLigament2d           *m_logTurret       = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Turret",        3, 90_deg);
+        frc::MechanismLigament2d           *m_logHoodFlywheel  = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Hood&Flywheel", 6, 0_deg);
+        frc::MechanismLigament2d           *m_logTurret        = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Turret",        6, 90_deg);
 
         photon::PhotonCamera                m_turretCamera{"CameraTurret"};
 
@@ -129,5 +129,5 @@ class Tower : public frc2::SubsystemBase
         ctre::phoenix6::hardware::TalonFX   m_flywheelMotor        {ConstantsCanIds::FlywheelMotorId};
         ctre::phoenix6::hardware::TalonFX   m_flywheelFollowerMotor{ConstantsCanIds::FlywheelMotorId};
         
-        frc::Servo                          m_hoodActuator {ConstantsPwmPorts::ActuatorPort};
+        frc::Servo                          m_hoodActuator{ConstantsPwmPorts::ActuatorPort};
 };
