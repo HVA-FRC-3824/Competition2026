@@ -6,9 +6,9 @@
 /// @param angleMotorCanId The CAN ID for the swerve module angle motor.
 /// @param angleEncoderCanId The CAN ID for the swerve module angle encoder.
 SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEncoderCanId) :
-                           m_driveMotor          {driveMotorCanId},
-                           m_angleMotor          {angleMotorCanId},
-                           m_angleAbsoluteEncoder{angleEncoderCanId}
+                           m_driveMotor          {driveMotorCanId,   ConstantsCanIds::CanBusSwerve},
+                           m_angleMotor          {angleMotorCanId,   ConstantsCanIds::CanBusSwerve},
+                           m_angleAbsoluteEncoder{angleEncoderCanId, ConstantsCanIds::CanBusSwerve}
 {
     // Ensure the drive and angle motor encoders are reset to zero
     m_driveMotor.SetPosition(0.0_tr);

@@ -33,7 +33,7 @@ Intake::Intake()
 
     // Initially zero all motors
     m_fuelIntakeMotor.SetPosition(0.0_tr);
-    m_intakePositionMotor.SetPosition(0.0_tr);
+    m_intakePositionMotor.SetPosition(IntakeConstants::IntakeStartingAngle); // This is about the initial offset of the intake at the start
 }
 #pragma endregion
 

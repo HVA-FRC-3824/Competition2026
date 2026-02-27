@@ -1,12 +1,15 @@
 #pragma once
 
+#include <ctre/phoenix6/CANBus.hpp>
+
 typedef int CanId_t;
 
 #pragma region ConstantsCanIds
 namespace ConstantsCanIds
 {
     // CAN IDs
-    const     auto    CanBus                  = "rio";
+    const auto    CanBusSwerve = ctre::phoenix6::CANBus::RoboRIO();
+    const auto    CanBus       = ctre::phoenix6::CANBus{"NonSwerve"};
 
     // Swerve motor and encoders CAN IDs
     constexpr CanId_t FrontLeftDriveId        = 01;

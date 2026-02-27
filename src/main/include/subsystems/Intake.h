@@ -29,6 +29,7 @@ namespace IntakeConstants
     // TODO: test these
     constexpr auto IntakeStowedAngle   = 0.0_tr;
     constexpr auto IntakeDeployedAngle = 0.25_tr;
+    constexpr auto IntakeStartingAngle = -21_deg; // This is about the initial offset of the intake at the start
 
     constexpr auto IntakeDriveSpeed    = 10_tps;
 }
@@ -47,10 +48,10 @@ class Intake : public frc2::SubsystemBase
     private:
 
         // Motor that will extend and retract the intake (Magic motion position controlled)
-        ctre::phoenix6::hardware::TalonFX m_intakePositionMotor{ConstantsCanIds::IntakePositionMotorId};
+        ctre::phoenix6::hardware::TalonFX m_intakePositionMotor{ConstantsCanIds::IntakePositionMotorId, ConstantsCanIds::CanBus};
 
         // Motor that will drive the intake to take in fuel (Velocity PID controlled)
-        ctre::phoenix6::hardware::TalonFX m_fuelIntakeMotor{ConstantsCanIds::FuelIntakeMotorId};
+        ctre::phoenix6::hardware::TalonFX m_fuelIntakeMotor{ConstantsCanIds::FuelIntakeMotorId, ConstantsCanIds::CanBus};
         
         // Current intake drive state, starts as Stowed
         IntakeState m_intakeState = IntakeState::Stowed;

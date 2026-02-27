@@ -45,7 +45,7 @@ class Spindexer : public frc2::SubsystemBase
         
         SpindexerState                    m_state{SpindexerState::Stopped};
 
-        ctre::phoenix6::hardware::TalonFX m_spinnerMotor{ConstantsCanIds::SpinnerMotorId};
-        ctre::phoenix6::hardware::TalonFX m_kickerFollowerMotor{ConstantsCanIds::KickerFollowerMotorId};
-        ctre::phoenix6::hardware::TalonFX m_kickerMotor        {ConstantsCanIds::KickerMotorId};
+        ctre::phoenix6::hardware::TalonFX m_spinnerMotor       {ConstantsCanIds::SpinnerMotorId, ConstantsCanIds::CanBus};
+        ctre::phoenix6::hardware::TalonFX m_kickerFollowerMotor{ConstantsCanIds::KickerFollowerMotorId, ConstantsCanIds::CanBus};
+        ctre::phoenix6::hardware::TalonFX m_kickerMotor        {ConstantsCanIds::KickerMotorId, ConstantsCanIds::CanBus};
 };
