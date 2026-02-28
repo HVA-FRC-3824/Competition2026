@@ -40,10 +40,10 @@ namespace ChassisConstants
 {
     // NOTE: The absolute encoder range is 0.5 to -0.5
     // These are the abosulte encoder values that correspond to the wheels facing "forward"
-    constexpr units::degree_t FrontLeftForwardAngle { 0.485107 * 360.0 };  // Range of absolute encoder is -0.5 to 0.5
-    constexpr units::degree_t FrontRightForwardAngle{ 0.000000 * 360.0 };
-    constexpr units::degree_t BackLeftForwardAngle  { 0.000000 * 360.0 };
-    constexpr units::degree_t BackRightForwardAngle { 0.000000 * 360.0 };
+    constexpr units::degree_t FrontLeftForwardAngle { -0.023438 * 360.0 };  // Range of absolute encoder is -0.5 to 0.5
+    constexpr units::degree_t FrontRightForwardAngle{ -0.362793 * 360.0 };
+    constexpr units::degree_t BackLeftForwardAngle  { -0.361328 * 360.0 };
+    constexpr units::degree_t BackRightForwardAngle { -0.276855 * 360.0 };
 
     // These make sure to limit how fast the robot can go
     constexpr units::meters_per_second_t                    MaximumSpeed{4};
@@ -139,18 +139,26 @@ class Chassis : public frc2::SubsystemBase
         
         std::array<SwerveModule, 4> m_swerveModules
         {
-            SwerveModule{ConstantsCanIds::FrontLeftDriveId,  ConstantsCanIds::FrontLeftTurnId,  ConstantsCanIds::FrontLeftEncoderId},
-            SwerveModule{ConstantsCanIds::FrontRightDriveId, ConstantsCanIds::FrontRightTurnId, ConstantsCanIds::FrontRightEncoderId},
-            SwerveModule{ConstantsCanIds::BackLeftDriveId,   ConstantsCanIds::BackLeftTurnId,   ConstantsCanIds::BackLeftEncoderId },
-            SwerveModule{ConstantsCanIds::BackRightDriveId,  ConstantsCanIds::BackRightTurnId,  ConstantsCanIds::BackRightEncoderId} 
+            SwerveModule{ConstantsCanIds::FrontLeftDriveId,  ConstantsCanIds::FrontLeftTurnId,  ConstantsCanIds::FrontLeftEncoderId, false},
+            SwerveModule{ConstantsCanIds::FrontRightDriveId, ConstantsCanIds::FrontRightTurnId, ConstantsCanIds::FrontRightEncoderId, false},
+            SwerveModule{ConstantsCanIds::BackLeftDriveId,   ConstantsCanIds::BackLeftTurnId,   ConstantsCanIds::BackLeftEncoderId, false},
+            SwerveModule{ConstantsCanIds::BackRightDriveId,  ConstantsCanIds::BackRightTurnId,  ConstantsCanIds::BackRightEncoderId, false} 
         };
-
+        /*
         frc::SwerveDriveKinematics<4> m_kinematics
         {
             frc::Translation2d{ ChassisConstants::WheelBase / 2,  ChassisConstants::TrackWidth / 2}, // Front Left
             frc::Translation2d{ ChassisConstants::WheelBase / 2, -ChassisConstants::TrackWidth / 2}, // Front Right
             frc::Translation2d{-ChassisConstants::WheelBase / 2,  ChassisConstants::TrackWidth / 2}, // Back Left
             frc::Translation2d{-ChassisConstants::WheelBase / 2, -ChassisConstants::TrackWidth / 2}  // Back Right
+        };
+        */
+       frc::SwerveDriveKinematics<4> m_kinematics
+        {
+            frc::Translation2d{ ChassisConstants::WheelBase / 2, -ChassisConstants::TrackWidth / 2}, // Front Left
+            frc::Translation2d{ ChassisConstants::WheelBase / 2,  ChassisConstants::TrackWidth / 2}, // Front Right
+            frc::Translation2d{-ChassisConstants::WheelBase / 2, -ChassisConstants::TrackWidth / 2}, // Back Left
+            frc::Translation2d{-ChassisConstants::WheelBase / 2,  ChassisConstants::TrackWidth / 2}  // Back Right
         };
 
         frc::SwerveDrivePoseEstimator<4> m_poseEstimator
@@ -170,7 +178,7 @@ class Chassis : public frc2::SubsystemBase
 
         frc::ChassisSpeeds           m_desiredSpeeds{0_mps, 0_mps, 0_rad_per_s};
 
-        bool                         m_isFieldRelative = true;
+        bool                         m_isFieldRelative = false;
 
         bool                         m_isXMode = false;
     

@@ -42,7 +42,7 @@ class Climb : public frc2::SubsystemBase
 
     private:
 
-        ctre::phoenix6::hardware::TalonFX m_climbMotor{ConstantsCanIds::ClimbMotorId, ConstantsCanIds::CanBus};
+        ctre::phoenix6::hardware::TalonFX m_climbMotor{ConstantsCanIds::ClimbMotorId};
 
         ClimbState                        m_climbState;        
 };

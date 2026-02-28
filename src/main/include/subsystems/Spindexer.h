@@ -25,12 +25,8 @@ enum SpindexerState
 #pragma region SpindexerConstants
 namespace SpindexerConstants
 {
-    // TODO: test and tune these values
-    constexpr auto SpinnerWheelTurns = 10_tps;
-    constexpr auto KickerWheelTurns  = 10_tps;
-
-    constexpr auto SpinnerGearReduction = 20.0;
-    constexpr auto KickerGearReduction  = 20.0;
+    constexpr auto SpinnerWheelTurns = 130_tps; // Maximum Velocity: 130 tps
+    constexpr auto KickerWheelTurns  = 120_tps; // Maximum Velocity: 120 tps
 }
 #pragma endregion
 
@@ -48,7 +44,7 @@ class Spindexer : public frc2::SubsystemBase
         
         SpindexerState                    m_state{SpindexerState::Stopped};
 
-        ctre::phoenix6::hardware::TalonFX m_spinnerMotor       {ConstantsCanIds::SpinnerMotorId, ConstantsCanIds::CanBus};
-        ctre::phoenix6::hardware::TalonFX m_kickerFollowerMotor{ConstantsCanIds::KickerFollowerMotorId, ConstantsCanIds::CanBus};
-        ctre::phoenix6::hardware::TalonFX m_kickerMotor        {ConstantsCanIds::KickerMotorId, ConstantsCanIds::CanBus};
+        ctre::phoenix6::hardware::TalonFX m_spinnerMotor       {ConstantsCanIds::SpinnerMotorId};
+        ctre::phoenix6::hardware::TalonFX m_kickerFollowerMotor{ConstantsCanIds::KickerFollowerMotorId};
+        ctre::phoenix6::hardware::TalonFX m_kickerMotor        {ConstantsCanIds::KickerMotorId};
 };

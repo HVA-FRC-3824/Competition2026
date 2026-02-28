@@ -8,37 +8,34 @@ typedef int CanId_t;
 namespace ConstantsCanIds
 {
     // CAN IDs
-    const auto CanBusSwerve = ctre::phoenix6::CANBus::RoboRIO();
-    const auto CanBus       = ctre::phoenix6::CANBus{"NonSwerve"};
-
     // Swerve motor and encoders CAN IDs
-    constexpr CanId_t FrontLeftDriveId        = 01;
-    constexpr CanId_t FrontLeftTurnId         = 02;
-    constexpr CanId_t FrontLeftEncoderId      = 03;
+    constexpr CanId_t FrontLeftDriveId        = 01; // Kraken X60
+    constexpr CanId_t FrontLeftTurnId         = 02; // Kraken X44
+    constexpr CanId_t FrontLeftEncoderId      = 03; // Kraken CANCoder
 
-    constexpr CanId_t FrontRightDriveId       = 11;
-    constexpr CanId_t FrontRightTurnId        = 12;
-    constexpr CanId_t FrontRightEncoderId     = 13;
+    constexpr CanId_t FrontRightDriveId       = 11; // Kraken X60
+    constexpr CanId_t FrontRightTurnId        = 12; // Kraken X44
+    constexpr CanId_t FrontRightEncoderId     = 13; // Kraken CANCoder
 
-    constexpr CanId_t BackLeftDriveId         = 21;
-    constexpr CanId_t BackLeftTurnId          = 22;
-    constexpr CanId_t BackLeftEncoderId       = 23;
+    constexpr CanId_t BackLeftDriveId         = 21; // Kraken X60
+    constexpr CanId_t BackLeftTurnId          = 22; // Kraken X44
+    constexpr CanId_t BackLeftEncoderId       = 23; // Kraken CANCoder
     
-    constexpr CanId_t BackRightDriveId        = 31;
-    constexpr CanId_t BackRightTurnId         = 32;
-    constexpr CanId_t BackRightEncoderId      = 33;
+    constexpr CanId_t BackRightDriveId        = 31; // Kraken X60
+    constexpr CanId_t BackRightTurnId         = 32; // Kraken X44
+    constexpr CanId_t BackRightEncoderId      = 33; // Kraken CANCoder
 
-    constexpr CanId_t IntakePositionMotorId   = 40;
-    constexpr CanId_t FuelIntakeMotorId       = 41;
+    constexpr CanId_t IntakePositionMotorId   = 40; // Error Configuring Kraken X60
+    constexpr CanId_t FuelIntakeMotorId       = 41; // Error Configuring Kraken X60
 
     constexpr CanId_t SpinnerMotorId          = 50;
-    constexpr CanId_t KickerMotorId           = 51;
+    constexpr CanId_t KickerMotorId           = 51; // Error Configuring Kraken X44
     constexpr CanId_t KickerFollowerMotorId   = 52;
-    constexpr CanId_t TurretMotorId           = 53;
+    constexpr CanId_t TurretMotorId           = 53; // Error Configuring Kraken X44
     constexpr CanId_t FlywheelMotorId         = 54;
     constexpr CanId_t FlywheelFollowerMotorId = 55;
 
-    constexpr CanId_t ClimbMotorId            = 60;
+    constexpr CanId_t ClimbMotorId            = 60; // Error Configuring Kraken X60
 }
 #pragma endregion
 

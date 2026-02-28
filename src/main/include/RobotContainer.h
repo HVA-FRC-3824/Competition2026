@@ -69,12 +69,12 @@ class RobotContainer
         frc::SendableChooser<frc2::Command*> m_autoChooser;
 
         // Instantiate the robot subsystems
-        Chassis                              m_chassis{};
         Spindexer                            m_spindexer{};
         Leds                                 m_leds{};
         Tower                                m_tower{[&] {return m_chassis.GetPose();}, [&] {return m_chassis.GetSpeeds();}};
         Climb                                m_climb{};
         Intake                               m_intake{};
+        Chassis                              m_chassis{};
 
         // Instantiate subsystem states
         TowerState                           m_manualTowerState{TowerMode::ManualControl, 0_deg, 10_rpm, TowerConstants::MinLength};

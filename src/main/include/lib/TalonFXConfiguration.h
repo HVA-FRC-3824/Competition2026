@@ -11,11 +11,16 @@
 #include <frc/simulation/DCMotorSim.h>
 #include <frc/system/plant/LinearSystemId.h>
 
+#include <frc/Timer.h>
+
+#include "frc/smartdashboard/SmartDashboard.h"
+
 #include <ctre/phoenix6/TalonFX.hpp>
 #pragma endregion
 
 void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
                           units::ampere_t                    currentLimit,
+                          bool                               inverted,
                           bool                               breakMode,
                           bool                               continuousWrap,
                           double                             P,

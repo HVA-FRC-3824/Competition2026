@@ -7,7 +7,8 @@ Spindexer::Spindexer()
     // Configure the spindexer motor
     TalonFXConfiguration(&m_spinnerMotor,
                           20.0_A,          // Maximum Amperage
-                          true,            // Break mode
+                          true,            // Invert
+                          false,            // Break mode
                           false,           // Continuous wrap
                           0.4,             // P
                           0.0,             // I
@@ -21,7 +22,22 @@ Spindexer::Spindexer()
     // Configure the kicker motor
     TalonFXConfiguration(&m_kickerMotor,
                           20.0_A,          // Maximum Amperage
-                          true,            // Break mode
+                          false,           // Invert
+                          false,           // Break mode
+                          false,           // Continuous wrap
+                          0.1,             // P
+                          0.0,             // I
+                          0.0,             // D
+                          0.0,             // S
+                          0.0,             // V
+                          0.0,             // A
+                          0_tps,           // Velocity Limit
+                          0_tr_per_s_sq);  // Acceleration Limit
+
+    TalonFXConfiguration(&m_kickerFollowerMotor,
+                          20.0_A,          // Maximum Amperage
+                          false,           // Invert
+                          false,            // Break mode
                           false,           // Continuous wrap
                           0.1,             // P
                           0.0,             // I
@@ -36,7 +52,7 @@ Spindexer::Spindexer()
     // Set the second motor to follow the other motor
     m_kickerFollowerMotor.SetControl(
         ctre::phoenix6::controls::Follower(m_kickerMotor.GetDeviceID(), 
-                                            ctre::phoenix6::signals::MotorAlignmentValue::Aligned)
+                                            ctre::phoenix6::signals::MotorAlignmentValue::Opposed)
     );
 }
 #pragma endregion
@@ -79,7 +95,7 @@ void Spindexer::SetState(SpindexerState newState)
     Log("Spindexer", std::string_view{"Setting spinner speed to " + std::to_string(spindexerSpeed.value()) + " turns per second and kicker speed to " + std::to_string(kickerSpeed.value()) + " turns per second"});
 
     // Set the motor speeds
-    m_spinnerMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{spindexerSpeed * SpindexerConstants::SpinnerGearReduction});
-    m_kickerMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{kickerSpeed * SpindexerConstants::KickerGearReduction});
+    m_spinnerMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{spindexerSpeed});
+    m_kickerMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{kickerSpeed});
 }
 #pragma endregion

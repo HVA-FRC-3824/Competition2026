@@ -7,6 +7,7 @@ Climb::Climb()
     // Configure the climb motor
     TalonFXConfiguration(&m_climbMotor,
                          40.0_A,          // Maximum Amperage
+                         false,           // Invert
                          true,            // Brake mode
                          false,           // Continuous wrap
                          10,              // P gain

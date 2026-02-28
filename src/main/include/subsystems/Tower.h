@@ -54,8 +54,10 @@ struct TowerState
 namespace TowerConstants
 {
     // Default is facing forwards, 10 degree deadzone straight right
-    constexpr auto MinAngle           = -265_deg;   // TODO: Make these real. 
-    constexpr auto MaxAngle           =   95_deg;
+    // 1 turret rotation - 24 motor rotations - 360 degrees, so 1 motor rotation is 15 degrees
+    // Min: -4, max: 14.5 (rotations)
+    constexpr auto MinAngle           = -4 * 15_deg;   // TODO: Make these real. 
+    constexpr auto MaxAngle           =  14.5 * 15_deg;
  
     constexpr auto MaxLength          = 14.336_in;  // TODO: test these lengths, they're most likely accurate
     constexpr auto MinLength          =  8.946_in;  // I got these from team 102 from 2022, they used the same actuator
@@ -76,7 +78,7 @@ namespace TowerConstants
     // From inches to 0-1 range
     constexpr auto ActuatorDistanceConversionFactor = (TowerConstants::MaxLength - TowerConstants::MinLength);
 
-    constexpr auto TurretGearReduction              = (4.0) * (12.0/15.0) * (200.0/20.0); // The gearbox is a 4:1 reduction, and then a pulley, and then a small gear and a big gear
+    constexpr auto TurretGearReduction              = 24; // The gearbox is a 4:1 reduction, and then a pulley, and then a small gear and a big gear
 
     constexpr auto OffsetTurretFromRobotCenter      = frc::Transform3d{frc::Translation3d{0.0_m, 0.0_m, 0.0_m}, frc::Rotation3d{0.0_deg, 0.0_deg, 0.0_deg}};    
 }
@@ -128,9 +130,9 @@ class Tower : public frc2::SubsystemBase
 
         TowerState                          m_state{TowerMode::ManualControl, 0_deg, 0_rpm, 0_in}; 
 
-        ctre::phoenix6::hardware::TalonFX   m_turretMotor          {ConstantsCanIds::TurretMotorId,   ConstantsCanIds::CanBus};
-        ctre::phoenix6::hardware::TalonFX   m_flywheelMotor        {ConstantsCanIds::FlywheelMotorId, ConstantsCanIds::CanBus};
-        ctre::phoenix6::hardware::TalonFX   m_flywheelFollowerMotor{ConstantsCanIds::FlywheelFollowerMotorId, ConstantsCanIds::CanBus};
+        ctre::phoenix6::hardware::TalonFX   m_turretMotor          {ConstantsCanIds::TurretMotorId};
+        ctre::phoenix6::hardware::TalonFX   m_flywheelMotor        {ConstantsCanIds::FlywheelMotorId};
+        ctre::phoenix6::hardware::TalonFX   m_flywheelFollowerMotor{ConstantsCanIds::FlywheelFollowerMotorId};
         
         frc::Servo                          m_hoodActuator{ConstantsPwmPorts::ActuatorPort};
 };

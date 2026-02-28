@@ -17,6 +17,7 @@
 /// @param sensorToMechanismRatio The ratio of sensor rotation to mechanism rotation (default: 1.0)
 void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
                           units::ampere_t                    currentLimit,
+                          bool                               inverted,
                           bool                               breakMode,
                           bool                               continuousWrap,
                           double P, double I, double D,
@@ -25,6 +26,7 @@ void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
                           units::turns_per_second_squared_t accelerationLimit,
                           double                            sensorToMechanismRatio)
 {
+    
     constexpr int MAX_CONFIG_RETRIES = 3;
     
     // Create the TalonFX configuration
@@ -42,6 +44,9 @@ void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
     motorOutputConfigs.NeutralMode = breakMode
         ? ctre::phoenix6::signals::NeutralModeValue::Brake
         : ctre::phoenix6::signals::NeutralModeValue::Coast;
+    motorOutputConfigs.Inverted = inverted
+        ? ctre::phoenix6::signals::InvertedValue::Clockwise_Positive
+        : ctre::phoenix6::signals::InvertedValue::CounterClockwise_Positive;
 
     // Configure Current Limits
     ctre::phoenix6::configs::CurrentLimitsConfigs &currentLimitsConfigs = talonFXConfiguration.CurrentLimits;
@@ -77,13 +82,15 @@ void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
         // Small delay before retry
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-
+    
     // Report configuration status
     if (!status.IsOK())
     {
         std::cerr << "***** ERROR: Could not configure TalonFX motor (CAN ID: " 
                     << motor->GetDeviceID() << "). Error: " << status.GetName() 
                     << " (" << status.GetDescription() << ")" << std::endl;
+        frc::SmartDashboard::PutString("TalonFXConfigError" + std::to_string(motor->GetDeviceID()), 
+            "Error configuring TalonFX: ");
     }
     else
     {

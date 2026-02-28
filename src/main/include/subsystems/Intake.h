@@ -52,10 +52,10 @@ class Intake : public frc2::SubsystemBase
     private:
 
         // Motor that will extend and retract the intake (Magic motion position controlled)
-        ctre::phoenix6::hardware::TalonFX m_intakePositionMotor{ConstantsCanIds::IntakePositionMotorId, ConstantsCanIds::CanBus};
+        ctre::phoenix6::hardware::TalonFX m_intakePositionMotor{ConstantsCanIds::IntakePositionMotorId};
 
         // Motor that will drive the intake to take in fuel (Velocity PID controlled)
-        ctre::phoenix6::hardware::TalonFX m_fuelIntakeMotor{ConstantsCanIds::FuelIntakeMotorId, ConstantsCanIds::CanBus};
+        ctre::phoenix6::hardware::TalonFX m_fuelIntakeMotor{ConstantsCanIds::FuelIntakeMotorId};
         
         // Current intake drive state, starts as Stowed
         IntakeState m_intakeState = IntakeState::Stowed;

@@ -5,10 +5,10 @@
 /// @param driveMotorCanId The CAN ID for the swerve module drive motor.
 /// @param angleMotorCanId The CAN ID for the swerve module angle motor.
 /// @param angleEncoderCanId The CAN ID for the swerve module angle encoder.
-SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEncoderCanId) :
-                           m_driveMotor          {driveMotorCanId,   ConstantsCanIds::CanBusSwerve},
-                           m_angleMotor          {angleMotorCanId,   ConstantsCanIds::CanBusSwerve},
-                           m_angleAbsoluteEncoder{angleEncoderCanId, ConstantsCanIds::CanBusSwerve}
+SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEncoderCanId, bool driveDirection) :
+                           m_driveMotor          {driveMotorCanId},
+                           m_angleMotor          {angleMotorCanId},
+                           m_angleAbsoluteEncoder{angleEncoderCanId}
 {
     // Ensure the drive and angle motor encoders are reset to zero
     m_driveMotor.SetPosition(0.0_tr);
@@ -31,6 +31,7 @@ SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEn
     // Configure the swerve drive and angle motors
     TalonFXConfiguration(&m_driveMotor,    // Drive motor configuration
                           60_A,            // Maximum Amperage
+                          driveDirection,  // Inverted based on module location
                           true,            // Brake mode enabled
                           false,           // Continuous wrap
                           0.03,            // P gain
@@ -44,9 +45,10 @@ SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEn
 
     TalonFXConfiguration(&m_angleMotor,    // Angle motor configuration
                           20_A,            // Maximum Amperage
+                          false,           // Invert
                           true,            // Brake mode enabled
                           true,            // Continuous wrap
-                          8.0,             // P gain
+                          10.0,             // P gain
                           0.0,             // I gain
                           0.2,             // D gain
                           0.0,             // V gain
