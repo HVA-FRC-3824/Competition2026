@@ -28,6 +28,9 @@ namespace SpindexerConstants
     // TODO: test and tune these values
     constexpr auto SpinnerWheelTurns = 10_tps;
     constexpr auto KickerWheelTurns  = 10_tps;
+
+    constexpr auto SpinnerGearReduction = 20.0;
+    constexpr auto KickerGearReduction  = 20.0;
 }
 #pragma endregion
 

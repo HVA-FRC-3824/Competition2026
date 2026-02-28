@@ -32,6 +32,10 @@ namespace IntakeConstants
     constexpr auto IntakeStartingAngle = -21_deg; // This is about the initial offset of the intake at the start
 
     constexpr auto IntakeDriveSpeed    = 10_tps;
+
+    constexpr auto IntakePositionGearReduction = 25.0;
+    constexpr auto IntakeRollerGearReduction   = 10.0;
+
 }
 #pragma endregion
 

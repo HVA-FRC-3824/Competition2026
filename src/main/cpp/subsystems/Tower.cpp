@@ -19,8 +19,8 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
                           0.0,             // S (static friction feedforward)
                           0.0,             // V (velocity feedforward)
                           0.0,             // A (acceleration feedforward)
-                          0_tps,           // Velocity limit
-                          0_tr_per_s_sq);  // Acceleration limit
+                          1_tps * TowerConstants::TurretGearReduction, // Velocity limit
+                          4_tr_per_s_sq);  // Acceleration limit
 
     TalonFXConfiguration(&m_flywheelMotor,
                           40_A,            // Current limit
@@ -35,7 +35,6 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
                           0_tps,           // Velocity limit
                           0_tr_per_s_sq);  // Acceleration limit
     
-        // TODO: VERIFY THESE CONFIGS
         // Set the second follower motor to be the *inverse* of the other flywheel motor
         m_flywheelFollowerMotor.SetControl(
             ctre::phoenix6::controls::Follower(m_flywheelMotor.GetDeviceID(), 
@@ -44,6 +43,8 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
 
     // Initialize the pose with the current pose and timestamp
     m_hoodActuator.SetBounds(2.0_us, 1.8_us, 1.5_us, 1.2_us, 1.0_us);
+
+    m_turretMotor.SetPosition(0.0_tr);
     
     frc::SmartDashboard::PutData("Tower", &m_logMechanism);
 }
@@ -142,7 +143,7 @@ void Tower::SetTurretAngle(units::degree_t angle)
     units::angle::turn_t rotations{angle.value() / 360.0};
 
     // Set the motor to the desired position
-    m_turretMotor.SetControl(ctre::phoenix6::controls::PositionVoltage{rotations});
+    m_turretMotor.SetControl(ctre::phoenix6::controls::PositionVoltage{rotations * TowerConstants::TurretGearReduction});
 }
 #pragma endregion
 
@@ -152,7 +153,7 @@ void Tower::SetTurretAngle(units::degree_t angle)
 units::degree_t Tower::GetTurretAngle()
 {
     // Get the motor position in turns
-    units::angle::turn_t turns = m_turretMotor.GetPosition().GetValue();
+    units::angle::turn_t turns = m_turretMotor.GetPosition().GetValue() / TowerConstants::TurretGearReduction;
 
     // Convert turns to degrees (1 turn = 360 degrees)
     units::degree_t degrees = turns.convert<units::degrees>();

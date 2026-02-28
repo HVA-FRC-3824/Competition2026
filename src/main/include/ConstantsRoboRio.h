@@ -8,8 +8,8 @@ typedef int CanId_t;
 namespace ConstantsCanIds
 {
     // CAN IDs
-    const auto    CanBusSwerve = ctre::phoenix6::CANBus::RoboRIO();
-    const auto    CanBus       = ctre::phoenix6::CANBus{"NonSwerve"};
+    const auto CanBusSwerve = ctre::phoenix6::CANBus::RoboRIO();
+    const auto CanBus       = ctre::phoenix6::CANBus{"NonSwerve"};
 
     // Swerve motor and encoders CAN IDs
     constexpr CanId_t FrontLeftDriveId        = 01;

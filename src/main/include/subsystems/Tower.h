@@ -53,8 +53,9 @@ struct TowerState
 #pragma region TowerConstants
 namespace TowerConstants
 {
-    constexpr auto MinAngle           = -180_deg;   // TODO: Make these real. 
-    constexpr auto MaxAngle           =  180_deg;
+    // Default is facing forwards, 10 degree deadzone straight right
+    constexpr auto MinAngle           = -265_deg;   // TODO: Make these real. 
+    constexpr auto MaxAngle           =   95_deg;
  
     constexpr auto MaxLength          = 14.336_in;  // TODO: test these lengths, they're most likely accurate
     constexpr auto MinLength          =  8.946_in;  // I got these from team 102 from 2022, they used the same actuator
@@ -74,6 +75,8 @@ namespace TowerConstants
     
     // From inches to 0-1 range
     constexpr auto ActuatorDistanceConversionFactor = (TowerConstants::MaxLength - TowerConstants::MinLength);
+
+    constexpr auto TurretGearReduction              = (4.0) * (12.0/15.0) * (200.0/20.0); // The gearbox is a 4:1 reduction, and then a pulley, and then a small gear and a big gear
 
     constexpr auto OffsetTurretFromRobotCenter      = frc::Transform3d{frc::Translation3d{0.0_m, 0.0_m, 0.0_m}, frc::Rotation3d{0.0_deg, 0.0_deg, 0.0_deg}};    
 }

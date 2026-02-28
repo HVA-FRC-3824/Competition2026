@@ -79,7 +79,7 @@ void Spindexer::SetState(SpindexerState newState)
     Log("Spindexer", std::string_view{"Setting spinner speed to " + std::to_string(spindexerSpeed.value()) + " turns per second and kicker speed to " + std::to_string(kickerSpeed.value()) + " turns per second"});
 
     // Set the motor speeds
-    m_spinnerMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{spindexerSpeed});
-    m_kickerMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{kickerSpeed});
+    m_spinnerMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{spindexerSpeed * SpindexerConstants::SpinnerGearReduction});
+    m_kickerMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{kickerSpeed * SpindexerConstants::KickerGearReduction});
 }
 #pragma endregion

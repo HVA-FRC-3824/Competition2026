@@ -56,7 +56,7 @@ void Climb::SetState(ClimbState state)
     Log("Climb", std::string_view{"Setting climb rotation to " + std::to_string(rotations.value()) + " turns"});
 
     // Set the climb motor to the desired position
-    m_climbMotor.SetControl(ctre::phoenix6::controls::PositionDutyCycle(rotations));
+    m_climbMotor.SetControl(ctre::phoenix6::controls::PositionDutyCycle(rotations * ClimbConstants::ClimbGearReduction));
 }
 #pragma endregion
 

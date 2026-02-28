@@ -82,7 +82,7 @@ void Intake::SetState(IntakeState newState)
     Log("Intake", std::string_view{"Setting intake position to " + std::to_string(position.value()) + " turns and roller turns per second to " + std::to_string(roller.value()) + " turns per second"});
 
     // Set the motor controls
-    m_intakePositionMotor.SetControl(ctre::phoenix6::controls::MotionMagicVoltage{position});
-    m_fuelIntakeMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{roller});
+    m_intakePositionMotor.SetControl(ctre::phoenix6::controls::MotionMagicVoltage{position * IntakeConstants::IntakePositionGearReduction});
+    m_fuelIntakeMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{roller * IntakeConstants::IntakeRollerGearReduction});
 }
 #pragma endregion
