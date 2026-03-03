@@ -24,7 +24,7 @@
 
 void SparkMaxConfiguration(rev::spark::SparkMax *motor,
                           units::ampere_t currentLimit,
-                          bool   breakMode,
+                          bool   brakeMode,
                           double P,
                           double I,
                           double D,

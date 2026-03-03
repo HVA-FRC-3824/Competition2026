@@ -10,47 +10,47 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
 {
     // Configure the tower motors
     TalonFXConfiguration(&m_turretMotor,
-                          40_A,            // Current limit
-                          true,            // Invert
-                          true,            // Brake mode
-                          false,           // Continuous wrap
-                          0.0,             // P gain
-                          0.0,             // I gain
-                          0.0,             // D gain
-                          0.0,             // S (static friction feedforward)
-                          0.0,             // V (velocity feedforward)
-                          0.0,             // A (acceleration feedforward)
-                          1_tps * TowerConstants::TurretGearReduction, // Velocity limit
-                          4_tr_per_s_sq);  // Acceleration limit
+                         40_A,            // Current limit
+                         true,            // Inverted
+                         true,            // Brake mode
+                         false,           // Continuous wrap
+                         0.0,             // P gain
+                         0.0,             // I gain
+                         0.0,             // D gain
+                         0.0,             // S (static friction feedforward)
+                         0.0,             // V (velocity feedforward)
+                         0.0,             // A (acceleration feedforward)
+                         1_tps * TowerConstants::TurretGearReduction, // Velocity limit
+                         4_tr_per_s_sq);  // Acceleration limit
 
     TalonFXConfiguration(&m_flywheelMotor,
-                          40_A,            // Current limit
-                          true,            // Invert
-                          true,            // Brake mode
-                          false,           // Continuous wrap
-                          0.0,             // P gain
-                          0.0,             // I gain
-                          0.0,             // D gain
-                          0.0,             // S (static friction feedforward)
-                          0.0,             // V (velocity feedforward)
-                          0.0,             // A (acceleration feedforward)
-                          0_tps,           // Velocity limit
-                          0_tr_per_s_sq);  // Acceleration limit
+                         40_A,            // Current limit
+                         true,            // Inverted
+                         true,            // Brake mode
+                         false,           // Continuous wrap
+                         0.0,             // P gain
+                         0.0,             // I gain
+                         0.0,             // D gain
+                         0.0,             // S (static friction feedforward)
+                         0.0,             // V (velocity feedforward)
+                         0.0,             // A (acceleration feedforward)
+                         0_tps,           // Velocity limit
+                         0_tr_per_s_sq);  // Acceleration limit
 
-        TalonFXConfiguration(&m_flywheelFollowerMotor,
-                          40_A,            // Current limit
-                          true,            // Invert
-                          true,            // Brake mode
-                          false,           // Continuous wrap
-                          0.0,             // P gain
-                          0.0,             // I gain
-                          0.0,             // D gain
-                          0.0,             // S (static friction feedforward)
-                          0.0,             // V (velocity feedforward)
-                          0.0,             // A (acceleration feedforward)
-                          0_tps,           // Velocity limit
-                          0_tr_per_s_sq);  // Acceleration limit
-    
+    TalonFXConfiguration(&m_flywheelFollowerMotor,
+                         40_A,            // Current limit
+                         true,            // Inverted
+                         true,            // Brake mode
+                         false,           // Continuous wrap
+                         0.0,             // P gain
+                         0.0,             // I gain
+                         0.0,             // D gain
+                         0.0,             // S (static friction feedforward)
+                         0.0,             // V (velocity feedforward)
+                         0.0,             // A (acceleration feedforward)
+                         0_tps,           // Velocity limit
+                         0_tr_per_s_sq);  // Acceleration limit
+
         // Set the second follower motor to be the *inverse* of the other flywheel motor
         m_flywheelFollowerMotor.SetControl(
             ctre::phoenix6::controls::Follower(m_flywheelMotor.GetDeviceID(), 

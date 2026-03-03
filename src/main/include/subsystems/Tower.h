@@ -56,7 +56,7 @@ namespace TowerConstants
     // Default is facing forwards, 10 degree deadzone straight right
     // 1 turret rotation - 24 motor rotations - 360 degrees, so 1 motor rotation is 15 degrees
     // Min: -4, max: 14.5 (rotations)
-    constexpr auto MinAngle           = -4 * 15_deg;   // TODO: Make these real. 
+    constexpr auto MinAngle           =  -4.0 * 15_deg;   // TODO: Make these real. 
     constexpr auto MaxAngle           =  14.5 * 15_deg;
  
     constexpr auto MaxLength          = 14.336_in;  // TODO: test these lengths, they're most likely accurate

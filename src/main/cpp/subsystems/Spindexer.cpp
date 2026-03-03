@@ -6,47 +6,47 @@ Spindexer::Spindexer()
 {
     // Configure the spindexer motor
     TalonFXConfiguration(&m_spinnerMotor,
-                          20.0_A,          // Maximum Amperage
-                          true,            // Invert
-                          false,            // Break mode
-                          false,           // Continuous wrap
-                          0.4,             // P
-                          0.0,             // I
-                          0.0,             // D
-                          0.0,             // S
-                          0.0,             // V
-                          0.0,             // A
-                          0_tps,           // Velocity Limit
-                          0_tr_per_s_sq);  // Acceleration Limit
+                         20.0_A,          // Maximum Amperage
+                         true,            // Inverted
+                         false,           // Brake mode
+                         false,           // Continuous wrap
+                         0.4,             // P
+                         0.0,             // I
+                         0.0,             // D
+                         0.0,             // S
+                         0.0,             // V
+                         0.0,             // A
+                         0_tps,           // Velocity Limit
+                         0_tr_per_s_sq);  // Acceleration Limit
 
     // Configure the kicker motor
     TalonFXConfiguration(&m_kickerMotor,
-                          20.0_A,          // Maximum Amperage
-                          false,           // Invert
-                          false,           // Break mode
-                          false,           // Continuous wrap
-                          0.1,             // P
-                          0.0,             // I
-                          0.0,             // D
-                          0.0,             // S
-                          0.0,             // V
-                          0.0,             // A
-                          0_tps,           // Velocity Limit
-                          0_tr_per_s_sq);  // Acceleration Limit
+                         20.0_A,          // Maximum Amperage
+                         false,           // Inverted
+                         false,           // Brake mode
+                         false,           // Continuous wrap
+                         0.1,             // P
+                         0.0,             // I
+                         0.0,             // D
+                         0.0,             // S
+                         0.0,             // V
+                         0.0,             // A
+                         0_tps,           // Velocity Limit
+                         0_tr_per_s_sq);  // Acceleration Limit
 
     TalonFXConfiguration(&m_kickerFollowerMotor,
-                          20.0_A,          // Maximum Amperage
-                          false,           // Invert
-                          false,            // Break mode
-                          false,           // Continuous wrap
-                          0.1,             // P
-                          0.0,             // I
-                          0.0,             // D
-                          0.0,             // S
-                          0.0,             // V
-                          0.0,             // A
-                          0_tps,           // Velocity Limit
-                          0_tr_per_s_sq);  // Acceleration Limit
+                         20.0_A,          // Maximum Amperage
+                         false,           // Inverted
+                         false,            // Brake mode
+                         false,           // Continuous wrap
+                         0.1,             // P
+                         0.0,             // I
+                         0.0,             // D
+                         0.0,             // S
+                         0.0,             // V
+                         0.0,             // A
+                         0_tps,           // Velocity Limit
+                         0_tr_per_s_sq);  // Acceleration Limit
 
     // TODO: VERIFY THESE CONFIGS
     // Set the second motor to follow the other motor

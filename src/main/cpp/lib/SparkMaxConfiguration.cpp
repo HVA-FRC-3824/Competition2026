@@ -3,7 +3,7 @@
 #pragma region SparkMaxConfiguration
 void SparkMaxConfiguration(rev::spark::SparkMax *motor,
                           units::ampere_t currentLimit,
-                          bool   breakMode,
+                          bool   brakeMode,
                           bool   continuousWrap,
                           double P,
                           double I,
@@ -19,7 +19,7 @@ void SparkMaxConfiguration(rev::spark::SparkMax *motor,
 
     // Configure the motor controller
     sparkMaxConfig
-        .SetIdleMode(breakMode 
+        .SetIdleMode(brakeMode 
                             ? rev::spark::SparkBaseConfig::IdleMode::kBrake 
                             : rev::spark::SparkBaseConfig::IdleMode::kCoast)
         .SmartCurrentLimit(currentLimit.value());

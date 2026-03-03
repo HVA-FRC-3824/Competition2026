@@ -139,10 +139,10 @@ class Chassis : public frc2::SubsystemBase
         
         std::array<SwerveModule, 4> m_swerveModules
         {
-            SwerveModule{ConstantsCanIds::FrontLeftDriveId,  ConstantsCanIds::FrontLeftTurnId,  ConstantsCanIds::FrontLeftEncoderId, false},
-            SwerveModule{ConstantsCanIds::FrontRightDriveId, ConstantsCanIds::FrontRightTurnId, ConstantsCanIds::FrontRightEncoderId, false},
-            SwerveModule{ConstantsCanIds::BackLeftDriveId,   ConstantsCanIds::BackLeftTurnId,   ConstantsCanIds::BackLeftEncoderId, false},
-            SwerveModule{ConstantsCanIds::BackRightDriveId,  ConstantsCanIds::BackRightTurnId,  ConstantsCanIds::BackRightEncoderId, false} 
+            SwerveModule{ConstantsCanIds::FrontLeftDriveId,  ConstantsCanIds::FrontLeftTurnId,  ConstantsCanIds::FrontLeftEncoderId},
+            SwerveModule{ConstantsCanIds::FrontRightDriveId, ConstantsCanIds::FrontRightTurnId, ConstantsCanIds::FrontRightEncoderId},
+            SwerveModule{ConstantsCanIds::BackLeftDriveId,   ConstantsCanIds::BackLeftTurnId,   ConstantsCanIds::BackLeftEncoderId},
+            SwerveModule{ConstantsCanIds::BackRightDriveId,  ConstantsCanIds::BackRightTurnId,  ConstantsCanIds::BackRightEncoderId} 
         };
         /*
         frc::SwerveDriveKinematics<4> m_kinematics

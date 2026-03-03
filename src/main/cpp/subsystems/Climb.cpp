@@ -7,7 +7,7 @@ Climb::Climb()
     // Configure the climb motor
     TalonFXConfiguration(&m_climbMotor,
                          40.0_A,          // Maximum Amperage
-                         false,           // Invert
+                         false,           // Inverted
                          true,            // Brake mode
                          false,           // Continuous wrap
                          10,              // P gain
@@ -57,7 +57,7 @@ void Climb::SetState(ClimbState state)
     Log("Climb", std::string_view{"Setting climb rotation to " + std::to_string(rotations.value()) + " turns"});
 
     // Set the climb motor to the desired position
-    m_climbMotor.SetControl(ctre::phoenix6::controls::PositionDutyCycle(rotations * ClimbConstants::ClimbGearReduction));
+    m_climbMotor.SetControl(ctre::phoenix6::controls::PositionDutyCycle(rotations));
 }
 #pragma endregion
 

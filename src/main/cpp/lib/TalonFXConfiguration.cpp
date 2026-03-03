@@ -4,7 +4,7 @@
 /// @brief Configures a TalonFX motor with the specified parameters
 /// @param motor Pointer to the TalonFX motor to configure 
 /// @param currentLimit The current limit for the motor
-/// @param breakMode True to set the motor to brake mode, false for coast mode 
+/// @param brakeMode True to set the motor to brake mode, false for coast mode 
 /// @param continuousWrap Tre to set the motor controller to continuous wrap 
 /// @param P The proportional gain for the motor's PID controller
 /// @param I The integral gain for the motor's PID controller
@@ -18,7 +18,7 @@
 void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
                           units::ampere_t                    currentLimit,
                           bool                               inverted,
-                          bool                               breakMode,
+                          bool                               brakeMode,
                           bool                               continuousWrap,
                           double P, double I, double D,
                           double S, double V, double A,
@@ -26,7 +26,6 @@ void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
                           units::turns_per_second_squared_t accelerationLimit,
                           double                            sensorToMechanismRatio)
 {
-    
     constexpr int MAX_CONFIG_RETRIES = 3;
     
     // Create the TalonFX configuration
@@ -41,7 +40,7 @@ void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
 
     // Configure Motor Output settings
     ctre::phoenix6::configs::MotorOutputConfigs &motorOutputConfigs = talonFXConfiguration.MotorOutput;
-    motorOutputConfigs.NeutralMode = breakMode
+    motorOutputConfigs.NeutralMode = brakeMode
         ? ctre::phoenix6::signals::NeutralModeValue::Brake
         : ctre::phoenix6::signals::NeutralModeValue::Coast;
     motorOutputConfigs.Inverted = inverted
@@ -82,7 +81,7 @@ void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
         // Small delay before retry
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    
+
     // Report configuration status
     if (!status.IsOK())
     {

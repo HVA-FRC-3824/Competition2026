@@ -5,7 +5,7 @@
 /// @param driveMotorCanId The CAN ID for the swerve module drive motor.
 /// @param angleMotorCanId The CAN ID for the swerve module angle motor.
 /// @param angleEncoderCanId The CAN ID for the swerve module angle encoder.
-SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEncoderCanId, bool driveDirection) :
+SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEncoderCanId) :
                            m_driveMotor          {driveMotorCanId},
                            m_angleMotor          {angleMotorCanId},
                            m_angleAbsoluteEncoder{angleEncoderCanId}
@@ -30,33 +30,33 @@ SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEn
 
     // Configure the swerve drive and angle motors
     TalonFXConfiguration(&m_driveMotor,    // Drive motor configuration
-                          60_A,            // Maximum Amperage
-                          driveDirection,  // Inverted based on module location
-                          true,            // Brake mode enabled
-                          false,           // Continuous wrap
-                          0.03,            // P gain
-                          1.5,             // I gain
-                          0.0,             // D gain
-                          0.0,             // V gain
-                          0.0,             // A gain
-                          0.0,             // S gain
-                          0_tps,           // Velocity limit
-                          0_tr_per_s_sq);  // Acceleration limit
+                         60_A,            // Maximum Amperage
+                         false,           // Inverted
+                         true,            // Brake mode enabled
+                         false,           // Continuous wrap
+                         0.03,            // P gain
+                         1.5,             // I gain
+                         0.0,             // D gain
+                         0.0,             // V gain
+                         0.0,             // A gain
+                         0.0,             // S gain
+                         0_tps,           // Velocity limit
+                         0_tr_per_s_sq);  // Acceleration limit
 
     TalonFXConfiguration(&m_angleMotor,    // Angle motor configuration
-                          20_A,            // Maximum Amperage
-                          false,           // Invert
-                          true,            // Brake mode enabled
-                          true,            // Continuous wrap
-                          10.0,             // P gain
-                          0.0,             // I gain
-                          0.2,             // D gain
-                          0.0,             // V gain
-                          0.0,             // A gain
-                          0.0,             // S gain
-                          0_tps,           // Velocity limit
-                          0_tr_per_s_sq,   // Acceleration limit
-                          150.0 / 7.0);    // Sensor to mechanism ratio
+                         20_A,            // Maximum Amperage
+                         false,           // Inverted
+                         true,            // Brake mode enabled
+                         true,            // Continuous wrap
+                         10.0,            // P gain   TODO: Try a higher gain when the robot is on the ground
+                         0.0,             // I gain
+                         0.2,             // D gain
+                         0.0,             // V gain
+                         0.0,             // A gain
+                         0.0,             // S gain
+                         0_tps,           // Velocity limit
+                         0_tr_per_s_sq,   // Acceleration limit
+                         150.0 / 7.0);    // Sensor to mechanism ratio
 }
 #pragma endregion
 

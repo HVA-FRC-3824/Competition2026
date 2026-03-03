@@ -35,7 +35,6 @@ namespace IntakeConstants
 
     constexpr auto IntakePositionGearReduction = 25.0;
     constexpr auto IntakeRollerGearReduction   = 10.0;
-
 }
 #pragma endregion
 
