@@ -42,7 +42,9 @@ namespace ConstantsCanIds
 namespace ConstantsPwmPorts
 {
     // PWM Ports
-    constexpr auto ActuatorPort              =  2;
-    constexpr auto LedPort                   =  9;
+    constexpr auto ActuatorPort     = 2;
+
+    constexpr auto LedUnderGlowPort = 8;
+    constexpr auto LedTurretPort    = 9;
 }
 #pragma endregion

@@ -20,34 +20,20 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
                          0.0,             // S (static friction feedforward)
                          0.0,             // V (velocity feedforward)
                          0.0,             // A (acceleration feedforward)
-                         1_tps * TowerConstants::TurretGearReduction, // Velocity limit
+                         0.5_tps * TowerConstants::TurretGearReduction, // Velocity limit
                          4_tr_per_s_sq);  // Acceleration limit
 
     TalonFXConfiguration(&m_flywheelMotor,
                          40_A,            // Current limit
                          true,            // Inverted
-                         true,            // Brake mode
+                         false,            // Brake mode
                          false,           // Continuous wrap
-                         0.0,             // P gain
+                         0.32,            // P gain
                          0.0,             // I gain
                          0.0,             // D gain
                          0.0,             // S (static friction feedforward)
-                         0.0,             // V (velocity feedforward)
-                         0.0,             // A (acceleration feedforward)
-                         0_tps,           // Velocity limit
-                         0_tr_per_s_sq);  // Acceleration limit
-
-    TalonFXConfiguration(&m_flywheelFollowerMotor,
-                         40_A,            // Current limit
-                         true,            // Inverted
-                         true,            // Brake mode
-                         false,           // Continuous wrap
-                         0.0,             // P gain
-                         0.0,             // I gain
-                         0.0,             // D gain
-                         0.0,             // S (static friction feedforward)
-                         0.0,             // V (velocity feedforward)
-                         0.0,             // A (acceleration feedforward)
+                         0.13,            // V (velocity feedforward)
+                         1.61,            // A (acceleration feedforward)
                          0_tps,           // Velocity limit
                          0_tr_per_s_sq);  // Acceleration limit
 
@@ -71,15 +57,6 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
 /// @param newState The new state to set for the Tower subsystem
 void Tower::SetState(TowerState newState)
 {
-    // // Don't do anything new if nothing new has happened
-    // if (m_state.mode == newState.mode && 
-    //     m_state.turretAngle        == newState.turretAngle        && 
-    //     m_state.hoodActuatorInches == newState.hoodActuatorInches && 
-    //     m_state.flywheelSpeed      == newState.flywheelSpeed)
-    // {
-    //     return;
-    // }
-
     // Remember the state
     m_state = newState;
 
@@ -121,6 +98,11 @@ void Tower::SetFlywheel(units::turns_per_second_t input)
 {
     // Set the flywheel motor speed
     m_flywheelMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{input});
+    // Set the second follower motor to be the *inverse* of the other flywheel motor
+    m_flywheelFollowerMotor.SetControl(
+        ctre::phoenix6::controls::Follower(m_flywheelMotor.GetDeviceID(), 
+                                        ctre::phoenix6::signals::MotorAlignmentValue::Opposed)
+    );
 }
 #pragma endregion
 

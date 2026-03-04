@@ -10,6 +10,8 @@
 #include <frc/LEDPattern.h>
 #include <frc/LEDPattern.h>
 
+#include "subsystems/Tower.h"
+
 #include "Constants.h"
 #include "ConstantsRoboRio.h"
 
@@ -25,7 +27,7 @@ namespace LedConstants
 
     constexpr auto StrobeDelay   = 250_ms;  // The delay between strobe flashes
     constexpr auto HvaDelay      =   1_Hz;  // The cycle speed for HVA colors
-    constexpr auto ShootingSpeed =  2_Hz;   // The cycle speed for shooting
+    constexpr auto ShootingSpeed = 1.5_Hz;   // The cycle speed for shooting
 }
 #pragma endregion
 
@@ -37,16 +39,15 @@ enum LedMode
     SolidRed,
     HvaColors,
     Strobe,
-    ShootingOnTarget,
-    ShootingOffTarget,
-    Rainbow
+    Rainbow,
+    MatchMode
 };
 
 class Leds : public frc2::SubsystemBase
 {
     public:
 
-        explicit Leds();
+        explicit Leds(std::function<std::pair<TowerMode, bool>()> towerStateIsOnTargetSupplier, std::function<bool()> isClimbingSupplier, std::function<bool()> isShootingSupplier);
 
         void     SetMode(LedMode ledMode);
 
@@ -56,7 +57,7 @@ class Leds : public frc2::SubsystemBase
 
     private:
 
-        void SetLeds(frc::LEDPattern pattern, std::optional<frc::LEDPattern> inside = std::nullopt);
+        void SetLeds(frc::LEDPattern turret, std::optional<frc::LEDPattern> underglow = std::nullopt);
 
         LedMode             m_ledMode       = LedMode::HvaColors;  // The LED mode
 
@@ -67,22 +68,68 @@ class Leds : public frc2::SubsystemBase
         // that scrolls the rainbow pattern across the LED strip, moving at a speed of 1 meter per second.
         frc::LEDPattern     m_scrollingRainbow  = frc::LEDPattern::Rainbow(255, 128).ScrollAtAbsoluteSpeed(0.1_mps, units::meter_t{1 / 120.0});
 
-        // Create an LED pattern that displays a red-to-blue gradient, then scroll at one quarter of the LED strip's length per second.
-        // For a half-meter length of a 120 LED-per-meter strip, this is equivalent to scrolling at 12.5 centimeters per second.
-        frc::LEDPattern     m_shooting          = frc::LEDPattern::Gradient(frc::LEDPattern::kDiscontinuous,
-                                                                            std::array<frc::Color, 2>{frc::Color::kBlack, frc::Color::kRed}).
-                                                                            ScrollAtRelativeSpeed(LedConstants::ShootingSpeed);
-
-        frc::LEDPattern     m_shootingOnTarget  = frc::LEDPattern::Solid(frc::Color::kGreen);
-  
-        frc::LEDPattern     m_shootingOffTarget = frc::LEDPattern::Solid(frc::Color::kYellow);
 
         frc::LEDPattern     m_hvaColors         = frc::LEDPattern::Steps({std::pair{0.0, frc::Color::kWhite}, std::pair{0.5, frc::Color::kBlue}}).
-                                                                         ScrollAtRelativeSpeed(LedConstants::HvaDelay);  
-                                                          
+                                                                    ScrollAtRelativeSpeed(LedConstants::HvaDelay);  
+
         frc::LEDPattern     m_strobe            = frc::LEDPattern::Solid(frc::Color::kWhite).Blink(LedConstants::StrobeDelay);  
 
-        frc::AddressableLED m_led{ConstantsPwmPorts::LedPort};
+        std::function<frc::LEDPattern(TowerMode, bool)> m_shootingModeIsClimbing = [](TowerMode shootingMode, bool isClimbing) {
+            return frc::LEDPattern{[=](auto data, auto writer) {
+                auto bufLen = data.size();
+                for (size_t i = 0; i < bufLen; i++) 
+                {
+                    if (i % 2 == 0)
+                    {
+                        switch (shootingMode)
+                        {
+                            case TowerMode::ShootingToHub:
+                                writer(i, frc::Color::kRed);
+                                break;
+                            case TowerMode::PassingToAdjacentZone:
+                                writer(i, frc::Color::kBlue);
+                                break;
+                            case TowerMode::Automatic:
+                                writer(i, frc::Color::kCyan);
+                                break;
+                            default:
+                                writer(i, frc::Color::kBlack);
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        writer(i, isClimbing ? frc::Color::kGreen : frc::Color::kBlack);
+                    }
+                }
+            }};
+        };
+        
+        std::function<frc::LEDPattern(bool, bool)> m_isShootingIsOnTarget = [](bool isShooting, bool isOnTarget) {
+            return frc::LEDPattern{[=](auto data, auto writer) {
+                auto bufLen = data.size();
+                for (size_t i = 0; i < bufLen; i++) 
+                {
+                    if (i % 2 == 0)
+                    {
+                        writer(i, isOnTarget ? frc::Color::kGreen : frc::Color::kRed);
+                    }
+                    else
+                    {
+                        writer(i, isShooting ? frc::Color::kYellow : frc::Color::kBlack);
+                    }
+                }
+            }};
+        };
 
-        std::array<frc::AddressableLED::LEDData, LedConstants::Length> m_ledBuffer;  // Instatntiate the LED data buffer
+        frc::AddressableLED m_ledTurret   {ConstantsPwmPorts::LedTurretPort};
+        frc::AddressableLED m_ledUnderGlow{ConstantsPwmPorts::LedUnderGlowPort};
+
+        std::array<frc::AddressableLED::LEDData, LedConstants::Length> m_ledTurretBuffer   {};
+        std::array<frc::AddressableLED::LEDData, LedConstants::Length> m_ledUnderGlowBuffer{};
+
+        std::function<std::pair<TowerMode, bool>()> m_towerStateIsOnTargetSupplier;
+        std::function<bool()>                       m_isClimbingSupplier;
+        std::function<bool()>                       m_isShootingSupplier;
+        
 };

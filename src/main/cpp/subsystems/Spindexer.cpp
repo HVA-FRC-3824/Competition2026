@@ -10,7 +10,7 @@ Spindexer::Spindexer()
                          true,            // Inverted
                          false,           // Brake mode
                          false,           // Continuous wrap
-                         0.4,             // P
+                         0.2,             // P
                          0.0,             // I
                          0.0,             // D
                          0.0,             // S
@@ -25,7 +25,7 @@ Spindexer::Spindexer()
                          false,           // Inverted
                          false,           // Brake mode
                          false,           // Continuous wrap
-                         0.1,             // P
+                         0.2,             // P
                          0.0,             // I
                          0.0,             // D
                          0.0,             // S
@@ -34,26 +34,19 @@ Spindexer::Spindexer()
                          0_tps,           // Velocity Limit
                          0_tr_per_s_sq);  // Acceleration Limit
 
-    TalonFXConfiguration(&m_kickerFollowerMotor,
-                         20.0_A,          // Maximum Amperage
-                         false,           // Inverted
-                         false,            // Brake mode
-                         false,           // Continuous wrap
-                         0.1,             // P
-                         0.0,             // I
-                         0.0,             // D
-                         0.0,             // S
-                         0.0,             // V
-                         0.0,             // A
-                         0_tps,           // Velocity Limit
-                         0_tr_per_s_sq);  // Acceleration Limit
-
-    // TODO: VERIFY THESE CONFIGS
-    // Set the second motor to follow the other motor
-    m_kickerFollowerMotor.SetControl(
-        ctre::phoenix6::controls::Follower(m_kickerMotor.GetDeviceID(), 
-                                            ctre::phoenix6::signals::MotorAlignmentValue::Opposed)
-    );
+    // TalonFXConfiguration(&m_kickerFollowerMotor,
+    //                      20.0_A,          // Maximum Amperage
+    //                      false,           // Inverted
+    //                      false,            // Brake mode
+    //                      false,           // Continuous wrap
+    //                      0.2,             // P
+    //                      0.0,             // I
+    //                      0.0,             // D
+    //                      0.0,             // S
+    //                      0.0,             // V
+    //                      0.0,             // A
+    //                      0_tps,           // Velocity Limit
+    //                      0_tr_per_s_sq);  // Acceleration Limit
 }
 #pragma endregion
 
@@ -96,6 +89,7 @@ void Spindexer::SetState(SpindexerState newState)
 
     // Set the motor speeds
     m_spinnerMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{spindexerSpeed});
-    m_kickerMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{kickerSpeed});
+    m_kickerMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{kickerSpeed});// Set the second motor to follow the other motor
+    m_kickerFollowerMotor.SetControl(ctre::phoenix6::controls::Follower(m_kickerMotor.GetDeviceID(), ctre::phoenix6::signals::MotorAlignmentValue::Opposed));
 }
 #pragma endregion

@@ -10,7 +10,7 @@ Intake::Intake()
                          false,            // Inverted
                          true,             // Brake mode
                          false,            // Continuous wrap
-                         0.4,              // P gain
+                         0.2,              // P gain
                          0.0,              // I gain
                          0.0,              // D gain
                          0.0,              // S
@@ -24,8 +24,8 @@ Intake::Intake()
                          false,            // Inverted
                          true,             // Brake mode
                          false,            // Continuous wrap
-                         10.0,             // P gain
-                         1.0,              // I gain
+                         0.0, //10.0,             // P gain
+                         0.0, //1.0,              // I gain
                          0.0,              // D gain
                          0.0,              // S
                          0.0,              // V
