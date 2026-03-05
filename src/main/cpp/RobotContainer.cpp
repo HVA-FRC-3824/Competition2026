@@ -32,7 +32,16 @@ RobotContainer::RobotContainer()
     InitializeOperatorControls();
 
     m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetSpeeds()));
-    // m_leds.SetDefaultCommand(SetLedStatus(&m_leds, &m_ledMode));
+    m_leds.SetDefaultCommand(frc2::InstantCommand{[&]() 
+        { 
+            m_leds.SetRobotState(m_tower.GetState().mode, 
+                                 m_climb.GetState() == ClimbState::Deployed, 
+                                 m_spindexer.GetState() == SpindexerState::Spindexing, 
+                                 m_tower.IsOnTarget()); 
+        }, {&m_leds}}
+        .AndThen(SetLedStatus(&m_leds, &m_ledMode))
+    );
+
 }
 #pragma endregion
 
@@ -128,12 +137,12 @@ void RobotContainer::InitializeOperatorControls()
         {constants::controller::B, TowerAimPassZone(&m_tower),                        std::nullopt},
         {constants::controller::Y, TowerIdle(&m_tower),                               TowerAutomatic(&m_tower)},
         {constants::controller::X, TowerManualControl(&m_tower, &m_manualTowerState), std::nullopt},
-        
-        {constants::controller::LeftStickButton,  frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches -= 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState)), std::nullopt},
-        {constants::controller::RightStickButton, frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches += 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState)), std::nullopt},
 
-        {constants::controller::LeftStickButton,  frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches -= 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState)), std::nullopt},
-        {constants::controller::RightStickButton, frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches += 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState)), std::nullopt},
+        {constants::controller::LeftStickButton,  frc2::InstantCommand{[&] { m_tower.TestActuator(-0.2);}, {&m_tower}}.ToPtr(), std::nullopt},
+        {constants::controller::RightStickButton, frc2::InstantCommand{[&] { m_tower.TestActuator(0.2);}, {&m_tower}}.ToPtr(), std::nullopt},
+
+        // {constants::controller::LeftStickButton,  frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches -= 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState)), std::nullopt},
+        // {constants::controller::RightStickButton, frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches += 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState)), std::nullopt},
     };
 
     // Add the bindings to the operator controller

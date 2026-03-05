@@ -4,10 +4,7 @@ using namespace std;
 
 #pragma region Leds (constructor)
 /// @brief Class to support an addressable LED string.
-Leds::Leds(std::function<std::pair<TowerMode, bool>()> towerStateIsOnTargetSupplier, std::function<bool()> isClimbingSupplier, std::function<bool()> isShootingSupplier) : 
-    m_towerStateIsOnTargetSupplier(towerStateIsOnTargetSupplier), 
-    m_isClimbingSupplier(isClimbingSupplier), 
-    m_isShootingSupplier(isShootingSupplier)
+Leds::Leds()
 {
     // Length is expensive to set, so only set it once, then just update data
     m_ledTurret.SetLength(LedConstants::Length);
@@ -26,6 +23,14 @@ Leds::Leds(std::function<std::pair<TowerMode, bool>()> towerStateIsOnTargetSuppl
 }
 #pragma endregion
 
+void Leds::SetRobotState(TowerMode shootingMode, bool isClimbing, bool isShooting, bool isOnTarget)
+{
+    m_towerState = shootingMode;
+    m_isOnTarget = isClimbing;
+    m_isClimbing = isShooting;
+    m_isShooting = isOnTarget;
+}
+
 #pragma region SetMode
 /// @brief Setting the Led's mode to the given parameter.
 /// @param ledMode mode to set the Leds.
@@ -39,36 +44,12 @@ void Leds::SetMode(LedMode ledMode)
 #pragma region SetLeds
 void Leds::SetLeds(frc::LEDPattern turret, std::optional<frc::LEDPattern> underglow)
 {
-    std::array<frc::AddressableLED::LEDData, 15> turretBuffer;
-    turret.ApplyTo(turretBuffer);
+    turret.ApplyTo(m_ledTurretBuffer);
+    underglow.value_or(turret).ApplyTo(m_ledUnderGlowBuffer);
     
-    std::array<frc::AddressableLED::LEDData, 15> underglowBuffer;
-    underglow.value_or(turret).ApplyTo(underglowBuffer);
-    
-    m_ledTurret.SetData(turretBuffer);
-    m_ledUnderGlow.SetData(underglowBuffer);
+    m_ledTurret.SetData(m_ledTurretBuffer);
+    m_ledUnderGlow.SetData(m_ledUnderGlowBuffer);
 }
-// {
-//     std::array<frc::AddressableLED::LEDData, 15> outsideBuffer;
-//     outside.ApplyTo(outsideBuffer);
-    
-//     std::array<frc::AddressableLED::LEDData, 15> insideBuffer;
-//     inside.value_or(outside).ApplyTo(insideBuffer);
-    
-//     // Normal sections
-//     std::copy(outsideBuffer.begin(), outsideBuffer.end(), 
-//               m_ledBuffer.begin());      // left up
-//     std::copy(insideBuffer.begin(), insideBuffer.end(), 
-//               m_ledBuffer.begin() + 15); // middle first
-    
-//     // Mirrored sections
-//     std::reverse_copy(insideBuffer.begin(), insideBuffer.end(), 
-//                       m_ledBuffer.begin() + 30); // middle second (mirrored)
-//     std::reverse_copy(outsideBuffer.begin(), outsideBuffer.end(), 
-//                       m_ledBuffer.begin() + 45); // right down (mirrored)
-    
-//     m_led.SetData(m_ledBuffer);
-// }
 #pragma endregion
 
 #pragma region Periodic
@@ -114,27 +95,58 @@ void Leds::Periodic()
         
         case LedMode::MatchMode:
         {
-            static frc::LEDPattern sidesPattern = m_shootingModeIsClimbing(m_towerStateIsOnTargetSupplier().first, m_isClimbingSupplier());
-            static frc::LEDPattern topPattern   = m_isShootingIsOnTarget  (m_isShootingSupplier(),                 m_towerStateIsOnTargetSupplier().second);
+            static frc::LEDPattern underGlowPattern = frc::LEDPattern::Solid(frc::Color::kBlack);
+            static frc::LEDPattern turretPattern   = frc::LEDPattern::Solid(frc::Color::kBlack);
 
-            static auto lastTowerState = m_towerStateIsOnTargetSupplier();
-            static auto lastIsShooting = m_isShootingSupplier();
-            
-            if (lastTowerState != m_towerStateIsOnTargetSupplier())
+            static auto lastTowerState = m_towerState;
+            static auto lastIsShooting = m_isShooting;
+            static auto lastIsClimbing = m_isClimbing;
+            static auto lastIsOnTarget = m_isOnTarget;
+
+            if (lastTowerState != m_towerState || lastIsClimbing != m_isClimbing)
             {
-                lastTowerState = m_towerStateIsOnTargetSupplier();
-                sidesPattern = m_shootingModeIsClimbing(lastTowerState.first, m_isClimbingSupplier());
-                topPattern   = m_isShootingIsOnTarget  (m_isShootingSupplier(), lastTowerState.second);
+                lastTowerState = m_towerState;
+                lastIsClimbing = m_isClimbing;
+
+                switch (m_towerState)
+                {
+                    case TowerMode::Idle:
+                        underGlowPattern = frc::LEDPattern::Solid(frc::Color::kCyan);
+                        break;
+                    case TowerMode::ManualControl:
+                        underGlowPattern = frc::LEDPattern::Solid(frc::Color::kYellow);
+                        break;
+                    case TowerMode::ShootingToHub:
+                        underGlowPattern = frc::LEDPattern::Solid(frc::Color::kGreen);
+                        break;
+                    case TowerMode::PassingToAdjacentZone:
+                        underGlowPattern = frc::LEDPattern::Solid(frc::Color::kPink);
+                        break;
+                    default:
+                        underGlowPattern = m_scrollingRainbow;
+                        break;
+                }
+                if (m_isClimbing)
+                {
+                    underGlowPattern = underGlowPattern.Blink(500_ms);
+                }
             }
-            else if (lastIsShooting != m_isShootingSupplier())
+
+            if (lastIsShooting != m_isShooting || lastIsOnTarget != m_isOnTarget)
             {
-                lastIsShooting = m_isShootingSupplier();
-                topPattern   = m_isShootingIsOnTarget  (lastIsShooting, lastTowerState.second);
+                lastIsShooting = m_isShooting;
+                lastIsOnTarget = m_isOnTarget;
+
+                turretPattern = m_isOnTarget ? frc::LEDPattern::Solid(frc::Color::kGreen) : frc::LEDPattern::Solid(frc::Color::kRed);
+                if (m_isShooting)
+                {
+                    turretPattern = turretPattern.Blink(250_ms);
+                }
             }
 
             // Set the pattern based on the shooting mode and climbing status
-            SetLeds(sidesPattern, 
-                    topPattern);
+            SetLeds(underGlowPattern, 
+                    turretPattern);
             break;
         }
     }

@@ -72,9 +72,7 @@ class RobotContainer
         Chassis                              m_chassis{};
         Spindexer                            m_spindexer{};
         // Pass in suppliers for the tower state, climbing status, and shooting status
-        // Leds                                 m_leds{[&] {return std::make_pair(m_tower.GetState().mode, m_tower.IsSpunUp());}, 
-        //                                             [&] {return m_climb.GetState() == ClimbState::Deployed ? true : false;}, 
-        //                                             [&] {return m_spindexer.GetState() == SpindexerState::Spindexing && m_tower.IsSpunUp();}};
+        Leds                                 m_leds{};
 
         Tower                                m_tower{[&] {return m_chassis.GetPose();}, [&] {return m_chassis.GetSpeeds();}};
         Climb                                m_climb{};

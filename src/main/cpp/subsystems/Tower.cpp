@@ -75,19 +75,21 @@ TowerState Tower::GetState()
 }
 #pragma endregion
 
-#pragma region IsSpunUp
+#pragma region IsOnTarget
 /// @brief Checks if the flywheel is spun up to the desired speed within tolerance
 /// @return true if the flywheel is spun up, false otherwise
-bool Tower::IsSpunUp()
+bool Tower::IsOnTarget()
 {
-    // Get the current PID error
-    auto pidError = m_flywheelMotor.GetClosedLoopError().GetValueAsDouble();
+    auto flywheelPidError = m_flywheelMotor.GetClosedLoopError().GetValueAsDouble();
+    auto flywheelErrorTolerance = m_flywheelMotor.GetClosedLoopReference().GetValueAsDouble() * TowerConstants::TargetTolerance;
+    auto isSpunUp = std::abs(flywheelPidError) < flywheelErrorTolerance;
 
-    // Calculate the acceptable error tolerance
-    auto errorTolerance = m_flywheelMotor.GetClosedLoopReference().GetValueAsDouble() * TowerConstants::FlywheelTolerance;
+    auto turretPidError = m_turretMotor.GetClosedLoopError().GetValueAsDouble();
+    auto turretErrorTolerance = m_turretMotor.GetClosedLoopReference().GetValueAsDouble() * TowerConstants::TargetTolerance;
+    auto isAimed = std::abs(turretPidError) < turretErrorTolerance;
 
     // Return whether the PID error is within the tolerance
-    return std::abs(pidError) < errorTolerance;
+    return isSpunUp && isAimed;
 }
 #pragma endregion
 
@@ -118,9 +120,6 @@ void Tower::SetActuator(units::inch_t position)
     double actuatorPosition = (position.value() - TowerConstants::MinLength.value()) / TowerConstants::ActuatorDistanceConversionFactor.value();
 	actuatorPosition = std::clamp(actuatorPosition, 0.0, 1.0);
 
-    // TODO: Verify this +1 is correct
-    actuatorPosition += 1;
-
     // Although this says SetSpeed, this actually does position
 	m_hoodActuator.SetSpeed(actuatorPosition);
 }
@@ -136,6 +135,8 @@ void Tower::SetTurretAngle(units::degree_t angle)
     angle = 1_deg * std::fmod(angle.value(), TowerConstants::MaxAngle.value());
     while (angle < TowerConstants::MinAngle)
         angle += 360.0_deg;
+
+    angle = 1_deg * std::clamp(angle.value(), TowerConstants::MinAngle.value(), TowerConstants::MaxAngle.value());
 
     // Convert degrees to rotations (turns) for TalonFX
     units::angle::turn_t rotations{angle.value() / 360.0};

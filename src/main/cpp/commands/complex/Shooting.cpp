@@ -8,7 +8,7 @@
 frc2::CommandPtr ShootToHub(Spindexer *spindexer, Tower *tower)
 {
     // Spin up the tower (which takes 2-4 seconds) then start indexing
-    return TowerAimHub(tower).Until([tower] { return tower->IsSpunUp(); })
+    return TowerAimHub(tower).Until([tower] { return tower->IsOnTarget(); })
         .AndThen(SpindexerSetState(spindexer, SpindexerState::Spindexing));
 }
 #pragma endregion
@@ -21,7 +21,7 @@ frc2::CommandPtr ShootToHub(Spindexer *spindexer, Tower *tower)
 frc2::CommandPtr ShootToZone(Spindexer *spindexer, Tower *tower)
 {
     // Spin up the tower (which takes 2-4 seconds) then start indexing
-    return TowerAimPassZone(tower).Until([tower] { return tower->IsSpunUp(); })
+    return TowerAimPassZone(tower).Until([tower] { return tower->IsOnTarget(); })
         .AndThen(SpindexerSetState(spindexer, SpindexerState::Spindexing));
 }
 #pragma endregion

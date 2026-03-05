@@ -47,7 +47,9 @@ class Leds : public frc2::SubsystemBase
 {
     public:
 
-        explicit Leds(std::function<std::pair<TowerMode, bool>()> towerStateIsOnTargetSupplier, std::function<bool()> isClimbingSupplier, std::function<bool()> isShootingSupplier);
+        explicit Leds();
+
+        void     SetRobotState(TowerMode shootingMode, bool isClimbing, bool isShooting, bool isOnTarget);
 
         void     SetMode(LedMode ledMode);
 
@@ -74,62 +76,15 @@ class Leds : public frc2::SubsystemBase
 
         frc::LEDPattern     m_strobe            = frc::LEDPattern::Solid(frc::Color::kWhite).Blink(LedConstants::StrobeDelay);  
 
-        std::function<frc::LEDPattern(TowerMode, bool)> m_shootingModeIsClimbing = [](TowerMode shootingMode, bool isClimbing) {
-            return frc::LEDPattern{[=](auto data, auto writer) {
-                auto bufLen = data.size();
-                for (size_t i = 0; i < bufLen; i++) 
-                {
-                    if (i % 2 == 0)
-                    {
-                        switch (shootingMode)
-                        {
-                            case TowerMode::ShootingToHub:
-                                writer(i, frc::Color::kRed);
-                                break;
-                            case TowerMode::PassingToAdjacentZone:
-                                writer(i, frc::Color::kBlue);
-                                break;
-                            case TowerMode::Automatic:
-                                writer(i, frc::Color::kCyan);
-                                break;
-                            default:
-                                writer(i, frc::Color::kBlack);
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        writer(i, isClimbing ? frc::Color::kGreen : frc::Color::kBlack);
-                    }
-                }
-            }};
-        };
-        
-        std::function<frc::LEDPattern(bool, bool)> m_isShootingIsOnTarget = [](bool isShooting, bool isOnTarget) {
-            return frc::LEDPattern{[=](auto data, auto writer) {
-                auto bufLen = data.size();
-                for (size_t i = 0; i < bufLen; i++) 
-                {
-                    if (i % 2 == 0)
-                    {
-                        writer(i, isOnTarget ? frc::Color::kGreen : frc::Color::kRed);
-                    }
-                    else
-                    {
-                        writer(i, isShooting ? frc::Color::kYellow : frc::Color::kBlack);
-                    }
-                }
-            }};
-        };
-
         frc::AddressableLED m_ledTurret   {ConstantsPwmPorts::LedTurretPort};
         frc::AddressableLED m_ledUnderGlow{ConstantsPwmPorts::LedUnderGlowPort};
 
         std::array<frc::AddressableLED::LEDData, LedConstants::Length> m_ledTurretBuffer   {};
         std::array<frc::AddressableLED::LEDData, LedConstants::Length> m_ledUnderGlowBuffer{};
 
-        std::function<std::pair<TowerMode, bool>()> m_towerStateIsOnTargetSupplier;
-        std::function<bool()>                       m_isClimbingSupplier;
-        std::function<bool()>                       m_isShootingSupplier;
-        
+        TowerMode m_towerState = TowerMode::Idle;
+        bool      m_isOnTarget = false;
+        bool      m_isClimbing = false;
+        bool      m_isShooting = false;
+         
 };
