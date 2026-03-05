@@ -33,20 +33,6 @@ Spindexer::Spindexer()
                          0.0,             // A
                          0_tps,           // Velocity Limit
                          0_tr_per_s_sq);  // Acceleration Limit
-
-    // TalonFXConfiguration(&m_kickerFollowerMotor,
-    //                      20.0_A,          // Maximum Amperage
-    //                      false,           // Inverted
-    //                      false,            // Brake mode
-    //                      false,           // Continuous wrap
-    //                      0.2,             // P
-    //                      0.0,             // I
-    //                      0.0,             // D
-    //                      0.0,             // S
-    //                      0.0,             // V
-    //                      0.0,             // A
-    //                      0_tps,           // Velocity Limit
-    //                      0_tr_per_s_sq);  // Acceleration Limit
 }
 #pragma endregion
 

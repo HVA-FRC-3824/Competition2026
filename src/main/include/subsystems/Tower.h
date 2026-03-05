@@ -65,7 +65,7 @@ namespace TowerConstants
     constexpr auto ActuatorLowerBound = -0.95;      // Comes from 102 too
     constexpr auto ActuatorUpperBound =  0.95;
 
-    constexpr auto TargetTolerance  = 0.10;       // Percent of the target
+    constexpr auto TargetTolerance    = 0.10;       // Percent of the target
 
     constexpr auto HoodA              = -0.0007;
     constexpr auto HoodB              =  0.045;

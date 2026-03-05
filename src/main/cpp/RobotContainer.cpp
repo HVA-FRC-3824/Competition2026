@@ -50,19 +50,19 @@ RobotContainer::RobotContainer()
 void RobotContainer::InitializePathPlanner()
 {
     // Register Commands
-    pathplanner::NamedCommands::registerCommand("Shoot All",     std::move(ShootToHub(&m_spindexer, &m_tower)));
-    pathplanner::NamedCommands::registerCommand("Stop Shooting", std::move(SpindexerSetState(&m_spindexer, SpindexerState::Stopped)));
+    pathplanner::NamedCommands::registerCommand("Shoot All",        std::move(ShootToHub(&m_spindexer, &m_tower)));
+    pathplanner::NamedCommands::registerCommand("Stop Shooting",    std::move(SpindexerSetState(&m_spindexer, SpindexerState::Stopped)));
 
-    pathplanner::NamedCommands::registerCommand("Spin Up For Hub", std::move(TowerAimHub(&m_tower)));
+    pathplanner::NamedCommands::registerCommand("Spin Up For Hub",  std::move(TowerAimHub(&m_tower)));
     pathplanner::NamedCommands::registerCommand("Spin Up For Zone", std::move(TowerAimPassZone(&m_tower)));
 
-    pathplanner::NamedCommands::registerCommand("Deploy Intake", std::move(IntakeSetState(&m_intake, IntakeState::DeployedRollerOn)));
-    pathplanner::NamedCommands::registerCommand("Stow Intake", std::move(IntakeSetState(&m_intake, IntakeState::Stowed)));
+    pathplanner::NamedCommands::registerCommand("Deploy Intake",    std::move(IntakeSetState(&m_intake, IntakeState::DeployedRollerOn)));
+    pathplanner::NamedCommands::registerCommand("Stow Intake",      std::move(IntakeSetState(&m_intake, IntakeState::Stowed)));
 
-    pathplanner::NamedCommands::registerCommand("Deploy Climb", std::move(ClimbDeploy(&m_climb)));
-    pathplanner::NamedCommands::registerCommand("Retract Climb", std::move(ClimbRetract(&m_climb)));
+    pathplanner::NamedCommands::registerCommand("Deploy Climb",     std::move(ClimbDeploy(&m_climb)));
+    pathplanner::NamedCommands::registerCommand("Retract Climb",    std::move(ClimbRetract(&m_climb)));
 
-    pathplanner::NamedCommands::registerCommand("X MODE", std::move(ChassisXMode(&m_chassis)));
+    pathplanner::NamedCommands::registerCommand("X MODE",           std::move(ChassisXMode(&m_chassis)));
 
     // Send the Auto-Chooser
     m_autoChooser = pathplanner::AutoBuilder::buildAutoChooser();
@@ -75,30 +75,33 @@ void RobotContainer::InitializePathPlanner()
 void RobotContainer::InitializeDriverControls()
 {
     /// *** Bindings *** ///
-    // A - Zeros the gyro heading
-    // B - Toggles between field centric and robot centric driving
-    // X - Locks the chassis in a defensive position
-    // Y - Retracts the climb mechanism, double tap to deploy
-    // Left Bumper  - Deploy the intake mechanism, double tap to retract
-    // Right Bumper - start the spindexer mechanism, double tap to retract
+    // A            - Zeros the gyro heading
+    // B            - Toggles between field centric and robot centric driving
+    // X            - Locks the chassis in a defensive position
+    // Y            - Retracts the climb mechanism, double tap to deploy
+    // Right Bumper - Deploy the intake mechanism, double tap to retract
+    // Left Bumper  - Start spindexer, double tap to stop
 
     // A tuple of a button, a press once command, and a double-tap command
     std::tuple<Button, frc2::CommandPtr, std::optional<frc2::CommandPtr>> driverBindings[] =
     {
         // Chassis heading controls
-        {constants::controller::A, ChassisZeroHeading(&m_chassis),  std::nullopt},
-        {constants::controller::B, ToggleFieldCentricity(&m_chassis), std::nullopt},
+        {constants::controller::A,          ChassisZeroHeading(&m_chassis),    std::nullopt},
+        {constants::controller::B,          ToggleFieldCentricity(&m_chassis), std::nullopt},
+
         // Chassis module controls
-        {constants::controller::X, ChassisXMode(&m_chassis),        std::nullopt},
+        {constants::controller::X,          ChassisXMode(&m_chassis),          std::nullopt},
 
         // Climb controls
-        {constants::controller::Y,  ClimbRetract(&m_climb),  ClimbDeploy(&m_climb)},
+        {constants::controller::Y,          ClimbRetract(&m_climb), ClimbDeploy(&m_climb)},
 
         // Intake controls
-        {constants::controller::RightBumper, IntakeSetState(&m_intake, IntakeState::DeployedRollerOn), IntakeSetState(&m_intake, IntakeState::Stowed)},
+        {constants::controller::RightBumper, IntakeSetState(&m_intake, IntakeState::DeployedRollerOn),
+                                             IntakeSetState(&m_intake, IntakeState::Stowed)},
     
         // Spindexer Controls
-        {constants::controller::LeftBumper, SpindexerSetState(&m_spindexer, SpindexerState::Spindexing), SpindexerSetState(&m_spindexer, SpindexerState::Stopped)}
+        {constants::controller::LeftBumper,  SpindexerSetState(&m_spindexer, SpindexerState::Spindexing),
+                                             SpindexerSetState(&m_spindexer, SpindexerState::Stopped)}
     };
 
     // Add the bindings to the driver controller
@@ -109,7 +112,6 @@ void RobotContainer::InitializeDriverControls()
         .MultiPress(2, 0.4_s)
             .OnTrue(twice.has_value() ? std::move(twice.value()) : frc2::cmd::None());
     }
-
 }
 #pragma endregion
 
@@ -121,7 +123,8 @@ void RobotContainer::InitializeOperatorControls()
     // B - Aim the tower to pass to our alliance zone
     // Y - Idles the tower, double tap to make the tower automatic based on the current position of the bot
     // X - Aims the tower based on manual parameters
-    // * Manual Controls * //
+    //
+    // *** Manual Controls ***
     // Left Stick Button  - Lower the hood
     // Right Stick Button - Raise the hood
     // Up POV             - Increases flywheel speed

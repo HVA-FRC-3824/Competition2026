@@ -71,6 +71,7 @@ class RobotContainer
         // Instantiate the robot subsystems
         Chassis                              m_chassis{};
         Spindexer                            m_spindexer{};
+
         // Pass in suppliers for the tower state, climbing status, and shooting status
         Leds                                 m_leds{};
 
