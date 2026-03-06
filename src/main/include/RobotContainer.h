@@ -52,35 +52,31 @@ class RobotContainer
         // Private class constructor to configure the robot and SmartDashboard configuration
         RobotContainer();
 
-        void                                 InitializePathPlanner();
-        void                                 InitializeDriverControls();
-        void                                 InitializeOperatorControls();
+        void                                  InitializePathPlanner();
+        void                                  InitializeDriverControls();
+        void                                  InitializeOperatorControls();
+ 
+        std::function<frc::ChassisSpeeds()>   GetSpeeds();
 
-        std::function<frc::ChassisSpeeds()>  GetSpeeds();
-
-        double                               GetExponentialValue(double joystickValue, double exponent);
+        double                                GetExponentialValue(double joystickValue, double exponent);
 
         // Static pointer to singleton instance
-        static RobotContainer               *m_robotContainer;
+        static RobotContainer                *m_robotContainer;
 
-        frc::XboxController                  m_driveController   {constants::controller::DrivePort};
-        frc::XboxController                  m_operatorController{constants::controller::OperatorPort};
+        frc::SendableChooser<frc2::Command *> m_autoChooser;
 
-        frc::SendableChooser<frc2::Command*> m_autoChooser;
+        frc::XboxController                   m_driveController   {constants::controller::DrivePort};
+        frc::XboxController                   m_operatorController{constants::controller::OperatorPort};
 
         // Instantiate the robot subsystems
-        Chassis                              m_chassis{};
-        Spindexer                            m_spindexer{};
-
-        // Pass in suppliers for the tower state, climbing status, and shooting status
-        Leds                                 m_leds{};
-
-        Tower                                m_tower{[&] {return m_chassis.GetPose();}, [&] {return m_chassis.GetSpeeds();}};
-        Climb                                m_climb{};
-        Intake                               m_intake{};
+        Chassis   m_chassis{};
+        Spindexer m_spindexer{};
+        Leds      m_leds{};
+        Tower     m_tower{[&] {return m_chassis.GetPose();}, [&] {return m_chassis.GetSpeeds();}};
+        Climb     m_climb{};
+        Intake    m_intake{};
 
         // Instantiate subsystem states
-        TowerState                           m_manualTowerState{TowerMode::ManualControl, 0_deg, 10_rpm, TowerConstants::MinLength};
-
-        LedMode                              m_ledMode{LedMode::MatchMode};
+        TowerState m_manualTowerState{TowerMode::ManualControl, 0_deg, 10_rpm, TowerConstants::MinLength};
+        LedMode    m_ledMode{LedMode::MatchMode};
 };

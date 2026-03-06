@@ -15,6 +15,8 @@
 #include <frc/apriltag/AprilTagFieldLayout.h>
 #include <frc/RobotBase.h>
 
+#include "lib/Logging.h"
+
 #include "Constants.h"
 #pragma endregion
 

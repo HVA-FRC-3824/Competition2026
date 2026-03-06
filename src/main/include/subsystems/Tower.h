@@ -78,7 +78,7 @@ namespace TowerConstants
     // From inches to 0-1 range
     constexpr auto ActuatorDistanceConversionFactor = (TowerConstants::MaxLength - TowerConstants::MinLength);
 
-    constexpr auto TurretGearReduction              = 24; // The gearbox is a 4:1 reduction, and then a pulley, and then a small gear and a big gear
+    constexpr auto TurretGearReduction              = 24.0; // The gearbox is a 4:1 reduction, and then a pulley, and then a small gear and a big gear
 
     constexpr auto OffsetTurretFromRobotCenter      = frc::Transform3d{frc::Translation3d{0.0_m, 0.0_m, 0.0_m}, frc::Rotation3d{0.0_deg, 0.0_deg, 0.0_deg}};    
 }
@@ -97,7 +97,7 @@ class Tower : public frc2::SubsystemBase
 
         void             AimUsingTurretCamera(bool usingTurretCamera) { m_usingTurretCamera = usingTurretCamera; }
 
-        void             TestActuator(double position) { m_hoodActuator.SetSpeed(position); }
+        void             TestActuator(double position) { m_hoodActuator.SetPosition(position); }
 
         void             Periodic() override;
 

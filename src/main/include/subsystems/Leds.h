@@ -77,14 +77,22 @@ class Leds : public frc2::SubsystemBase
         frc::LEDPattern     m_strobe            = frc::LEDPattern::Solid(frc::Color::kWhite).Blink(LedConstants::StrobeDelay);  
 
         frc::AddressableLED m_ledTurret   {ConstantsPwmPorts::LedTurretPort};
-        frc::AddressableLED m_ledUnderGlow{ConstantsPwmPorts::LedUnderGlowPort};
+        // frc::AddressableLED m_ledUnderGlow{ConstantsPwmPorts::LedUnderGlowPort};
 
         std::array<frc::AddressableLED::LEDData, LedConstants::Length> m_ledTurretBuffer   {};
         std::array<frc::AddressableLED::LEDData, LedConstants::Length> m_ledUnderGlowBuffer{};
+
+        frc::LEDPattern underGlowPattern = frc::LEDPattern::Solid(frc::Color::kBlack);
+        frc::LEDPattern turretPattern   = frc::LEDPattern::Solid(frc::Color::kBlack);
 
         TowerMode m_towerState = TowerMode::Idle;
         bool      m_isOnTarget = false;
         bool      m_isClimbing = false;
         bool      m_isShooting = false;
+        
+        TowerMode lastTowerState = m_towerState;
+        bool      lastIsShooting = m_isShooting;
+        bool      lastIsClimbing = m_isClimbing;
+        bool      lastIsOnTarget = m_isOnTarget;
          
 };

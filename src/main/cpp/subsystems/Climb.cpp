@@ -60,12 +60,3 @@ void Climb::SetState(ClimbState state)
     m_climbMotor.SetControl(ctre::phoenix6::controls::PositionDutyCycle(rotations));
 }
 #pragma endregion
-
-#pragma region SetMotor
-/// @brief Sets the climb motor to a specific position, TODO: remove, this should only be used for testing
-void Climb::SetMotor(units::turn_t rotations)
-{
-    // Set the climb motor to the desired position
-    m_climbMotor.SetControl(ctre::phoenix6::controls::PositionVoltage(rotations));
-}
-#pragma endregion

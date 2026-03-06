@@ -62,20 +62,18 @@ void VisionPose::Periodic()
             visionEst = m_photonEstimator.EstimateLowestAmbiguityPose(result);
         }
 
-        frc::SmartDashboard::PutBoolean("Vision is being called ", true);
+        Log("Vision is being called ", true);
 
         // In sim only, add our vision estimate to the sim debug field
         if (frc::RobotBase::IsSimulation()) 
         {
             if (visionEst)
             {
-                GetSimDebugField()
-                .GetObject("VisionEstimation")
-                ->SetPose(visionEst->estimatedPose.ToPose2d());
+                Log("VisionEstimation", visionEst->estimatedPose.ToPose2d());
             } 
             else 
             {
-                GetSimDebugField().GetObject("VisionEstimation")->SetPoses({});
+                Log("VisionEstimation", frc::Pose2d{});
             }
         }
 
@@ -93,7 +91,7 @@ void VisionPose::Periodic()
             }
             else
             {
-                frc::SmartDashboard::PutNumber("Pose Ambiguity ", visionEst.value().targetsUsed[0].poseAmbiguity);
+                Log("Pose Ambiguity ", visionEst.value().targetsUsed[0].poseAmbiguity);
 
                 // First time seeing an AprilTag, only reset pose if ambiguity is low
                 if (result.targets[0].poseAmbiguity < 0.2)

@@ -13,7 +13,7 @@
 
 #include <frc/Timer.h>
 
-#include "frc/smartdashboard/SmartDashboard.h"
+#include "lib/Logging.h"
 
 #include <ctre/phoenix6/TalonFX.hpp>
 #pragma endregion

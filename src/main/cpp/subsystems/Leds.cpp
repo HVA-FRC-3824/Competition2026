@@ -8,18 +8,18 @@ Leds::Leds()
 {
     // Length is expensive to set, so only set it once, then just update data
     m_ledTurret.SetLength(LedConstants::Length);
-    m_ledUnderGlow.SetLength(LedConstants::Length);
+    // m_ledUnderGlow.SetLength(LedConstants::Length);
 
     // Set the default mode
     SetMode(LedMode::Off);
 
     // Intialize the LED data
     m_ledTurret.SetData(m_ledTurretBuffer);
-    m_ledUnderGlow.SetData(m_ledUnderGlowBuffer);
+    // m_ledUnderGlow.SetData(m_ledUnderGlowBuffer);
 
     // Start the addressable LED communications
     m_ledTurret.Start();
-    m_ledUnderGlow.Start();
+    // m_ledUnderGlow.Start();
 }
 #pragma endregion
 
@@ -48,7 +48,7 @@ void Leds::SetLeds(frc::LEDPattern turret, std::optional<frc::LEDPattern> underg
     underglow.value_or(turret).ApplyTo(m_ledUnderGlowBuffer);
     
     m_ledTurret.SetData(m_ledTurretBuffer);
-    m_ledUnderGlow.SetData(m_ledUnderGlowBuffer);
+    // m_ledUnderGlow.SetData(m_ledUnderGlowBuffer);
 }
 #pragma endregion
 
@@ -95,14 +95,6 @@ void Leds::Periodic()
         
         case LedMode::MatchMode:
         {
-            static frc::LEDPattern underGlowPattern = frc::LEDPattern::Solid(frc::Color::kBlack);
-            static frc::LEDPattern turretPattern   = frc::LEDPattern::Solid(frc::Color::kBlack);
-
-            static auto lastTowerState = m_towerState;
-            static auto lastIsShooting = m_isShooting;
-            static auto lastIsClimbing = m_isClimbing;
-            static auto lastIsOnTarget = m_isOnTarget;
-
             if (lastTowerState != m_towerState || lastIsClimbing != m_isClimbing)
             {
                 lastTowerState = m_towerState;

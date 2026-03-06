@@ -246,7 +246,7 @@ void Chassis::Periodic()
     else
     {
         // This also updates the pose estimator with vision as well as updating photonvisions internal estimators
-        m_vision.Periodic();
+        m_topVision.Periodic();
     }
 
     /// *** Logging *** ///

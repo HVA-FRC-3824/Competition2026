@@ -1,5 +1,16 @@
 #include "RobotContainer.h"
 
+// Add the bindings to the driver controller
+#define ADD_BINDINGS(bindings) for (auto& [button, once, twice] : bindings)                                       \
+                               {                                                                                  \
+                                   frc2::JoystickButton(&m_driveController, int(button)).Debounce(70_ms)          \
+                                       .OnTrue(std::move(once))                                                   \
+                                   .MultiPress(2, 0.4_s)                                                          \
+                                       .OnTrue(twice.has_value() ? std::move(twice.value()) : frc2::cmd::None()); \
+                               }                                                                                  \
+
+#define PATHFINDER_COMMAND(name, command) pathplanner::NamedCommands::registerCommand(name, std::move(command));
+
 // Reference to the RobotContainer singleton class
 RobotContainer *RobotContainer::m_robotContainer = nullptr;
 
@@ -42,6 +53,7 @@ RobotContainer::RobotContainer()
         .AndThen(SetLedStatus(&m_leds, &m_ledMode))
     );
 
+    m_tower.TestActuator(-0.7);
 }
 #pragma endregion
 
@@ -50,19 +62,15 @@ RobotContainer::RobotContainer()
 void RobotContainer::InitializePathPlanner()
 {
     // Register Commands
-    pathplanner::NamedCommands::registerCommand("Shoot All",        std::move(ShootToHub(&m_spindexer, &m_tower)));
-    pathplanner::NamedCommands::registerCommand("Stop Shooting",    std::move(SpindexerSetState(&m_spindexer, SpindexerState::Stopped)));
-
-    pathplanner::NamedCommands::registerCommand("Spin Up For Hub",  std::move(TowerAimHub(&m_tower)));
-    pathplanner::NamedCommands::registerCommand("Spin Up For Zone", std::move(TowerAimPassZone(&m_tower)));
-
-    pathplanner::NamedCommands::registerCommand("Deploy Intake",    std::move(IntakeSetState(&m_intake, IntakeState::DeployedRollerOn)));
-    pathplanner::NamedCommands::registerCommand("Stow Intake",      std::move(IntakeSetState(&m_intake, IntakeState::Stowed)));
-
-    pathplanner::NamedCommands::registerCommand("Deploy Climb",     std::move(ClimbDeploy(&m_climb)));
-    pathplanner::NamedCommands::registerCommand("Retract Climb",    std::move(ClimbRetract(&m_climb)));
-
-    pathplanner::NamedCommands::registerCommand("X MODE",           std::move(ChassisXMode(&m_chassis)));
+    PATHFINDER_COMMAND("Shoot All",        ShootToHub(&m_spindexer, &m_tower));
+    PATHFINDER_COMMAND("Stop Shooting",    SpindexerSetState(&m_spindexer, SpindexerState::Stopped));
+    PATHFINDER_COMMAND("Spin Up For Hub",  TowerAimHub(&m_tower));
+    PATHFINDER_COMMAND("Spin Up For Zone", TowerAimPassZone(&m_tower));
+    PATHFINDER_COMMAND("Deploy Intake",    IntakeSetState(&m_intake, IntakeState::DeployedRollerOn));
+    PATHFINDER_COMMAND("Stow Intake",      IntakeSetState(&m_intake, IntakeState::Stowed));
+    PATHFINDER_COMMAND("Deploy Climb",     ClimbDeploy(&m_climb));
+    PATHFINDER_COMMAND("Retract Climb",    ClimbRetract(&m_climb));
+    PATHFINDER_COMMAND("X MODE",           ChassisXMode(&m_chassis));
 
     // Send the Auto-Chooser
     m_autoChooser = pathplanner::AutoBuilder::buildAutoChooser();
@@ -105,13 +113,9 @@ void RobotContainer::InitializeDriverControls()
     };
 
     // Add the bindings to the driver controller
-    for (auto& [button, once, twice] : driverBindings)
-    {
-        frc2::JoystickButton(&m_driveController, int(button)).Debounce(50_ms)
-            .OnTrue(std::move(once))
-        .MultiPress(2, 0.4_s)
-            .OnTrue(twice.has_value() ? std::move(twice.value()) : frc2::cmd::None());
-    }
+    ADD_BINDINGS(driverBindings)
+    
+
 }
 #pragma endregion
 
@@ -123,7 +127,7 @@ void RobotContainer::InitializeOperatorControls()
     // B - Aim the tower to pass to our alliance zone
     // Y - Idles the tower, double tap to make the tower automatic based on the current position of the bot
     // X - Aims the tower based on manual parameters
-    //
+    
     // *** Manual Controls ***
     // Left Stick Button  - Lower the hood
     // Right Stick Button - Raise the hood
@@ -149,24 +153,17 @@ void RobotContainer::InitializeOperatorControls()
     };
 
     // Add the bindings to the operator controller
-    for (auto& [button, once, twice] : operatorBindings)
-    {
-        frc2::JoystickButton(&m_driveController, int(button)).Debounce(50_ms)
-            .OnTrue(std::move(once))
-        .MultiPress(2, 0.4_s)
-            .OnTrue(twice.has_value() ? std::move(twice.value()) : frc2::cmd::None());
-    }
+    ADD_BINDINGS(operatorBindings)
 
     // Operator POV controls
     std::pair<int, frc2::CommandPtr> operatorPOVBindings[] =
     {
         // Manual tower controls
         {constants::controller::Pov_0,   frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed += 10_rpm;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
-        {constants::controller::Pov_90,  frc2::InstantCommand{[&] { m_manualTowerState.turretAngle += 10_deg;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
+        {constants::controller::Pov_90,  frc2::InstantCommand{[&] { m_manualTowerState.turretAngle += 5_deg;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
 
         {constants::controller::Pov_180, frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed -= 10_rpm;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
         {constants::controller::Pov_270, frc2::InstantCommand{[&] { m_manualTowerState.turretAngle -= 10_deg;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
-
     };
 
     for (auto& [direction, command] : operatorPOVBindings)

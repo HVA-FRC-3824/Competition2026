@@ -47,8 +47,6 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
     m_hoodActuator.SetBounds(2.0_us, 1.8_us, 1.5_us, 1.2_us, 1.0_us);
 
     m_turretMotor.SetPosition(0.0_tr);
-    
-    frc::SmartDashboard::PutData("Tower", &m_logMechanism);
 }
 #pragma endregion
 
@@ -117,7 +115,7 @@ void Tower::SetActuator(units::inch_t position)
     position = std::clamp(position, TowerConstants::MinLength, TowerConstants::MaxLength);
 
     // Convert position in inches to actuator position (0-1)
-    double actuatorPosition = (position.value() - TowerConstants::MinLength.value()) / TowerConstants::ActuatorDistanceConversionFactor.value();
+    double actuatorPosition = (position - TowerConstants::MinLength) / TowerConstants::ActuatorDistanceConversionFactor;
 	actuatorPosition = std::clamp(actuatorPosition, 0.0, 1.0);
 
     // Although this says SetSpeed, this actually does position
@@ -136,10 +134,11 @@ void Tower::SetTurretAngle(units::degree_t angle)
     while (angle < TowerConstants::MinAngle)
         angle += 360.0_deg;
 
-    angle = 1_deg * std::clamp(angle.value(), TowerConstants::MinAngle.value(), TowerConstants::MaxAngle.value());
+    // Clamp to available degrees
+    angle = std::clamp(angle, TowerConstants::MinAngle, TowerConstants::MaxAngle);
 
     // Convert degrees to rotations (turns) for TalonFX
-    units::angle::turn_t rotations{angle.value() / 360.0};
+    units::angle::turn_t rotations{angle * (1_tr / 360.0_deg)};
 
     // Set the motor to the desired position
     m_turretMotor.SetControl(ctre::phoenix6::controls::PositionVoltage{rotations * TowerConstants::TurretGearReduction});
@@ -174,7 +173,8 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relative
     // Predict where the target will be in 0.5 seconds using frc::Twist2d
     // Add that to the distance to target
     frc::Pose2d  newRelativeDistance = frc::Pose2d{relativeDistance, 0_deg};
-    frc::Twist2d changeInPosition    = speed.ToTwist2d(0.5_s); 
+    frc::Twist2d changeInPosition    = speed.ToTwist2d(0.5_s);
+    
     newRelativeDistance = newRelativeDistance.TransformBy(frc::Transform2d{changeInPosition.dx, changeInPosition.dy, changeInPosition.dtheta});
 
     // Calculate turret angle
@@ -186,13 +186,12 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relative
     else
     {
         // Adjust turret angle based on predicted target position
+        // NOTE: I would use the gcem atan2 function, but whether it uses radians or degrees is ambiguous 
+        // and the return type is arbitrary, also gcem seem
         newState.turretAngle = 57.2958_deg * std::atan2(newRelativeDistance.Y().value(), newRelativeDistance.X().value());
     }
 
-    // Adjust the angle based on the robot's movement
-    newState.turretAngle += newRelativeDistance.Rotation().Degrees();
-
-    units::meter_t distance = units::meter_t{std::abs(newRelativeDistance.Translation().Norm().value())};
+    units::meter_t distance{std::abs(newRelativeDistance.Translation().Norm().value())};
 
     // TODO: remove after testing
     distance = 20_m;
@@ -239,7 +238,7 @@ double Tower::CalculatePolynomial(units::meter_t distance, double a, double b, d
 ///
 void Tower::Periodic()
 {
-    frc::SmartDashboard::PutNumber("Turret Mode", m_state.mode);
+    Log("Turret Mode", m_state.mode);
 
     // Update the chassis current pose and speed
     auto chassisPose  = m_chassisPoseSupplier();
@@ -299,28 +298,28 @@ void Tower::Periodic()
                     // Get a list of currently tracked targets.
                     for (auto target : result.GetTargets())
                     {
-                        frc::SmartDashboard::PutNumber("ID", target.fiducialId);
+                        Log("ID", target.fiducialId);
         
                         // Camera offset angles (small values - how far target is from camera center)
-                        frc::SmartDashboard::PutNumber("Camera Offset Skew",  target.GetSkew());
-                        frc::SmartDashboard::PutNumber("Camera Offset Pitch", target.GetPitch());
-                        frc::SmartDashboard::PutNumber("Camera Offset Yaw",   target.GetYaw());
+                        Log("Camera Offset Skew",  target.GetSkew());
+                        Log("Camera Offset Pitch", target.GetPitch());
+                        Log("Camera Offset Yaw",   target.GetYaw());
         
                         // Extract the x and y distances to the target
                         frc::Transform3d tracketTarget = target.GetBestCameraToTarget();
-                        frc::SmartDashboard::PutNumber("Distance X", tracketTarget.X().value());
-                        frc::SmartDashboard::PutNumber("Distance Y", tracketTarget.Y().value());
-                        frc::SmartDashboard::PutNumber("Distance Z", tracketTarget.Z().value());
+                        Log("Distance X", tracketTarget.X().value());
+                        Log("Distance Y", tracketTarget.Y().value());
+                        Log("Distance Z", tracketTarget.Z().value());
         
                         // Target orientation in space (what PhotonVision UI shows)
                         auto rotation = tracketTarget.Rotation();
-                        frc::SmartDashboard::PutNumber("Target Roll (X)",  rotation.X().convert<units::degrees>().value());
-                        frc::SmartDashboard::PutNumber("Target Pitch (Y)", rotation.Y().convert<units::degrees>().value());
-                        frc::SmartDashboard::PutNumber("Target Yaw (Z)",   rotation.Z().convert<units::degrees>().value());
+                        Log("Target Roll (X)",  rotation.X().convert<units::degrees>().value());
+                        Log("Target Pitch (Y)", rotation.Y().convert<units::degrees>().value());
+                        Log("Target Yaw (Z)",   rotation.Z().convert<units::degrees>().value());
                     
                         // Additional debug info
-                        frc::SmartDashboard::PutNumber("Area",      target.GetArea());
-                        frc::SmartDashboard::PutNumber("Ambiguity", target.GetPoseAmbiguity());
+                        Log("Area",      target.GetArea());
+                        Log("Ambiguity", target.GetPoseAmbiguity());
         
                         // Translate the actual target to be behind the AprilTag
                         // The AprilTag's X-axis points out from the tag, so we translate along -X to go "behind" it
@@ -329,14 +328,14 @@ void Tower::Periodic()
         
                         // Get the 2D distance to the actual hub target
                         frc::Translation2d hubDistance = cameraToHub.Translation().ToTranslation2d();
-                        frc::SmartDashboard::PutNumber("Hub Distance X",    hubDistance.X().value());
-                        frc::SmartDashboard::PutNumber("Hub Distance Y",    hubDistance.Y().value());
-                        frc::SmartDashboard::PutNumber("Hub Distance Norm", hubDistance.Norm().value());
+                        Log("Hub Distance X",    hubDistance.X().value());
+                        Log("Hub Distance Y",    hubDistance.Y().value());
+                        Log("Hub Distance Norm", hubDistance.Norm().value());
         
                         // Calculate the turret angle needed to aim at the hub
                         // atan2(Y, X) gives the angle from turret centerline to the hub
                         units::degree_t turretAngle = units::math::atan2(hubDistance.Y(), hubDistance.X());
-                        frc::SmartDashboard::PutNumber("Turret Angle to Hub (deg)", turretAngle.value());
+                        Log("Turret Angle to Hub (deg)", turretAngle.value());
         
                         // Rotate the turret
                         m_state.turretAngle = turretAngle - GetTurretAngle();
@@ -401,25 +400,19 @@ void Tower::Periodic()
     // Set flywheel speed and hood actuator position
     SetFlywheel(m_state.flywheelSpeed);
     SetActuator(m_state.hoodActuatorInches);
-
-    /// *** Update logging *** ///
-
-    Log("Hood Length ", m_state.hoodActuatorInches.value());
-    Log("Flywheel Speed ", m_state.flywheelSpeed.value());
-    Log("Turret Angle ", m_state.turretAngle.value());
-
-    // Set the hood representation
-    m_logHoodFlywheel->SetAngle(std::clamp(m_state.hoodActuatorInches.value(), TowerConstants::MinLength.value(), TowerConstants::MaxLength.value()) * 1_deg);
     
-    // Set the flywheel representation
-    // I assume that the flywheelSpeed will be 7000-3000 rpm
-    m_logHoodFlywheel->SetLength((m_state.flywheelSpeed.value() / 1000));
-
-    // Set the turret angle representation
-    m_logTurret->SetAngle(m_state.turretAngle);
-
     // If its in automatic mode, prepare the state for the next cycle
     if (isAutomatic)
         m_state.mode = TowerMode::Automatic;
+
+    /// *** Update logging *** ///
+
+    Log("Desired Hood Length ", m_state.hoodActuatorInches.value());
+    Log("Desired Flywheel Speed ", m_state.flywheelSpeed.value());
+    Log("Desired Turret Angle ", m_state.turretAngle.value());
+
+    // Log("Measured Hood Length ", ); TODO: simulate hood speeds
+    Log("Measured Flywheel Speed ", m_flywheelMotor.GetVelocity().GetValueAsDouble());
+    Log("Measured Turret Angle ", m_turretMotor.GetPosition().GetValueAsDouble() / TowerConstants::TurretGearReduction);
 }
 #pragma endregion

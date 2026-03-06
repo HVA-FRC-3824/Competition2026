@@ -88,7 +88,7 @@ void TalonFXConfiguration(ctre::phoenix6::hardware::TalonFX *motor,
         std::cerr << "***** ERROR: Could not configure TalonFX motor (CAN ID: " 
                     << motor->GetDeviceID() << "). Error: " << status.GetName() 
                     << " (" << status.GetDescription() << ")" << std::endl;
-        frc::SmartDashboard::PutString("TalonFXConfigError" + std::to_string(motor->GetDeviceID()), 
+        Log("TalonFXConfigError" + std::to_string(motor->GetDeviceID()), 
             "Error configuring TalonFX: ");
     }
     else

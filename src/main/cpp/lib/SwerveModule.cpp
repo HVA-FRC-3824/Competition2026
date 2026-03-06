@@ -66,20 +66,19 @@ SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEn
 /// @param description String to show the module state on the SmartDashboard.
 void SwerveModule::SetDesiredState(frc::SwerveModuleState &desiredState, std::string description)
 {
-    frc::SmartDashboard::PutNumber(description + "Drive", (double) desiredState.speed.value());
-    frc::SmartDashboard::PutNumber(description + "Angle", (double) desiredState.angle.Degrees().value());
+    Log(description + "Drive", desiredState.speed.value());
+    Log(description + "Angle", desiredState.angle.Degrees().value());
 
     // Optimize the reference state to avoid spinning further than 90 degrees
     desiredState.Optimize(GetPosition().angle);
 
     // Convert angle to motor posiition (1.0 turn = 360 degrees)
-    m_angleMotor.SetControl(ctre::phoenix6::controls::PositionDutyCycle((units::turn_t) (desiredState.angle.Degrees().value() / 360.0)));
+    m_angleMotor.SetControl(ctre::phoenix6::controls::PositionDutyCycle(desiredState.angle.Degrees() / (360_deg / 1_tr)));
 
     // Convert wheel linear velocity to motor rotations per second						   
-    m_driveMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage((units::angular_velocity::turns_per_second_t)
-                           (desiredState.speed.value() / SwerveConstants::DriveMotorConversion.value())));
+    m_driveMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage( (desiredState.speed * (1_tr / SwerveConstants::DriveMotorConversion)) ));
 
-    Log(description + "Absolute Encoder ", (double) m_angleAbsoluteEncoder.GetAbsolutePosition().GetValue() * 360.0);
+    Log(description + "Absolute Encoder ", (m_angleAbsoluteEncoder.GetAbsolutePosition().GetValue() * (360.0_deg / 1_tr)).value());
 }
 #pragma endregion
 
@@ -88,15 +87,9 @@ void SwerveModule::SetDesiredState(frc::SwerveModuleState &desiredState, std::st
 /// @return The swerve module speed and angle state.
 frc::SwerveModuleState SwerveModule::GetState()
 {
-    // if (frc::RobotBase::IsSimulation())
-    //     return {
-    //         1_mps * m_driveMotor.GetVelocity().value(),
-    //         1_rad * m_angleMotor.GetPosition().value()
-    //     };
-
     // Determine the module wheel velocity
-    auto driveVelocity = units::meters_per_second_t {(double) m_driveMotor.GetVelocity().GetValue()  * SwerveConstants::DriveMotorConversion.value()};
-    auto anglePosition = units::degree_t{           ((double) m_angleMotor.GetPosition().GetValue()) * 360.0_deg};
+    auto driveVelocity = m_driveMotor.GetVelocity().GetValue() * (SwerveConstants::DriveMotorConversion / 1_tr);
+    auto anglePosition = m_angleMotor.GetPosition().GetValue() * (360.0_deg / 1_tr);
 
     // Return the swerve module state
     return {driveVelocity, anglePosition};
@@ -109,8 +102,8 @@ frc::SwerveModuleState SwerveModule::GetState()
 frc::SwerveModulePosition SwerveModule::GetPosition()
 {   
     // Determine the module drive and angle positions
-    auto drivePosition = units::meter_t {((double) m_driveMotor.GetPosition().GetValue()) * SwerveConstants::DriveMotorConversion.value()};
-    auto anglePosition = units::degree_t{((double) m_angleMotor.GetPosition().GetValue()) * 360.0_deg};
+    auto drivePosition = m_driveMotor.GetPosition().GetValue() * (SwerveConstants::DriveMotorConversion / 1_tr);
+    auto anglePosition = m_angleMotor.GetPosition().GetValue() * (360.0_deg / 1_tr);
 
     // Return the swerve module position
     return {drivePosition, anglePosition};
@@ -144,10 +137,10 @@ void SwerveModule::SetWheelAngleToForward(units::angle::degree_t forwardAngle)
     while (moveDegrees < -180.0_deg) moveDegrees += 360.0_deg;
 
     // Determine the angle motor position value (-0.5 to 1.0)
-    units::angle::turn_t anglePosition = (units::angle::turn_t) (moveDegrees.value() / 360.0);
+    units::turn_t turnsPosition = moveDegrees / (360.0_deg / 1_tr);
 
     // Set the angle motor to the calculated position
-    m_angleMotor.SetPosition(anglePosition);
+    m_angleMotor.SetPosition(turnsPosition);
 
     // Set the motor angle to the forward direction (position 0)
     m_angleMotor.SetControl(ctre::phoenix6::controls::PositionDutyCycle{0_tr});
@@ -160,10 +153,10 @@ void SwerveModule::SetWheelAngleToForward(units::angle::degree_t forwardAngle)
 units::angle::degree_t SwerveModule::GetAbsoluteEncoderAngle()
 {
     // The GetAbsolutePosition() method returns a value from -0.5 to 0.5
-    double encoderValue = (double) m_angleAbsoluteEncoder.GetAbsolutePosition().GetValue();
+    auto encoderValue = m_angleAbsoluteEncoder.GetAbsolutePosition().GetValue();
 
     // To convert to degrees, multiply by 360
-    return encoderValue * 360_deg;
+    return encoderValue * (360_deg / 1_tr);
 }
 #pragma endregion
 

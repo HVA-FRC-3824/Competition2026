@@ -31,9 +31,7 @@ class Climb : public frc2::SubsystemBase
     public:
 
         explicit   Climb();
-
-        void       SetMotor(units::turn_t rotations);
-
+        
         void       SetState(ClimbState state);
 
         ClimbState GetState() const { return m_climbState; }

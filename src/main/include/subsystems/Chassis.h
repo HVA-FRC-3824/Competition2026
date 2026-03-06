@@ -62,12 +62,17 @@ namespace ChassisConstants
     };
 
     constexpr pathplanner::PathConstraints constraints{MaximumSpeed, 3_mps_sq, MaximumAngularVelocity, 3_rad_per_s_sq};
-
-    constexpr bool                         usingPathplanner = true;
     
-    constexpr std::string_view             CameraName{"CameraChassis"};
+    constexpr std::string_view             BackCameraName{"CameraBack"};
 
-    constexpr frc::Transform3d             RobotToCamera{frc::Translation3d{0_m, 4_in, 15_in}, frc::Rotation3d{}};
+    // 14 in forwards 17.125 in up 180 roll rotation
+    constexpr frc::Transform3d             BackRobotToCamera{frc::Translation3d{0_in, -14_in, 17.125_in}, frc::Rotation3d{180_deg, 0_deg, 180_deg}};
+
+    constexpr std::string_view             TopCameraName{"CameraTop"};
+
+    // 7.75 in right 8.375 in up 3 in back
+    constexpr frc::Transform3d             TopRobotToCamera{frc::Translation3d{7.75_in, -3_in, 20_in}, frc::Rotation3d{}};
+
 
     const     frc::AprilTagFieldLayout     TagLayout = frc::AprilTagFieldLayout::LoadField(frc::AprilTagField::k2026RebuiltWelded);
 
@@ -186,10 +191,20 @@ class Chassis : public frc2::SubsystemBase
    
         units::degree_t              m_simGyro{0};
 
-        VisionPose m_vision
+        VisionPose m_topVision
         {
-            ChassisConstants::CameraName,
-            ChassisConstants::RobotToCamera,
+            ChassisConstants::TopCameraName,
+            ChassisConstants::TopRobotToCamera,
+            ChassisConstants::TagLayout,
+            ChassisConstants::SingleTagStdDevs,
+            ChassisConstants::MultiTagStdDevs,
+            &m_poseEstimator
+        };
+
+        VisionPose m_backVision
+        {
+            ChassisConstants::BackCameraName,
+            ChassisConstants::BackRobotToCamera,
             ChassisConstants::TagLayout,
             ChassisConstants::SingleTagStdDevs,
             ChassisConstants::MultiTagStdDevs,

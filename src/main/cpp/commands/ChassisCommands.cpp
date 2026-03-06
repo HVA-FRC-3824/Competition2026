@@ -51,53 +51,7 @@ frc2::CommandPtr ChassisDrive(Chassis *chassis, std::function<frc::ChassisSpeeds
 frc2::CommandPtr ChassisDrivePose(Chassis *chassis, frc::Pose2d targetPose)
 {
     // Use Pathplanner to generate the trajectory and command
-    if (ChassisConstants::usingPathplanner)
-    {
-        return pathplanner::AutoBuilder::pathfindToPose(targetPose, ChassisConstants::constraints);
-    }
-    else  // Fallback to WPILib trajectory generation
-    {
-        // // Set up config for trajectory
-        // frc::TrajectoryConfig trajectoryConfig(m_speed, ChassisPoseConstants::MaxAcceleration);
-
-        // // Add kinematics to ensure maximum speed is actually obeyed
-        // trajectoryConfig.SetKinematics(m_drivetrain->m_kinematics);
-
-        // // Ensure the new pose requires an X or Y move
-        // // Note: GenerateTrajectory will throw an exception if the distance X and Y are zero
-        // if (fabs(m_distanceX.value()) < 0.001 && fabs(m_distanceY.value()) < 0.001)
-        //     m_distanceX = 0.01_in;
-
-        // // Get the robot starting pose
-        // auto startPose = m_drivetrain->GetPose();
-
-        // // Create the trajectory to follow
-        // frc::Pose2d endPose{startPose.X()                  + m_distanceX,
-        //                     startPose.Y()                  + m_distanceY,
-        //                     startPose.Rotation().Degrees() + m_angle};
-
-        // // Create the trajectory to follow
-        // auto trajectory = frc::TrajectoryGenerator::GenerateTrajectory(startPose, {}, endPose, trajectoryConfig);
-
-        // // Create a profile PID controller
-        // frc::ProfiledPIDController<units::radians> profiledPIDController{ChassisPoseConstants::PProfileController, 0, 0,
-        //                                                                  ChassisPoseConstants::ThetaControllerConstraints};
-
-        // // enable continuous input for the profile PID controller
-        // profiledPIDController.EnableContinuousInput(units::radian_t{-std::numbers::pi}, units::radian_t{std::numbers::pi});
-
-        // // Create the swerve controller command
-        // m_swerveControllerCommand = new frc2::SwerveControllerCommand<4>(
-        //     trajectory,
-        //     [this]() { return m_drivetrain->GetPose(); },
-        //     m_drivetrain->m_kinematics,
-        //     frc::PIDController(ChassisPoseConstants::PXController, 0, 0),
-        //     frc::PIDController(ChassisPoseConstants::PYController, 0, 0),
-        //     profiledPIDController,
-        //     [this](auto moduleStates) { m_drivetrain->SetModuleStates(moduleStates); },
-        //     {m_drivetrain}
-        // );
-    }
+    return pathplanner::AutoBuilder::pathfindToPose(targetPose, ChassisConstants::constraints);
 }
 #pragma endregion
 
