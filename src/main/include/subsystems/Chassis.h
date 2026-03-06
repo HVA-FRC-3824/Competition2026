@@ -103,8 +103,8 @@ class Chassis : public frc2::SubsystemBase
 
         explicit                                 Chassis();
 
-        void                                     Drive(const frc::ChassisSpeeds& speeds);
-        void                                     DriveRelative(const frc::ChassisSpeeds& speeds);
+        void                                     Drive(const frc::ChassisSpeeds &speeds);
+        void                                     DriveRelative(const frc::ChassisSpeeds &speeds);
 
         void                                     SetModuleStates(wpi::array<frc::SwerveModuleState, 4> states);
 
@@ -144,16 +144,8 @@ class Chassis : public frc2::SubsystemBase
             SwerveModule{ConstantsCanIds::BackLeftDriveId,   ConstantsCanIds::BackLeftTurnId,   ConstantsCanIds::BackLeftEncoderId},
             SwerveModule{ConstantsCanIds::BackRightDriveId,  ConstantsCanIds::BackRightTurnId,  ConstantsCanIds::BackRightEncoderId} 
         };
-        /*
+        
         frc::SwerveDriveKinematics<4> m_kinematics
-        {
-            frc::Translation2d{ ChassisConstants::WheelBase / 2,  ChassisConstants::TrackWidth / 2}, // Front Left
-            frc::Translation2d{ ChassisConstants::WheelBase / 2, -ChassisConstants::TrackWidth / 2}, // Front Right
-            frc::Translation2d{-ChassisConstants::WheelBase / 2,  ChassisConstants::TrackWidth / 2}, // Back Left
-            frc::Translation2d{-ChassisConstants::WheelBase / 2, -ChassisConstants::TrackWidth / 2}  // Back Right
-        };
-        */
-       frc::SwerveDriveKinematics<4> m_kinematics
         {
             frc::Translation2d{ ChassisConstants::WheelBase / 2, -ChassisConstants::TrackWidth / 2}, // Front Left
             frc::Translation2d{ ChassisConstants::WheelBase / 2,  ChassisConstants::TrackWidth / 2}, // Front Right

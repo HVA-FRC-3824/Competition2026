@@ -31,7 +31,13 @@ RobotContainer::RobotContainer()
     InitializeDriverControls();
     InitializeOperatorControls();
 
+    // Set the Chassis default command to the drive command, which will run whenever no other command is using the
+    // chassis subsystem. The drive command will take joystick inputs and convert them to chassis speeds.
     m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetSpeeds()));
+
+    // Set the LEDs default command to an instant command that will update the LED state based on the current state
+    // of the robot, and then set the LED mode based on the current LED mode. This will run whenever no other command
+    // is using the LEDs subsystem, and will ensure that the LEDs are always displaying the correct state of the robot.
     m_leds.SetDefaultCommand(frc2::InstantCommand{[&]() 
         { 
             m_leds.SetRobotState(m_tower.GetState().mode, 
@@ -41,7 +47,6 @@ RobotContainer::RobotContainer()
         }, {&m_leds}}
         .AndThen(SetLedStatus(&m_leds, &m_ledMode))
     );
-
 }
 #pragma endregion
 
@@ -105,7 +110,7 @@ void RobotContainer::InitializeDriverControls()
     };
 
     // Add the bindings to the driver controller
-    for (auto& [button, once, twice] : driverBindings)
+    for (auto &[button, once, twice] : driverBindings)
     {
         frc2::JoystickButton(&m_driveController, int(button)).Debounce(50_ms)
             .OnTrue(std::move(once))
@@ -149,7 +154,7 @@ void RobotContainer::InitializeOperatorControls()
     };
 
     // Add the bindings to the operator controller
-    for (auto& [button, once, twice] : operatorBindings)
+    for (auto &[button, once, twice] : operatorBindings)
     {
         frc2::JoystickButton(&m_driveController, int(button)).Debounce(50_ms)
             .OnTrue(std::move(once))
@@ -169,7 +174,7 @@ void RobotContainer::InitializeOperatorControls()
 
     };
 
-    for (auto& [direction, command] : operatorPOVBindings)
+    for (auto &[direction, command] : operatorPOVBindings)
     {
         frc2::POVButton(&m_operatorController, direction).OnTrue(std::move(command));
     }
@@ -196,6 +201,10 @@ void RobotContainer::ResetGyroAngle()
 
 #pragma region GetSpeeds
 /// @brief Method to return the chassis speeds based on joystick inputs.
+/// The left joystick forward sets the forward speed, the left joystick right sets the strafe speed,
+/// and the right joystick right sets the rotation speed.
+/// The inputs are also passed through a deadband function to prevent small joystick inputs from
+/// causing the robot to move. 
 /// @return The chassis speeds based on joystick inputs.
 std::function<frc::ChassisSpeeds()> RobotContainer::GetSpeeds()
 {

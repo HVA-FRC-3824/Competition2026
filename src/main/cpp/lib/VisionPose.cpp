@@ -47,7 +47,7 @@ VisionPose::VisionPose(std::string_view                  cameraName,
 void VisionPose::Periodic()
 {
     // Run each new pipeline result through our pose estimator
-    for (const auto& result : m_camera.GetAllUnreadResults())
+    for (const auto &result : m_camera.GetAllUnreadResults())
     {
         // cache result and update internal pose estimator
         m_latestResult = result;
@@ -195,7 +195,7 @@ void VisionPose::ResetSimPose(frc::Pose2d pose)
 #pragma Region GetSimDebugField
 /// @brief Get the simulated debug field for visualization
 /// @return Reference to the simulated debug field
-frc::Field2d& VisionPose::GetSimDebugField() 
+frc::Field2d &VisionPose::GetSimDebugField() 
 { 
     // Return the debug field from the vision simulation
     return m_visionSim->GetDebugField(); 
