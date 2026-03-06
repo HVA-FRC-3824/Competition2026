@@ -39,7 +39,7 @@ class VisionPose
 
         void                         ResetSimPose(frc::Pose2d pose);
 
-        frc::Field2d&                GetSimDebugField();
+        frc::Field2d                &GetSimDebugField();
 
     private:
 

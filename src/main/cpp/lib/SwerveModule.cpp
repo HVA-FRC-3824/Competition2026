@@ -17,8 +17,8 @@ SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEn
     // Support simulation configuration
     if (frc::RobotBase::IsSimulation())
     {
-        auto& driveSim = m_driveMotor.GetSimState();
-        auto& angleSim = m_angleMotor.GetSimState();
+        auto &driveSim = m_driveMotor.GetSimState();
+        auto &angleSim = m_angleMotor.GetSimState();
         
         driveSim.Orientation = ctre::phoenix6::sim::ChassisReference::CounterClockwise_Positive;
         driveSim.SetMotorType(ctre::phoenix6::sim::TalonFXSimState::MotorType::KrakenX60);
@@ -164,7 +164,7 @@ units::angle::degree_t SwerveModule::GetAbsoluteEncoderAngle()
 /// @brief Method to simulate the swerve module behavior.
 void SwerveModule::SimPeriodic()
 {
-    auto& driveSim = m_driveMotor.GetSimState();
+    auto &driveSim = m_driveMotor.GetSimState();
 
    // set the supply voltage of the TalonFX
    driveSim.SetSupplyVoltage(frc::RobotController::GetBatteryVoltage());
@@ -183,7 +183,7 @@ void SwerveModule::SimPeriodic()
    driveSim.SetRawRotorPosition((6.75) * m_simDriveModel.GetAngularPosition());
    driveSim.SetRotorVelocity(   (6.75) * m_simDriveModel.GetAngularVelocity());
 
-   auto& angleSim = m_angleMotor.GetSimState();
+   auto &angleSim = m_angleMotor.GetSimState();
 
    // set the supply voltage of the TalonFX
    angleSim.SetSupplyVoltage(frc::RobotController::GetBatteryVoltage());

@@ -46,7 +46,7 @@ Chassis::Chassis()
 #pragma region Drive
 /// @brief Method to drive the chassis with the specified speeds.
 /// @param speeds The desired chassis speeds.
-void Chassis::Drive(const frc::ChassisSpeeds& speeds)
+void Chassis::Drive(const frc::ChassisSpeeds &speeds)
 {
     // Call the relative drive method with the correct frame of reference
     DriveRelative(m_isFieldRelative ? frc::ChassisSpeeds::FromFieldRelativeSpeeds(speeds, GetHeading()) : speeds);
@@ -56,7 +56,7 @@ void Chassis::Drive(const frc::ChassisSpeeds& speeds)
 #pragma region DriveRelative
 /// @brief Method to drive the chassis with the specified speeds.
 /// @param speeds The desired chassis speeds.
-void Chassis::DriveRelative(const frc::ChassisSpeeds& speeds)
+void Chassis::DriveRelative(const frc::ChassisSpeeds &speeds)
 {
     // If the chassis is in x mode, than stay in x mode, ignoring the desired speeds
     if (m_isXMode)
@@ -129,7 +129,7 @@ void Chassis::ResetWheelAnglesToZero()
 /// @brief Resets Pose and odometry
 void Chassis::ResetPose(frc::Pose2d pose)
 {
-    for (auto& swerveModule : m_swerveModules)
+    for (auto &swerveModule : m_swerveModules)
     {
         swerveModule.ResetEncoders();
     }
@@ -203,8 +203,8 @@ frc::Rotation2d Chassis::GetHeading()
     if (frc::RobotBase::IsSimulation())
         return frc::Rotation2d{m_simGyro};
 
-    // Return the gyro rotation
-    return m_gyro.GetRotation2d();
+    // Return the gyro rotation (negated because NavX is mounted upside down)
+    return -m_gyro.GetRotation2d();
 }
 #pragma endregion
 
@@ -224,6 +224,11 @@ frc::Pose2d Chassis::GetPose()
 frc::ChassisSpeeds Chassis::GetSpeeds()
 {
     // Return the desired chassis speeds
+    // m_desiredSpeeds is used here instead of calculating the speeds from the module states because the module states
+    // are not updated to the desired states until the periodic method, so if a command calls GetSpeeds after calling
+    // DriveRelative, the module states will not have been updated to the desired states yet, and the speeds calculated
+    // from the module states will be incorrect. This way, the speeds returned from GetSpeeds will always be the desired
+    // speeds set by the most recent call to DriveRelative, regardless of whether the periodic method has been called yet or not.
     return m_desiredSpeeds;
 }
 #pragma endregion
@@ -240,7 +245,7 @@ void Chassis::Periodic()
 
     if (frc::RobotBase::IsSimulation())
     {
-        for (auto& swerveModule : m_swerveModules)
+        for (auto &swerveModule : m_swerveModules)
             swerveModule.SimPeriodic();
     }
     else
