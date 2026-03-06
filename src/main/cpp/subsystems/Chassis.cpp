@@ -203,8 +203,8 @@ frc::Rotation2d Chassis::GetHeading()
     if (frc::RobotBase::IsSimulation())
         return frc::Rotation2d{m_simGyro};
 
-    // Return the gyro rotation
-    return m_gyro.GetRotation2d();
+    // Return the gyro rotation (negated because NavX is mounted upside down)
+    return -m_gyro.GetRotation2d();
 }
 #pragma endregion
 
