@@ -77,6 +77,6 @@ class RobotContainer
         Intake    m_intake{};
 
         // Instantiate subsystem states
-        TowerState m_manualTowerState{TowerMode::ManualControl, 0_deg, 10_rpm, TowerConstants::MinLength};
+        TowerState m_manualTowerState{TowerMode::ManualControl, 0_deg, 80_tps, TowerConstants::MinLength};
         LedMode    m_ledMode{LedMode::MatchMode};
 };

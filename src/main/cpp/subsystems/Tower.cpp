@@ -14,14 +14,14 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
                          true,            // Inverted
                          true,            // Brake mode
                          false,           // Continuous wrap
-                         0.0,             // P gain
-                         0.0,             // I gain
+                         2.0,             // P gain
+                         0.01,           // I gain
                          0.0,             // D gain
                          0.0,             // S (static friction feedforward)
                          0.0,             // V (velocity feedforward)
                          0.0,             // A (acceleration feedforward)
-                         0.5_tps * TowerConstants::TurretGearReduction, // Velocity limit
-                         4_tr_per_s_sq);  // Acceleration limit
+                         0.25_tps * TowerConstants::TurretGearReduction, // Velocity limit
+                         0.25_tr_per_s_sq * TowerConstants::TurretGearReduction);  // Acceleration limit
 
     TalonFXConfiguration(&m_flywheelMotor,
                          40_A,            // Current limit
@@ -46,7 +46,7 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
     // Initialize the pose with the current pose and timestamp
     m_hoodActuator.SetBounds(2.0_us, 1.8_us, 1.5_us, 1.2_us, 1.0_us);
 
-    m_turretMotor.SetPosition(0.0_tr);
+    TestActuator(1.0);
 }
 #pragma endregion
 
@@ -138,7 +138,7 @@ void Tower::SetTurretAngle(units::degree_t angle)
     angle = std::clamp(angle, TowerConstants::MinAngle, TowerConstants::MaxAngle);
 
     // Convert degrees to rotations (turns) for TalonFX
-    units::angle::turn_t rotations{angle * (1_tr / 360.0_deg)};
+    units::angle::turn_t rotations{angle.value() / 360.0};
 
     // Set the motor to the desired position
     m_turretMotor.SetControl(ctre::phoenix6::controls::PositionVoltage{rotations * TowerConstants::TurretGearReduction});
@@ -399,7 +399,8 @@ void Tower::Periodic()
 
     // Set flywheel speed and hood actuator position
     SetFlywheel(m_state.flywheelSpeed);
-    SetActuator(m_state.hoodActuatorInches);
+    // SetActuator(m_state.hoodActuatorInches);
+    TestActuator(1.0);
     
     // If its in automatic mode, prepare the state for the next cycle
     if (isAutomatic)

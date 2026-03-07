@@ -56,8 +56,8 @@ namespace TowerConstants
     // Default is facing forwards, 10 degree deadzone straight right
     // 1 turret rotation - 24 motor rotations - 360 degrees, so 1 motor rotation is 15 degrees
     // Min: -4, max: 14.5 (rotations)
-    constexpr auto MinAngle           =  -4.0 * 15_deg;   // TODO: Make these real. 
-    constexpr auto MaxAngle           =  14.5 * 15_deg;
+    constexpr auto MinAngle           =  15_deg * -4;   // TODO: Make these real. 
+    constexpr auto MaxAngle           =  15_deg * 14.45;
  
     constexpr auto MaxLength          = 14.336_in;  // TODO: test these lengths, they're most likely accurate
     constexpr auto MinLength          =  8.946_in;  // I got these from team 102 from 2022, they used the same actuator
@@ -97,7 +97,7 @@ class Tower : public frc2::SubsystemBase
 
         void             AimUsingTurretCamera(bool usingTurretCamera) { m_usingTurretCamera = usingTurretCamera; }
 
-        void             TestActuator(double position) { m_hoodActuator.SetPosition(position); }
+        void             TestActuator(double position) { m_hoodActuator.SetAngle(position); }
 
         void             Periodic() override;
 
@@ -128,7 +128,7 @@ class Tower : public frc2::SubsystemBase
         std::function<frc::Pose2d()>        m_chassisPoseSupplier;
         std::function<frc::ChassisSpeeds()> m_chassisSpeedsSupplier;   
 
-        TowerState                          m_state{TowerMode::ManualControl, 0_deg, 0_rpm, 0_in}; 
+        TowerState                          m_state{TowerMode::Idle, 0_deg, 0_rpm, 0_in}; 
 
         ctre::phoenix6::hardware::TalonFX   m_turretMotor          {ConstantsCanIds::TurretMotorId};
         ctre::phoenix6::hardware::TalonFX   m_flywheelMotor        {ConstantsCanIds::FlywheelMotorId};

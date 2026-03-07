@@ -58,6 +58,10 @@ RobotContainer::RobotContainer()
         }, {&m_leds}}
         .AndThen(SetLedStatus(&m_leds, &m_ledMode))
     );
+
+    m_tower.TestActuator(1.0);
+
+    // m_tower.SetDefaultCommand(frc2::InstantCommand{[&]() {m_manualTowerState.flywheelSpeed = 1_tps * frc::SmartDashboard::GetNumber("Flywheel Speed (tps) ", 0);}, {&m_tower}});
 }
 #pragma endregion
 
@@ -173,10 +177,10 @@ void RobotContainer::InitializeOperatorControls()
     std::pair<int, frc2::CommandPtr> operatorPOVBindings[] =
     {
         // Manual tower controls
-        {constants::controller::Pov_0,   frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed += 10_rpm;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
+        {constants::controller::Pov_0,   frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed += 2_tps;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
         {constants::controller::Pov_90,  frc2::InstantCommand{[&] { m_manualTowerState.turretAngle += 5_deg;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
 
-        {constants::controller::Pov_180, frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed -= 10_rpm;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
+        {constants::controller::Pov_180, frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed -= 2_tps;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
         {constants::controller::Pov_270, frc2::InstantCommand{[&] { m_manualTowerState.turretAngle -= 10_deg;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
     };
 
