@@ -46,12 +46,12 @@ namespace ChassisConstants
     constexpr units::degree_t BackRightForwardAngle { -0.276855 * 360.0 };
 
     // These make sure to limit how fast the robot can go
-    constexpr units::meters_per_second_t                    MaximumSpeed{4};
-    constexpr units::angular_velocity::radians_per_second_t MaximumAngularVelocity{std::numbers::pi};
+    constexpr units::meters_per_second_t                    MaximumSpeed{1};
+    constexpr units::angular_velocity::radians_per_second_t MaximumAngularVelocity{std::numbers::pi / 2};
 
     // The physical dimensions of the robot
-    constexpr units::inch_t WheelBase {25.0};
-    constexpr units::inch_t TrackWidth{25.0};
+    constexpr units::inch_t WheelBase {30.0};
+    constexpr units::inch_t TrackWidth{24.0};
 
     constexpr wpi::array<frc::SwerveModuleState, 4> xStates
     {
@@ -152,19 +152,18 @@ class Chassis : public frc2::SubsystemBase
         
         frc::SwerveDriveKinematics<4> m_kinematics
         {
-            frc::Translation2d{ ChassisConstants::WheelBase / 2, -ChassisConstants::TrackWidth / 2}, // Front Left
-            frc::Translation2d{ ChassisConstants::WheelBase / 2,  ChassisConstants::TrackWidth / 2}, // Front Right
-            frc::Translation2d{-ChassisConstants::WheelBase / 2, -ChassisConstants::TrackWidth / 2}, // Back Left
-            frc::Translation2d{-ChassisConstants::WheelBase / 2,  ChassisConstants::TrackWidth / 2}  // Back Right
+            frc::Translation2d{ ChassisConstants::WheelBase / 2,  ChassisConstants::TrackWidth / 2}, // Front Left
+            frc::Translation2d{ ChassisConstants::WheelBase / 2, -ChassisConstants::TrackWidth / 2}, // Front Right
+            frc::Translation2d{-ChassisConstants::WheelBase / 2,  ChassisConstants::TrackWidth / 2}, // Back Left
+            frc::Translation2d{-ChassisConstants::WheelBase / 2, -ChassisConstants::TrackWidth / 2}  // Back Right
         };
 
         frc::SwerveDrivePoseEstimator<4> m_poseEstimator
         {
             m_kinematics,         // Kinematics object
-            frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) == frc::DriverStation::Alliance::kBlue 
-                ? frc::Rotation2d{0_deg} : frc::Rotation2d{180_deg},  // Initial gyro angle  TODO: Determine if this is being overriden
-            GetModulePositions(),                                     // Initial module positions
-            frc::Pose2d()                                             // Initial pose, will be overriden by vision
+            frc::Rotation2d{0_deg},  // Initial gyro angle  TODO: Determine if this is being overriden
+            GetModulePositions(),    // Initial module positions
+            frc::Pose2d()            // Initial pose, will be overriden by vision
         };
 
         wpi::array<frc::SwerveModuleState, 4> m_desiredStates = wpi::array<frc::SwerveModuleState, 4>

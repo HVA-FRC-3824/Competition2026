@@ -23,7 +23,7 @@ enum ClimbState
 
 namespace ClimbConstants
 {
-    constexpr auto ClimbMotorMaxRotations = 10_tr;
+    constexpr auto ClimbMotorMaxRotations = 67_tr;
 }
 
 class Climb : public frc2::SubsystemBase

@@ -97,7 +97,8 @@ class Tower : public frc2::SubsystemBase
 
         void             AimUsingTurretCamera(bool usingTurretCamera) { m_usingTurretCamera = usingTurretCamera; }
 
-        void             TestActuator(double position) { m_hoodActuator.SetAngle(position); }
+        void             TestActuator(double position) { //m_hoodActuator.SetAngle(position);
+         }
 
         void             Periodic() override;
 
@@ -115,13 +116,7 @@ class Tower : public frc2::SubsystemBase
         bool                                m_isBlue = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) 
                                                             == frc::DriverStation::Alliance::kBlue;
 
-        bool                                m_usingTurretCamera = true;
-
-        frc::Mechanism2d                    m_logMechanism{20, 20, frc::Color{0.0, 0.0, 0.0}};  // Width height
-        frc::MechanismRoot2d               *m_logMechanismRoot = m_logMechanism.GetRoot("Tower", 0, 0);
-        
-        frc::MechanismLigament2d           *m_logHoodFlywheel  = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Hood&Flywheel", 6, 0_deg);
-        frc::MechanismLigament2d           *m_logTurret        = m_logMechanismRoot->Append<frc::MechanismLigament2d>("Turret",        6, 90_deg);
+        bool                                m_usingTurretCamera = false;
 
         photon::PhotonCamera                m_turretCamera{"CameraTurret"};
 

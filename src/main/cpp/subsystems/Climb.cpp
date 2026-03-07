@@ -10,7 +10,7 @@ Climb::Climb()
                          false,           // Inverted
                          true,            // Brake mode
                          false,           // Continuous wrap
-                         10,              // P gain
+                         3,               // P gain
                          0.0,             // I gain
                          0.0,             // D gain
                          0.0,             // S

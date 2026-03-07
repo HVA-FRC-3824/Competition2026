@@ -64,17 +64,13 @@ void VisionPose::Periodic()
 
         Log("Vision is being called ", true);
 
-        // In sim only, add our vision estimate to the sim debug field
-        if (frc::RobotBase::IsSimulation()) 
+        if (visionEst)
         {
-            if (visionEst)
-            {
-                Log("VisionEstimation", visionEst->estimatedPose.ToPose2d());
-            } 
-            else 
-            {
-                Log("VisionEstimation", frc::Pose2d{});
-            }
+            Log("VisionEstimation", visionEst->estimatedPose.ToPose2d());
+        } 
+        else 
+        {
+            Log("VisionEstimation", frc::Pose2d{});
         }
 
         // If a valid pose estimate was found, add it to the pose estimator

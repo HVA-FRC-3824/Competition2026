@@ -34,12 +34,6 @@ Chassis::Chassis()
         },
         this // Reference to this subsystem to set requirements
     );
-
-    // Load a path from the pathplanner path files to verify things are working
-    auto path = pathplanner::PathPlannerPath::fromPathFile("Backup");
-
-    // Create a path following command using AutoBuilder. This will also trigger event markers.
-    auto command = pathplanner::AutoBuilder::followPath(path);
 }
 #pragma endregion
 
@@ -58,16 +52,16 @@ void Chassis::Drive(const frc::ChassisSpeeds &speeds)
 /// @param speeds The desired chassis speeds.
 void Chassis::DriveRelative(const frc::ChassisSpeeds &speeds)
 {
-    // If the chassis is in x mode, than stay in x mode, ignoring the desired speeds
-    if (m_isXMode)
-    {
-        // Set the module states to x mode
-        SetModuleStates(ChassisConstants::xStates);
+    // // If the chassis is in x mode, than stay in x mode, ignoring the desired speeds
+    // if (m_isXMode)
+    // {
+    //     // Set the module states to x mode
+    //     SetModuleStates(ChassisConstants::xStates);
 
-        // Save the desired speeds for logging later
-        m_desiredStates = ChassisConstants::xStates;
-        return;
-    }
+    //     // Save the desired speeds for logging later
+    //     m_desiredStates = ChassisConstants::xStates;
+    //     return;
+    // }
 
     // Save the desired speeds for logging later
     m_desiredSpeeds = speeds;
@@ -97,12 +91,12 @@ void Chassis::SetModuleStates(wpi::array<frc::SwerveModuleState, 4> states)
 /// @brief Method to zero the robot heading.
 void Chassis::ResetGyroAngle()
 {
-    // Do the sim representation
-    if (frc::RobotBase::IsSimulation())
-    {
-        m_simGyro = 0_deg;
-        return;
-    }
+    // // Do the sim representation
+    // if (frc::RobotBase::IsSimulation())
+    // {
+    //     m_simGyro = 0_deg;
+    //     return;
+    // }
         
     // Zero the gyro heading
     m_gyro.Reset();
@@ -199,10 +193,6 @@ void Chassis::ToggleXMode()
 /// @return The robot heading.
 frc::Rotation2d Chassis::GetHeading()
 {
-    // In sim, return the simulated angle
-    if (frc::RobotBase::IsSimulation())
-        return frc::Rotation2d{m_simGyro};
-
     // Return the gyro rotation (negated because NavX is mounted upside down)
     return -m_gyro.GetRotation2d();
 }
@@ -252,6 +242,7 @@ void Chassis::Periodic()
     {
         // This also updates the pose estimator with vision as well as updating photonvisions internal estimators
         m_topVision.Periodic();
+        // m_backVision.Periodic();
     }
 
     /// *** Logging *** ///
@@ -262,6 +253,7 @@ void Chassis::Periodic()
     Log("Desired Swerve Module States ", m_desiredStates);
 
     Log("Actual Robot Pose ", GetPose());
+    Log("Gyro", GetHeading().Degrees().value());
     Log("Field relative ",    m_isFieldRelative);
 }
 #pragma endregion

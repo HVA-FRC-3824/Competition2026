@@ -45,7 +45,7 @@ SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEn
 
     TalonFXConfiguration(&m_angleMotor,    // Angle motor configuration
                          20_A,            // Maximum Amperage
-                         false,           // Inverted
+                         true,            // Inverted
                          true,            // Brake mode enabled
                          true,            // Continuous wrap
                          10.0,            // P gain   TODO: Try a higher gain when the robot is on the ground
@@ -130,7 +130,7 @@ void SwerveModule::SetWheelAngleToForward(units::angle::degree_t forwardAngle)
     m_angleMotor.SetPosition(0_tr);
 
     // Determine the move angle for the forward direction
-    units::angle::degree_t moveDegrees = forwardAngle - GetAbsoluteEncoderAngle();
+    units::angle::degree_t moveDegrees = -1 * (forwardAngle - GetAbsoluteEncoderAngle());
 
     // Determine the shortest move angle (wrap to -180 to +180)
     while (moveDegrees > 180.0_deg)  moveDegrees -= 360.0_deg;

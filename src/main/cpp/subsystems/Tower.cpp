@@ -10,23 +10,23 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
 {
     // Configure the tower motors
     TalonFXConfiguration(&m_turretMotor,
-                         40_A,            // Current limit
-                         true,            // Inverted
-                         true,            // Brake mode
-                         false,           // Continuous wrap
-                         2.0,             // P gain
-                         0.01,           // I gain
-                         0.0,             // D gain
-                         0.0,             // S (static friction feedforward)
-                         0.0,             // V (velocity feedforward)
-                         0.0,             // A (acceleration feedforward)
-                         0.25_tps * TowerConstants::TurretGearReduction, // Velocity limit
-                         0.25_tr_per_s_sq * TowerConstants::TurretGearReduction);  // Acceleration limit
+                         40_A,  // Current limit
+                         true,  // Inverted
+                         false,  // Brake mode
+                         false, // Continuous wrap
+                         0.9,   // P gain
+                         0.25,  // I gain
+                         0.07,  // D gain
+                         0.0,   // S (static friction feedforward)
+                         0.0,   // V (velocity feedforward)
+                         0.0,   // A (acceleration feedforward)
+                         0_tps,  // Velocity limit
+                         0_tr_per_s_sq); // Acceleration limit
 
     TalonFXConfiguration(&m_flywheelMotor,
                          40_A,            // Current limit
                          true,            // Inverted
-                         false,            // Brake mode
+                         false,           // Brake mode
                          false,           // Continuous wrap
                          0.32,            // P gain
                          0.0,             // I gain
@@ -45,8 +45,6 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
 
     // Initialize the pose with the current pose and timestamp
     m_hoodActuator.SetBounds(2.0_us, 1.8_us, 1.5_us, 1.2_us, 1.0_us);
-
-    TestActuator(1.0);
 }
 #pragma endregion
 
@@ -131,7 +129,7 @@ void Tower::SetTurretAngle(units::degree_t angle)
     // Range: any to any => min to max degrees
     // Do not allow turret to move past the min or max angles
     angle = 1_deg * std::fmod(angle.value(), TowerConstants::MaxAngle.value());
-    while (angle < TowerConstants::MinAngle)
+    while (angle.value() < TowerConstants::MinAngle.value())
         angle += 360.0_deg;
 
     // Clamp to available degrees
@@ -154,7 +152,7 @@ units::degree_t Tower::GetTurretAngle()
     units::angle::turn_t turns = m_turretMotor.GetPosition().GetValue() / TowerConstants::TurretGearReduction;
 
     // Convert turns to degrees (1 turn = 360 degrees)
-    units::degree_t degrees = turns.convert<units::degrees>();
+    units::degree_t degrees{turns.value() * 360};
     
     // Return the current turret angle
     return degrees;
@@ -175,7 +173,7 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relative
     frc::Pose2d  newRelativeDistance = frc::Pose2d{relativeDistance, 0_deg};
     frc::Twist2d changeInPosition    = speed.ToTwist2d(0.5_s);
     
-    newRelativeDistance = newRelativeDistance.TransformBy(frc::Transform2d{changeInPosition.dx, changeInPosition.dy, changeInPosition.dtheta});
+    // newRelativeDistance = newRelativeDistance.TransformBy(frc::Transform2d{changeInPosition.dx, changeInPosition.dy, changeInPosition.dtheta});
 
     // Calculate turret angle
     if (m_usingTurretCamera)
@@ -188,7 +186,8 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relative
         // Adjust turret angle based on predicted target position
         // NOTE: I would use the gcem atan2 function, but whether it uses radians or degrees is ambiguous 
         // and the return type is arbitrary, also gcem seem
-        newState.turretAngle = 57.2958_deg * std::atan2(newRelativeDistance.Y().value(), newRelativeDistance.X().value());
+        newState.turretAngle = 1_deg * (180 / std::numbers::pi) * std::atan2(newRelativeDistance.Y().value(), newRelativeDistance.X().value());
+        Log("desired angle ", (180 / std::numbers::pi) * std::atan2(newRelativeDistance.Y().value(), newRelativeDistance.X().value()));
     }
 
     units::meter_t distance{std::abs(newRelativeDistance.Translation().Norm().value())};
@@ -239,7 +238,7 @@ double Tower::CalculatePolynomial(units::meter_t distance, double a, double b, d
 void Tower::Periodic()
 {
     Log("Turret Mode", m_state.mode);
-
+    
     // Update the chassis current pose and speed
     auto chassisPose  = m_chassisPoseSupplier();
     auto chassisSpeed = m_chassisSpeedsSupplier();
@@ -262,7 +261,7 @@ void Tower::Periodic()
         }
     }
 
-    switch (m_state.mode) 
+    switch (m_state.mode)
     {
         case TowerMode::Idle:
         {
@@ -337,11 +336,11 @@ void Tower::Periodic()
                         units::degree_t turretAngle = units::math::atan2(hubDistance.Y(), hubDistance.X());
                         Log("Turret Angle to Hub (deg)", turretAngle.value());
         
-                        // Rotate the turret
-                        m_state.turretAngle = turretAngle - GetTurretAngle();
-
                         // Calculate the shot parameters based on the hub distance and chassis speed
                         m_state = CalculateShot(TowerMode::ShootingToHub, hubDistance, chassisSpeed);
+
+                        // Apply turret angle after CalculateShot, so it isn't overwritten
+                        m_state.turretAngle = turretAngle - GetTurretAngle();
                     }
                 }
                 else
@@ -373,7 +372,7 @@ void Tower::Periodic()
             
             auto relativeDistance = targetPoint - chassisPose.Translation();
 
-            m_state.turretAngle = 57.2958_deg * std::atan2(relativeDistance.Y().value(), relativeDistance.X().value());
+            m_state.turretAngle = 57.2958_deg * std::atan2(relativeDistance.X().value(), relativeDistance.Y().value());
 
             m_state = CalculateShot(TowerMode::PassingToAdjacentZone, relativeDistance, chassisSpeed);
             break;
@@ -394,13 +393,12 @@ void Tower::Periodic()
     {
         // Compensate for robot rotation
         // If we are on red, our gyro will be turned around, flip it
-        SetTurretAngle((chassisPose.Rotation().Degrees() - (m_isBlue ? 0_deg : 180_deg)) - m_state.turretAngle);
+        SetTurretAngle(m_state.turretAngle - chassisPose.Rotation().Degrees());
     }
 
     // Set flywheel speed and hood actuator position
     SetFlywheel(m_state.flywheelSpeed);
     // SetActuator(m_state.hoodActuatorInches);
-    TestActuator(1.0);
     
     // If its in automatic mode, prepare the state for the next cycle
     if (isAutomatic)
