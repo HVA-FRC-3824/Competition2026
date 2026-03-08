@@ -98,7 +98,7 @@ class Tower : public frc2::SubsystemBase
         void             AimUsingTurretCamera(bool usingTurretCamera) { m_usingTurretCamera = usingTurretCamera; }
 
         void             TestActuator(double position) { //m_hoodActuator.SetAngle(position);
-         }
+                                                       }
 
         void             Periodic() override;
 

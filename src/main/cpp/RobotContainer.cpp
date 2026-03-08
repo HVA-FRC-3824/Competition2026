@@ -97,7 +97,6 @@ void RobotContainer::InitializeDriverControls()
         {constants::controller::B,          ToggleFieldCentricity(&m_chassis), std::nullopt},
 
         // Chassis module controls
-
         {constants::controller::X,          ChassisXMode(&m_chassis),          std::nullopt},
 
         // Climb controls
@@ -118,8 +117,9 @@ void RobotContainer::InitializeDriverControls()
     }
 
     // Intake controls
-    frc2::JoystickButton(&m_driveController, int(constants::controller::RightBumper)).OnTrue(IntakeSetState(&m_intake, IntakeState::DeployedRollerOn))
-    .OnFalse(IntakeSetState(&m_intake, IntakeState::Stowed));
+    frc2::JoystickButton(&m_driveController, int(constants::controller::RightBumper)).
+                         OnTrue(IntakeSetState(&m_intake, IntakeState::DeployedRollerOn)).
+                         OnFalse(IntakeSetState(&m_intake, IntakeState::Stowed));
 }
 #pragma endregion
 
@@ -144,7 +144,7 @@ void RobotContainer::InitializeOperatorControls()
     std::tuple<Button, frc2::CommandPtr, std::optional<frc2::CommandPtr>> operatorBindings[] =
     {   
         // Tower state
-        {constants::controller::A, TowerAimHub(&m_tower), std::nullopt},
+        {constants::controller::A, TowerAimHub(&m_tower),                             std::nullopt},
         {constants::controller::B, TowerAimPassZone(&m_tower),                        std::nullopt},
         {constants::controller::Y, TowerIdle(&m_tower),                               TowerAutomatic(&m_tower)},
         {constants::controller::X, TowerManualControl(&m_tower, &m_manualTowerState), std::nullopt},

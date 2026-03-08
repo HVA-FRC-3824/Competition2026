@@ -80,9 +80,9 @@ bool Tower::IsOnTarget()
     auto flywheelErrorTolerance = m_flywheelMotor.GetClosedLoopReference().GetValueAsDouble() * TowerConstants::TargetTolerance;
     auto isSpunUp = std::abs(flywheelPidError) < flywheelErrorTolerance;
 
-    auto turretPidError = m_turretMotor.GetClosedLoopError().GetValueAsDouble();
+    auto turretPidError       = m_turretMotor.GetClosedLoopError().GetValueAsDouble();
     auto turretErrorTolerance = m_turretMotor.GetClosedLoopReference().GetValueAsDouble() * TowerConstants::TargetTolerance;
-    auto isAimed = std::abs(turretPidError) < turretErrorTolerance;
+    auto isAimed              = std::abs(turretPidError) < turretErrorTolerance;
 
     // Return whether the PID error is within the tolerance
     return isSpunUp && isAimed;
@@ -238,7 +238,7 @@ double Tower::CalculatePolynomial(units::meter_t distance, double a, double b, d
 void Tower::Periodic()
 {
     Log("Turret Mode", m_state.mode);
-    
+
     // Update the chassis current pose and speed
     auto chassisPose  = m_chassisPoseSupplier();
     auto chassisSpeed = m_chassisSpeedsSupplier();

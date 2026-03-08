@@ -52,16 +52,16 @@ void Chassis::Drive(const frc::ChassisSpeeds &speeds)
 /// @param speeds The desired chassis speeds.
 void Chassis::DriveRelative(const frc::ChassisSpeeds &speeds)
 {
-    // // If the chassis is in x mode, than stay in x mode, ignoring the desired speeds
-    // if (m_isXMode)
-    // {
-    //     // Set the module states to x mode
-    //     SetModuleStates(ChassisConstants::xStates);
+    // If the chassis is in x mode, than stay in x mode, ignoring the desired speeds
+    if (m_isXMode)
+    {
+        // Set the module states to x mode
+        SetModuleStates(ChassisConstants::xStates);
 
-    //     // Save the desired speeds for logging later
-    //     m_desiredStates = ChassisConstants::xStates;
-    //     return;
-    // }
+        // Save the desired speeds for logging later
+        m_desiredStates = ChassisConstants::xStates;
+        return;
+    }
 
     // Save the desired speeds for logging later
     m_desiredSpeeds = speeds;

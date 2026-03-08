@@ -1,6 +1,6 @@
 #include "lib/VisionPose.h"
 
-#pragma Region VisionPose (Constructor)
+#pragma region VisionPose (Constructor)
 /// @brief Constructor for VisionPose subsystem
 /// @param cameraName Name of the camera as configured in PhotonVision
 /// @param robotToCameraPose Transform from robot center to camera
@@ -42,7 +42,7 @@ VisionPose::VisionPose(std::string_view                  cameraName,
 }
 #pragma endregion
 
-#pragma Region Periodic
+#pragma region Periodic
 /// @brief Periodic method to be called from RobotPeriodic to process vision data
 void VisionPose::Periodic()
 {
@@ -101,7 +101,7 @@ void VisionPose::Periodic()
 }
 #pragma endregion
 
-#pragma Region GetEstimationStdDevs
+#pragma region GetEstimationStdDevs
 /// @brief Calculate standard deviations for vision pose estimate based on number of tags and distance
 /// @param estimatedPose The estimated pose from vision
 /// @return Eigen matrix of standard deviations [stddev_x, stddev_y, stddev_theta]
@@ -163,7 +163,7 @@ Eigen::Matrix<double, 3, 1> VisionPose::GetEstimationStdDevs(frc::Pose2d estimat
 }
 #pragma endregion
 
-#pragma Region SimPeriodic
+#pragma region SimPeriodic
 /// @brief Simulation periodic method to update vision sim with robot pose
 /// @param robotSimPose The simulated robot pose on the field
 void VisionPose::SimPeriodic(frc::Pose2d robotSimPose)
@@ -173,7 +173,7 @@ void VisionPose::SimPeriodic(frc::Pose2d robotSimPose)
 }
 #pragma endregion
 
-#pragma Region ResetSimPose
+#pragma region ResetSimPose
 /// @brief Reset the simulated robot pose in the vision simulation
 /// @param pose The pose to reset the simulated robot to
 void VisionPose::ResetSimPose(frc::Pose2d pose)
@@ -186,7 +186,7 @@ void VisionPose::ResetSimPose(frc::Pose2d pose)
 }
 #pragma endregion
 
-#pragma Region GetSimDebugField
+#pragma region GetSimDebugField
 /// @brief Get the simulated debug field for visualization
 /// @return Reference to the simulated debug field
 frc::Field2d &VisionPose::GetSimDebugField() 

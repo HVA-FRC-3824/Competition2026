@@ -160,7 +160,7 @@ units::angle::degree_t SwerveModule::GetAbsoluteEncoderAngle()
 }
 #pragma endregion
 
-#pragma SimPeriodic
+#pragma region SimPeriodic
 /// @brief Method to simulate the swerve module behavior.
 void SwerveModule::SimPeriodic()
 {
