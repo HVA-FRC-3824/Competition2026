@@ -90,7 +90,7 @@ void RobotContainer::InitializeDriverControls()
     // Left Bumper  - Start spindexer, double tap to stop
 
     // A tuple of a button, a press once command, and a double-tap command
-    std::tuple<Button, frc2::CommandPtr, std::optional<frc2::CommandPtr>> driverBindings[] =
+    std::tuple<Button_t, frc2::CommandPtr, std::optional<frc2::CommandPtr>> driverBindings[] =
     {
         // Chassis heading controls
         {constants::controller::A,          ChassisZeroHeading(&m_chassis),    std::nullopt},
@@ -141,7 +141,7 @@ void RobotContainer::InitializeOperatorControls()
     // Left POV           - Turns the turret left
 
     // A tuple of a button, a press once command and a double-tap command
-    std::tuple<Button, frc2::CommandPtr, std::optional<frc2::CommandPtr>> operatorBindings[] =
+    std::tuple<Button_t, frc2::CommandPtr, std::optional<frc2::CommandPtr>> operatorBindings[] =
     {   
         // Tower state
         {constants::controller::A, TowerAimHub(&m_tower),                             std::nullopt},

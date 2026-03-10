@@ -44,7 +44,7 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
         );
 
     // Initialize the pose with the current pose and timestamp
-    m_hoodActuator.SetBounds(2.0_us, 1.8_us, 1.5_us, 1.2_us, 1.0_us);
+    m_hoodActuator.SetBounds(2.0_ms, 1.8_ms, 1.5_ms, 1.2_ms, 1.0_ms);
 }
 #pragma endregion
 
@@ -53,6 +53,12 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
 /// @param newState The new state to set for the Tower subsystem
 void Tower::SetState(TowerState newState)
 {
+    // Set the second follower motor to be the *inverse* of the other flywheel motor
+    m_flywheelFollowerMotor.SetControl(
+        ctre::phoenix6::controls::Follower(m_flywheelMotor.GetDeviceID(), 
+                                        ctre::phoenix6::signals::MotorAlignmentValue::Opposed)
+    );
+    
     // Remember the state
     m_state = newState;
 
@@ -77,12 +83,12 @@ TowerState Tower::GetState()
 bool Tower::IsOnTarget()
 {
     auto flywheelPidError = m_flywheelMotor.GetClosedLoopError().GetValueAsDouble();
-    auto flywheelErrorTolerance = m_flywheelMotor.GetClosedLoopReference().GetValueAsDouble() * TowerConstants::TargetTolerance;
+    auto flywheelErrorTolerance = m_flywheelMotor.GetClosedLoopReference().GetValueAsDouble() * TowerConstants::TargetTolerance + TowerConstants::TargetTolerance;
     auto isSpunUp = std::abs(flywheelPidError) < flywheelErrorTolerance;
 
-    auto turretPidError       = m_turretMotor.GetClosedLoopError().GetValueAsDouble();
-    auto turretErrorTolerance = m_turretMotor.GetClosedLoopReference().GetValueAsDouble() * TowerConstants::TargetTolerance;
-    auto isAimed              = std::abs(turretPidError) < turretErrorTolerance;
+    auto turretPidError = m_turretMotor.GetClosedLoopError().GetValueAsDouble();
+    auto turretErrorTolerance = m_turretMotor.GetClosedLoopReference().GetValueAsDouble() * TowerConstants::TargetTolerance + TowerConstants::TargetTolerance;
+    auto isAimed = std::abs(turretPidError) < turretErrorTolerance;
 
     // Return whether the PID error is within the tolerance
     return isSpunUp && isAimed;
@@ -96,11 +102,6 @@ void Tower::SetFlywheel(units::turns_per_second_t input)
 {
     // Set the flywheel motor speed
     m_flywheelMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{input});
-    // Set the second follower motor to be the *inverse* of the other flywheel motor
-    m_flywheelFollowerMotor.SetControl(
-        ctre::phoenix6::controls::Follower(m_flywheelMotor.GetDeviceID(), 
-                                        ctre::phoenix6::signals::MotorAlignmentValue::Opposed)
-    );
 }
 #pragma endregion
 
@@ -126,15 +127,14 @@ void Tower::SetActuator(units::inch_t position)
 /// @param angle The angle in degrees to set the turret to
 void Tower::SetTurretAngle(units::degree_t angle)
 {
-    // Range: any to any => min to max degrees
-    // Do not allow turret to move past the min or max angles
-    angle = 1_deg * std::fmod(angle.value(), TowerConstants::MaxAngle.value());
-    while (angle.value() < TowerConstants::MinAngle.value())
-        angle += 360.0_deg;
+    // Normalize to [0, 360), then shift into [MinAngle, MinAngle + 360)
+    double range = TowerConstants::MaxAngle.value() - TowerConstants::MinAngle.value();
+    double normalized = std::fmod(angle.value() - TowerConstants::MinAngle.value(), range);
+    if (normalized < 0) normalized += range;
+    angle = TowerConstants::MinAngle + 1_deg * normalized;
 
-    // Clamp to available degrees
     angle = std::clamp(angle, TowerConstants::MinAngle, TowerConstants::MaxAngle);
-
+    
     // Convert degrees to rotations (turns) for TalonFX
     units::angle::turn_t rotations{angle.value() / 360.0};
 
@@ -186,14 +186,11 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relative
         // Adjust turret angle based on predicted target position
         // NOTE: I would use the gcem atan2 function, but whether it uses radians or degrees is ambiguous 
         // and the return type is arbitrary, also gcem seem
-        newState.turretAngle = 1_deg * (180 / std::numbers::pi) * std::atan2(newRelativeDistance.Y().value(), newRelativeDistance.X().value());
-        Log("desired angle ", (180 / std::numbers::pi) * std::atan2(newRelativeDistance.Y().value(), newRelativeDistance.X().value()));
+        newState.turretAngle = 1_deg * (180 / std::numbers::pi) * std::atan2(newRelativeDistance.X().value(), newRelativeDistance.Y().value());
+        Log("desired angle ", newState.turretAngle.value());
     }
 
-    units::meter_t distance{std::abs(newRelativeDistance.Translation().Norm().value())};
-
-    // TODO: remove after testing
-    distance = 20_m;
+    auto distance = 1_in * std::abs(newRelativeDistance.Translation().Norm().convert<units::inches>().value());
 
     // Calculate hood actuator position based on distance
     newState.hoodActuatorInches = 1_in * CalculatePolynomial(distance, TowerConstants::HoodA, TowerConstants::HoodB, TowerConstants::HoodC);
@@ -214,7 +211,7 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relative
 /// @param b The b coefficient of the polynomial
 /// @param c The c coefficient of the polynomial
 /// @return The calculated polynomial value
-double Tower::CalculatePolynomial(units::meter_t distance, double a, double b, double c)
+double Tower::CalculatePolynomial(units::inch_t distance, double a, double b, double c)
 {
     // Calculate the polynomial value
     return a * std::pow(distance.value(), 2) + b * distance.value() + c;
@@ -398,7 +395,7 @@ void Tower::Periodic()
 
     // Set flywheel speed and hood actuator position
     SetFlywheel(m_state.flywheelSpeed);
-    // SetActuator(m_state.hoodActuatorInches);
+    SetActuator(m_state.hoodActuatorInches);
     
     // If its in automatic mode, prepare the state for the next cycle
     if (isAutomatic)

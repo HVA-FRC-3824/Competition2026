@@ -65,8 +65,8 @@ class RobotContainer
 
         frc::SendableChooser<frc2::Command *> m_autoChooser;
 
-        frc::XboxController                   m_driveController   {constants::controller::DrivePort};
-        frc::XboxController                   m_operatorController{constants::controller::OperatorPort};
+        frc::XboxController                   m_driveController   {ConstantsUsbPort::DrivePort};
+        frc::XboxController                   m_operatorController{ConstantsUsbPort::OperatorPort};
 
         // Instantiate the robot subsystems
         Chassis   m_chassis{};

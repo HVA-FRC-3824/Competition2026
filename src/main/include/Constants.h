@@ -13,7 +13,12 @@
 #include <frc/apriltag/AprilTagFieldLayout.h>
 #pragma endregion
 
-typedef int Button;
+typedef unsigned long long int Button_t;
+
+constexpr Button_t operator "" _btn(unsigned long long int id)
+{
+    return Button_t{id};
+}
 
 namespace constants
 {
@@ -48,10 +53,6 @@ namespace constants
     #pragma region Controller
     namespace controller
     {
-        // Drive Input Configurations
-        constexpr int    DrivePort           = 0;
-        constexpr int    OperatorPort        = 1;
-
         constexpr double TranslationDeadZone = 0.06;
         constexpr double RotateDeadZone      = 0.06;
         constexpr double TriggerDeadZone     = 0.06;
@@ -61,25 +62,25 @@ namespace constants
         constexpr double ExponentAngle       = 3.0;
 
         // Buttons
-        constexpr Button A                   =   1;
-        constexpr Button B                   =   2;
-        constexpr Button X                   =   3;
-        constexpr Button Y                   =   4;
-        constexpr Button LeftBumper          =   5;
-        constexpr Button RightBumper         =   6;
-        constexpr Button Back                =   7;
-        constexpr Button Start               =   8;
-        constexpr Button LeftStickButton     =   9;
-        constexpr Button RightStickButton    =  10;
+        constexpr auto A                   =   1_btn;
+        constexpr auto B                   =   2_btn;
+        constexpr auto X                   =   3_btn;
+        constexpr auto Y                   =   4_btn;
+        constexpr auto LeftBumper          =   5_btn;
+        constexpr auto RightBumper         =   6_btn;
+        constexpr auto Back                =   7_btn;
+        constexpr auto Start               =   8_btn;
+        constexpr auto LeftStickButton     =   9_btn;
+        constexpr auto RightStickButton    =  10_btn;
 
-        constexpr Button Pov_0               =   0;
-        constexpr Button Pov_45              =  45;
-        constexpr Button Pov_90              =  90;
-        constexpr Button Pov_135             = 135;
-        constexpr Button Pov_180             = 180;
-        constexpr Button Pov_225             = 225;
-        constexpr Button Pov_270             = 270;
-        constexpr Button Pov_315             = 315;
+        constexpr auto Pov_0               =   0_btn;
+        constexpr auto Pov_45              =  45_btn;
+        constexpr auto Pov_90              =  90_btn;
+        constexpr auto Pov_135             = 135_btn;
+        constexpr auto Pov_180             = 180_btn;
+        constexpr auto Pov_225             = 225_btn;
+        constexpr auto Pov_270             = 270_btn;
+        constexpr auto Pov_315             = 315_btn;
     }
     #pragma endregion
 }

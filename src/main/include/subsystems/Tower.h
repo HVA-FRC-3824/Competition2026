@@ -56,7 +56,7 @@ namespace TowerConstants
     // Default is facing forwards, 10 degree deadzone straight right
     // 1 turret rotation - 24 motor rotations - 360 degrees, so 1 motor rotation is 15 degrees
     // Min: -4, max: 14.5 (rotations)
-    constexpr auto MinAngle           =  15_deg * -4;   // TODO: Make these real. 
+    constexpr auto MinAngle           =  15_deg * -4; 
     constexpr auto MaxAngle           =  15_deg * 14.45;
  
     constexpr auto MaxLength          = 14.336_in;  // TODO: test these lengths, they're most likely accurate
@@ -67,18 +67,18 @@ namespace TowerConstants
 
     constexpr auto TargetTolerance    = 0.10;       // Percent of the target
 
-    constexpr auto HoodA              = -0.0007;
-    constexpr auto HoodB              =  0.045;
-    constexpr auto HoodC              =  0.8;
+    constexpr auto HoodA              = 0.0;
+    constexpr auto HoodB              = 0.0;
+    constexpr auto HoodC              = 0.0;
     
-    constexpr auto FlywheelA          = -0.2;
+    constexpr auto FlywheelA          = 0.0;
     constexpr auto FlywheelB          = 13.571;
-    constexpr auto FlywheelC          = 37.143;  
+    constexpr auto FlywheelC          = 50;  
     
     // From inches to 0-1 range
     constexpr auto ActuatorDistanceConversionFactor = (TowerConstants::MaxLength - TowerConstants::MinLength);
 
-    constexpr auto TurretGearReduction              = 24.0; // The gearbox is a 4:1 reduction, and then a pulley, and then a small gear and a big gear
+    constexpr auto TurretGearReduction              = 24.0; // There's a gearbox, and then a pulley, and then a small gear and a big gear, too many numbers for programming
 
     constexpr auto OffsetTurretFromRobotCenter      = frc::Transform3d{frc::Translation3d{0.0_m, 0.0_m, 0.0_m}, frc::Rotation3d{0.0_deg, 0.0_deg, 0.0_deg}};    
 }
@@ -97,8 +97,7 @@ class Tower : public frc2::SubsystemBase
 
         void             AimUsingTurretCamera(bool usingTurretCamera) { m_usingTurretCamera = usingTurretCamera; }
 
-        void             TestActuator(double position) { //m_hoodActuator.SetAngle(position);
-                                                       }
+        void             TestActuator(double position) { m_hoodActuator.SetSpeed(position); }
 
         void             Periodic() override;
 
@@ -111,10 +110,9 @@ class Tower : public frc2::SubsystemBase
         units::degree_t  GetTurretAngle();
 
         TowerState       CalculateShot(TowerMode towerMode, frc::Translation2d relativeDistance, frc::ChassisSpeeds chassisSpeed);
-        double           CalculatePolynomial(units::meter_t distance, double a, double b, double c);
+        double           CalculatePolynomial(units::inch_t distance, double a, double b, double c);
 
-        bool                                m_isBlue = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) 
-                                                            == frc::DriverStation::Alliance::kBlue;
+        bool                                m_isBlue = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) == frc::DriverStation::Alliance::kBlue;
 
         bool                                m_usingTurretCamera = false;
 

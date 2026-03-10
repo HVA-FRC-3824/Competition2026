@@ -40,16 +40,14 @@ namespace ChassisConstants
 {
     // NOTE: The absolute encoder range is 0.5 to -0.5
     // These are the abosulte encoder values that correspond to the wheels facing "forward"
-    constexpr units::degree_t FrontLeftForwardAngle { -0.023438 * 360.0 };  // Range of absolute encoder is -0.5 to 0.5
+    constexpr units::degree_t FrontLeftForwardAngle { -0.023438 * 360.0 };
     constexpr units::degree_t FrontRightForwardAngle{ -0.362793 * 360.0 };
     constexpr units::degree_t BackLeftForwardAngle  { -0.361328 * 360.0 };
     constexpr units::degree_t BackRightForwardAngle { -0.276855 * 360.0 };
 
-    // These make sure to limit how fast the robot can go
-    constexpr units::meters_per_second_t                    MaximumSpeed{1};
-    constexpr units::angular_velocity::radians_per_second_t MaximumAngularVelocity{std::numbers::pi / 2};
+    constexpr auto MaximumSpeed = 1_mps;
+    constexpr auto MaximumAngularVelocity = 1_rad_per_s * (std::numbers::pi / 2);
 
-    // The physical dimensions of the robot
     constexpr units::inch_t WheelBase {30.0};
     constexpr units::inch_t TrackWidth{24.0};
 
@@ -65,13 +63,13 @@ namespace ChassisConstants
     
     constexpr std::string_view             BackCameraName{"CameraBack"};
 
-    // 14 in forwards 17.125 in up 180 roll rotation
-    constexpr frc::Transform3d             BackRobotToCamera{frc::Translation3d{0_in, -14_in, 17.125_in}, frc::Rotation3d{180_deg, 0_deg, 180_deg}};
+    // 13 in backwards 17.125 in up 180 roll rotation
+    constexpr frc::Transform3d             BackRobotToCamera{frc::Translation3d{-13_in, 0_in, 17.0_in}, frc::Rotation3d{180_deg, 0_deg, 180_deg}};
 
     constexpr std::string_view             TopCameraName{"CameraTop"};
 
-    // 7.75 in right 8.375 in up 3 in back
-    constexpr frc::Transform3d             TopRobotToCamera{frc::Translation3d{7.75_in, -3_in, 20_in}, frc::Rotation3d{}};
+    // 9.55 in right 20 in up 3 in back
+    constexpr frc::Transform3d             TopRobotToCamera{frc::Translation3d{-3_in, -9.5_in, 20_in}, frc::Rotation3d{0_deg, 0_deg, 0_deg}};
 
 
     const     frc::AprilTagFieldLayout     TagLayout = frc::AprilTagFieldLayout::LoadField(frc::AprilTagField::k2026RebuiltWelded);
@@ -161,7 +159,7 @@ class Chassis : public frc2::SubsystemBase
         frc::SwerveDrivePoseEstimator<4> m_poseEstimator
         {
             m_kinematics,         // Kinematics object
-            frc::Rotation2d{0_deg},  // Initial gyro angle  TODO: Determine if this is being overriden
+            frc::Rotation2d{0_deg},  // Initial gyro angle
             GetModulePositions(),    // Initial module positions
             frc::Pose2d()            // Initial pose, will be overriden by vision
         };
@@ -178,7 +176,7 @@ class Chassis : public frc2::SubsystemBase
 
         bool                         m_isXMode = false;
     
-        studica::AHRS                m_gyro{studica::AHRS::NavXComType::kMXP_SPI};  // The gyro sensor
+        studica::AHRS                m_gyro{studica::AHRS::NavXComType::kMXP_SPI};
    
         units::degree_t              m_simGyro{0};
 
