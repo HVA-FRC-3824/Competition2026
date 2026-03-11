@@ -128,9 +128,8 @@ void Tower::SetActuator(units::inch_t position)
 void Tower::SetTurretAngle(units::degree_t angle)
 {
     // Normalize to [0, 360), then shift into [MinAngle, MinAngle + 360)
-    double range = TowerConstants::MaxAngle.value() - TowerConstants::MinAngle.value();
-    double normalized = std::fmod(angle.value() - TowerConstants::MinAngle.value(), range);
-    if (normalized < 0) normalized += range;
+    double normalized = std::fmod(angle.value() - TowerConstants::MinAngle.value(), 360.0);
+    if (normalized < 0) normalized += 360.0;
     angle = TowerConstants::MinAngle + 1_deg * normalized;
 
     angle = std::clamp(angle, TowerConstants::MinAngle, TowerConstants::MaxAngle);
@@ -141,7 +140,7 @@ void Tower::SetTurretAngle(units::degree_t angle)
     units::angle::turn_t rotations{angle.value() / 360.0};
 
     // Set the motor to the desired position
-    m_turretMotor.SetControl(ctre::phoenix6::controls::PositionVoltage{rotations * TowerConstants::TurretGearReduction});
+    m_turretMotor.SetControl(ctre::phoenix6::controls::MotionMagicVoltage{rotations * TowerConstants::TurretGearReduction});
 }
 #pragma endregion
 
@@ -188,11 +187,11 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relative
         // Adjust turret angle based on predicted target position
         // NOTE: I would use the gcem atan2 function, but whether it uses radians or degrees is ambiguous 
         // and the return type is arbitrary, also gcem seem
-        newState.turretAngle = 1_deg * (std::atan2(newRelativeDistance.X().value(), newRelativeDistance.Y().value()) * (180/std::numbers::pi));
+        newState.turretAngle = 1_deg * (std::atan2(newRelativeDistance.Y().value(), newRelativeDistance.X().value()) * (180/std::numbers::pi));
         Log("desired turret angle ", newState.turretAngle.value());
         
         // Change it by the rotation to keep straight
-        newState.turretAngle =- chassisRotation.Degrees();
+        newState.turretAngle -= chassisRotation.Degrees();
     }
 
     auto distance = 1_m * std::abs(newRelativeDistance.Translation().Norm().value());
