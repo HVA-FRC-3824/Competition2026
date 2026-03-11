@@ -80,7 +80,7 @@ namespace TowerConstants
 
     constexpr auto TurretGearReduction              = 24.0; // There's a gearbox, and then a pulley, and then a small gear and a big gear, too many numbers for programming
 
-    constexpr auto OffsetTurretFromRobotCenter      = frc::Transform3d{frc::Translation3d{0.0_m, 0.0_m, 0.0_m}, frc::Rotation3d{0.0_deg, 0.0_deg, 0.0_deg}};    
+    constexpr auto OffsetTurretFromRobotCenter      = frc::Transform3d{frc::Translation3d{-6.0_in, 0.0_m, 20.0_in}, frc::Rotation3d{0.0_deg, 0.0_deg, 0.0_deg}};    
 }
 #pragma endregion
 
@@ -109,7 +109,7 @@ class Tower : public frc2::SubsystemBase
         void             SetTurretAngle(units::degree_t angle);
         units::degree_t  GetTurretAngle();
 
-        TowerState       CalculateShot(TowerMode towerMode, frc::Translation2d relativeDistance, frc::ChassisSpeeds chassisSpeed);
+        TowerState       CalculateShot(TowerMode towerMode, frc::Translation2d relativeDistance, frc::ChassisSpeeds chassisSpeed, frc::Rotation2d chassisRotation);
         double           CalculatePolynomial(units::inch_t distance, double a, double b, double c);
 
         bool                                m_isBlue = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) == frc::DriverStation::Alliance::kBlue;

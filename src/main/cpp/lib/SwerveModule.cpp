@@ -72,7 +72,7 @@ void SwerveModule::SetDesiredState(frc::SwerveModuleState &desiredState, std::st
     // Optimize the reference state to avoid spinning further than 90 degrees
     desiredState.Optimize(GetPosition().angle);
 
-    // Convert angle to motor posiition (1.0 turn = 360 degrees)
+    // Convert angle to motor position (1.0 turn = 360 degrees)
     m_angleMotor.SetControl(ctre::phoenix6::controls::PositionDutyCycle(desiredState.angle.Degrees() / (360_deg / 1_tr)));
 
     // Convert wheel linear velocity to motor rotations per second						   

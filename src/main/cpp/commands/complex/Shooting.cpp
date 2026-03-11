@@ -25,3 +25,14 @@ frc2::CommandPtr ShootToZone(Spindexer *spindexer, Tower *tower)
         .AndThen(SpindexerSetState(spindexer, SpindexerState::Spindexing));
 }
 #pragma endregion
+
+#pragma region Jiggle
+frc2::CommandPtr Jiggle(Intake *intake, Chassis *chassis)
+{
+    return ChassisDrive(chassis, [intake]() {
+        
+        if (int(frc::GetTime().value()) % 2 == 0) intake->SetState(IntakeState(int(!bool(int(intake->GetState())))));
+
+        return frc::ChassisSpeeds{0_mps, 0_mps, (int(frc::GetTime().value()) % 2 == 0) ? -10.0_deg_per_s : 10.0_deg_per_s }; });
+}
+#pragma endregion

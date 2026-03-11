@@ -39,7 +39,7 @@
 namespace ChassisConstants
 {
     // NOTE: The absolute encoder range is 0.5 to -0.5
-    // These are the abosulte encoder values that correspond to the wheels facing "forward"
+    // These are the absolute encoder values that correspond to the wheels facing "forward"
     constexpr units::degree_t FrontLeftForwardAngle { -0.023438 * 360.0 };
     constexpr units::degree_t FrontRightForwardAngle{ -0.362793 * 360.0 };
     constexpr units::degree_t BackLeftForwardAngle  { -0.361328 * 360.0 };
@@ -74,7 +74,7 @@ namespace ChassisConstants
 
     const     frc::AprilTagFieldLayout     TagLayout = frc::AprilTagFieldLayout::LoadField(frc::AprilTagField::k2026RebuiltWelded);
 
-    const     Eigen::Matrix<double, 3, 1>  SingleTagStdDevs{1.0, 1.0, 1.0}; // Reduced by 1/4
+    const     Eigen::Matrix<double, 3, 1>  SingleTagStdDevs{2.0, 2.0, 1.0}; // Reduced by 1/4
     const     Eigen::Matrix<double, 3, 1>  MultiTagStdDevs {0.5, 0.5, 0.5}; // Reduced by 1/2
 }
 #pragma endregion

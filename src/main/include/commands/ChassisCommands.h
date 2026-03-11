@@ -18,12 +18,8 @@
 #include "subsystems/Chassis.h"
 #pragma endregion
 
-frc2::CommandPtr ChassisZeroHeading(Chassis* chassis);
-
-frc2::CommandPtr ChassisXMode(Chassis* chassis);
-
-frc2::CommandPtr ChassisDrive(Chassis* chassis, std::function<frc::ChassisSpeeds()> chassisSpeedsSupplier);
-
-frc2::CommandPtr ChassisDrivePose(Chassis* chassis, frc::Pose2d targetPose);
-
-frc2::CommandPtr ToggleFieldCentricity(Chassis* chassis);
+frc2::CommandPtr ChassisZeroHeading(Chassis *chassis);
+frc2::CommandPtr ChassisXMode(Chassis *chassis);
+frc2::CommandPtr ChassisDrive(Chassis *chassis, std::function<frc::ChassisSpeeds()> chassisSpeedsSupplier);
+frc2::CommandPtr ChassisDrivePose(Chassis *chassis, frc::Pose2d targetPose);
+frc2::CommandPtr ToggleFieldCentricity(Chassis *chassis);

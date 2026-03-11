@@ -131,9 +131,7 @@ void Chassis::ResetPose(frc::Pose2d pose)
     m_poseEstimator.Update(pose.Rotation(), GetModulePositions());
 
     m_poseEstimator.ResetPose(pose);
-    static int counter = 0;
     Log("Reset Pose ", pose.X().value());
-    Log("reset counter ", counter++);
 
 }
 #pragma endregion
@@ -143,6 +141,9 @@ void Chassis::ResetPose(frc::Pose2d pose)
 /// @return The current swerve module states.
 wpi::array<frc::SwerveModuleState, 4> Chassis::GetModuleStates()
 {
+    if (frc::RobotBase::IsSimulation())
+        return m_desiredStates;
+
     // Return the swerve module states
     return wpi::array<frc::SwerveModuleState, 4>
     {
@@ -193,6 +194,9 @@ void Chassis::ToggleXMode()
 /// @return The robot heading.
 frc::Rotation2d Chassis::GetHeading()
 {
+    if (frc::RobotBase::IsSimulation())
+        return m_simGyro;
+
     // Return the gyro rotation (negated because NavX is mounted upside down)
     return -m_gyro.GetRotation2d();
 }
@@ -242,7 +246,7 @@ void Chassis::Periodic()
     {
         // This also updates the pose estimator with vision as well as updating photonvisions internal estimators
         m_topVision.Periodic();
-        // m_backVision.Periodic();
+        m_backVision.Periodic();
     }
 
     /// *** Logging *** ///

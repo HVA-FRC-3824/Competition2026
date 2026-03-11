@@ -16,9 +16,9 @@
 #pragma region IntakeEnums
 enum IntakeState
 {
-    Stowed,
-
+    StowedOn,
     DeployedRollerOn,
+    Stowed,
     DeployedRollerOff
 };
 #pragma endregion

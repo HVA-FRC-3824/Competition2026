@@ -9,4 +9,4 @@
 #include "subsystems/Intake.h"
 #pragma endregion
 
-frc2::CommandPtr IntakeSetState(Intake* intake, IntakeState state);
+frc2::CommandPtr IntakeSetState(Intake *intake, IntakeState state);

@@ -14,14 +14,14 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
                          true,  // Inverted
                          false,  // Brake mode
                          false, // Continuous wrap
-                         0.9,   // P gain
-                         0.25,  // I gain
+                         0.8,   // P gain
+                         0.3,  // I gain
                          0.07,  // D gain
                          0.0,   // S (static friction feedforward)
                          0.0,   // V (velocity feedforward)
                          0.0,   // A (acceleration feedforward)
-                         0_tps,  // Velocity limit
-                         0_tr_per_s_sq); // Acceleration limit
+                         5_tps,  // Velocity limit
+                         2.5_tr_per_s_sq); // Acceleration limit
 
     TalonFXConfiguration(&m_flywheelMotor,
                          40_A,            // Current limit
@@ -135,6 +135,8 @@ void Tower::SetTurretAngle(units::degree_t angle)
 
     angle = std::clamp(angle, TowerConstants::MinAngle, TowerConstants::MaxAngle);
     
+    Log("turret real setpoint ", angle.value());
+
     // Convert degrees to rotations (turns) for TalonFX
     units::angle::turn_t rotations{angle.value() / 360.0};
 
@@ -163,7 +165,7 @@ units::degree_t Tower::GetTurretAngle()
 /// @brief Changes the turret angle, flywheel speed, and hood actuator position based on distance and speed to target
 /// @param relativeDistance The relative distance to the target from the turret to the target
 /// @param speed The chassis speeds of the robot relative to the field
-TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relativeDistance, frc::ChassisSpeeds speed)
+TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relativeDistance, frc::ChassisSpeeds speed, frc::Rotation2d chassisRotation)
 {
     TowerState newState{towerMode, 0_deg, 0.0_rpm, 0.0_in};
 
@@ -186,11 +188,14 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relative
         // Adjust turret angle based on predicted target position
         // NOTE: I would use the gcem atan2 function, but whether it uses radians or degrees is ambiguous 
         // and the return type is arbitrary, also gcem seem
-        newState.turretAngle = 1_deg * (180 / std::numbers::pi) * std::atan2(newRelativeDistance.X().value(), newRelativeDistance.Y().value());
-        Log("desired angle ", newState.turretAngle.value());
+        newState.turretAngle = 1_deg * (std::atan2(newRelativeDistance.X().value(), newRelativeDistance.Y().value()) * (180/std::numbers::pi));
+        Log("desired turret angle ", newState.turretAngle.value());
+        
+        // Change it by the rotation to keep straight
+        newState.turretAngle =- chassisRotation.Degrees();
     }
 
-    auto distance = 1_in * std::abs(newRelativeDistance.Translation().Norm().convert<units::inches>().value());
+    auto distance = 1_m * std::abs(newRelativeDistance.Translation().Norm().value());
 
     // Calculate hood actuator position based on distance
     newState.hoodActuatorInches = 1_in * CalculatePolynomial(distance, TowerConstants::HoodA, TowerConstants::HoodB, TowerConstants::HoodC);
@@ -334,7 +339,7 @@ void Tower::Periodic()
                         Log("Turret Angle to Hub (deg)", turretAngle.value());
         
                         // Calculate the shot parameters based on the hub distance and chassis speed
-                        m_state = CalculateShot(TowerMode::ShootingToHub, hubDistance, chassisSpeed);
+                        m_state = CalculateShot(TowerMode::ShootingToHub, hubDistance, chassisSpeed, chassisPose.Rotation());
 
                         // Apply turret angle after CalculateShot, so it isn't overwritten
                         m_state.turretAngle = turretAngle - GetTurretAngle();
@@ -353,10 +358,12 @@ void Tower::Periodic()
                 
                 // Calculate the relative distance from the turret center to the hub
                 relativeDistance = Hub.ToPose2d().Translation() - (chassisPose.Translation() + TowerConstants::OffsetTurretFromRobotCenter.Translation().ToTranslation2d());
+
+
             }
 
             // Calculate the shot parameters based on the relative distance and chassis speed
-            m_state = CalculateShot(TowerMode::ShootingToHub, relativeDistance, chassisSpeed);
+            m_state = CalculateShot(TowerMode::ShootingToHub, relativeDistance, chassisSpeed, chassisPose.Rotation());
             break;
         }
 
@@ -369,9 +376,7 @@ void Tower::Periodic()
             
             auto relativeDistance = targetPoint - chassisPose.Translation();
 
-            m_state.turretAngle = 57.2958_deg * std::atan2(relativeDistance.X().value(), relativeDistance.Y().value());
-
-            m_state = CalculateShot(TowerMode::PassingToAdjacentZone, relativeDistance, chassisSpeed);
+            m_state = CalculateShot(TowerMode::PassingToAdjacentZone, relativeDistance, chassisSpeed, chassisPose.Rotation());
             break;
         }
 
@@ -382,16 +387,16 @@ void Tower::Periodic()
     }
 
     // Apply the calculated state to the hardware
-    if (m_usingTurretCamera)
-    {
+    // if (m_usingTurretCamera)
+    // {
+    //     SetTurretAngle(m_state.turretAngle);
+    // } 
+    // else
+    // {
         SetTurretAngle(m_state.turretAngle);
-    } 
-    else
-    {
-        // Compensate for robot rotation
-        // If we are on red, our gyro will be turned around, flip it
-        SetTurretAngle(m_state.turretAngle - chassisPose.Rotation().Degrees());
-    }
+        Log("turret showing gyro ", chassisPose.Rotation().Degrees().value());
+        Log("turret before gyro ", m_state.turretAngle.value());
+    // }
 
     // Set flywheel speed and hood actuator position
     SetFlywheel(m_state.flywheelSpeed);
@@ -409,6 +414,6 @@ void Tower::Periodic()
 
     // Log("Measured Hood Length ", ); TODO: simulate hood speeds
     Log("Measured Flywheel Speed ", m_flywheelMotor.GetVelocity().GetValueAsDouble());
-    Log("Measured Turret Angle ", m_turretMotor.GetPosition().GetValueAsDouble() / TowerConstants::TurretGearReduction);
+    Log("Measured Turret Angle ", GetTurretAngle().value());
 }
 #pragma endregion

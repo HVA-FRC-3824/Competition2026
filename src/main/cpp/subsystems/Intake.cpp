@@ -59,17 +59,25 @@ void Intake::SetState(IntakeState newState)
     // Set position and roller speed based on the new state
     switch (newState)
     {
-        case IntakeState::Stowed:
-        {
-            // Defaulted to stowed position with roller off
-            break;
-        }
-
         case IntakeState::DeployedRollerOn:
         {
             // Set the intake to the deployed position and turn on the roller
             position = IntakeConstants::IntakeDeployedAngle;
             roller   = IntakeConstants::IntakeDriveSpeed;
+            break;
+        }
+
+        case IntakeState::StowedOn:
+        {
+            // Defaulted to stowed position with roller off
+            position = IntakeConstants::IntakeStowedAngle;
+            roller   = IntakeConstants::IntakeDriveSpeed;
+            break;
+        }
+        
+        case IntakeState::Stowed:
+        {
+            // Defaulted to stowed position with roller off
             break;
         }
 
