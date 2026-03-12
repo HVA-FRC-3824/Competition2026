@@ -46,7 +46,7 @@ struct TowerState
     TowerMode                 mode;
     units::degree_t           turretAngle;
     units::turns_per_second_t flywheelSpeed;
-    units::inch_t             hoodActuatorInches;
+    double                    hoodActuatorDistance;
 };
 #pragma endregion
 
@@ -75,9 +75,6 @@ namespace TowerConstants
     constexpr auto FlywheelB          = 13.571;
     constexpr auto FlywheelC          = 50;  
     
-    // From inches to 0-1 range
-    constexpr auto ActuatorDistanceConversionFactor = (TowerConstants::MaxLength - TowerConstants::MinLength);
-
     constexpr auto TurretGearReduction              = 24.0; // There's a gearbox, and then a pulley, and then a small gear and a big gear, too many numbers for programming
 
     constexpr auto OffsetTurretFromRobotCenter      = frc::Transform3d{frc::Translation3d{-6.0_in, 0.0_m, 20.0_in}, frc::Rotation3d{0.0_deg, 0.0_deg, 0.0_deg}};    
@@ -104,7 +101,7 @@ class Tower : public frc2::SubsystemBase
     private: 
     
         void             SetFlywheel(units::turns_per_second_t input);
-        void             SetActuator(units::inch_t position);
+        void             SetActuator(double position);
 
         void             SetTurretAngle(units::degree_t angle);
         units::degree_t  GetTurretAngle();
@@ -121,7 +118,7 @@ class Tower : public frc2::SubsystemBase
         std::function<frc::Pose2d()>        m_chassisPoseSupplier;
         std::function<frc::ChassisSpeeds()> m_chassisSpeedsSupplier;   
 
-        TowerState                          m_state{TowerMode::Idle, 0_deg, 0_rpm, 0_in}; 
+        TowerState                          m_state{TowerMode::Idle, 0_deg, 0_rpm, 0.0}; 
 
         ctre::phoenix6::hardware::TalonFX   m_turretMotor          {ConstantsCanIds::TurretMotorId};
         ctre::phoenix6::hardware::TalonFX   m_flywheelMotor        {ConstantsCanIds::FlywheelMotorId};

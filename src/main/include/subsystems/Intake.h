@@ -48,6 +48,8 @@ class Intake : public frc2::SubsystemBase
 
         IntakeState GetState() const { return m_intakeState; }
 
+        void JogPosition(units::volt_t jogVoltage) { m_intakePositionMotor.SetControl(ctre::phoenix6::controls::VoltageOut{jogVoltage}); };
+
     private:
 
         // Motor that will extend and retract the intake (Magic motion position controlled)

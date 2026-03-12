@@ -3,7 +3,7 @@
 #pragma region Includes
 #include <wpi/array.h>
 
-#include "studica/AHRS.h"
+#include "lib/Gyro.h"
 
 #include <frc/DriverStation.h>
 #include <frc/Timer.h>
@@ -82,7 +82,7 @@ namespace ChassisConstants
 /// @brief Chassis subsystem for swerve drive control
 ///
 ///       Red                      <----- Zero Angle                       Blue
-///                            <--- 0 degrees    180 degres ---->     X  <-----
+///                            <--- 0 degrees    180 degrees ---->     X  <-----
 ///   ---  +-------------------------------------------------------------------+ (0, 0)
 ///    ^   |                7  6              |             17 28           29 |  
 ///    |   |                                  |                             30 |  |
@@ -122,7 +122,8 @@ class Chassis : public frc2::SubsystemBase
         
         void                                     ToggleXMode();
 
-        frc::Rotation2d                          GetHeading();
+        frc::Rotation2d                          GetDriverHeading();
+        frc::Rotation2d                          GetPoseHeading();
         frc::Pose2d                              GetPose();
         frc::ChassisSpeeds                       GetSpeeds();
 
@@ -176,9 +177,7 @@ class Chassis : public frc2::SubsystemBase
 
         bool                         m_isXMode = false;
     
-        studica::AHRS                m_gyro{studica::AHRS::NavXComType::kMXP_SPI};
-   
-        units::degree_t              m_simGyro{0};
+        Gyro                         m_gyro;
 
         VisionPose m_topVision
         {

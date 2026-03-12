@@ -2,7 +2,7 @@
 
 #pragma region SparkMaxConfiguration
 void SparkMaxConfiguration(rev::spark::SparkMax *motor,
-                          units::ampere_t currentLimit,
+                          units::ampere_t        currentLimit,
                           bool   brakeMode,
                           bool   continuousWrap,
                           double P,

@@ -49,10 +49,6 @@ RobotContainer::RobotContainer()
         }, {&m_leds}}
         .AndThen(SetLedStatus(&m_leds, &m_ledMode))
     );
-
-    m_tower.TestActuator(1.0);
-
-    // m_tower.SetDefaultCommand(frc2::InstantCommand{[&]() {m_manualTowerState.flywheelSpeed = 1_tps * frc::SmartDashboard::GetNumber("Flywheel Speed (tps) ", 0);}, {&m_tower}});
 }
 #pragma endregion
 
@@ -101,25 +97,48 @@ void RobotContainer::InitializeDriverControls()
 
         // Climb controls
         {constants::controller::Y,          ClimbRetract(&m_climb), ClimbDeploy(&m_climb)},
-    
-        // Spindexer Controls
-        {constants::controller::LeftBumper,  SpindexerSetState(&m_spindexer, SpindexerState::Spindexing),
-                                             SpindexerSetState(&m_spindexer, SpindexerState::Stopped)}
     };
 
     // Add the bindings to the driver controller
-    for (auto &[button, once, twice] : driverBindings)
+    for (auto &[button, command, command2] : driverBindings)
     {
         frc2::JoystickButton(&m_driveController, int(button)).Debounce(50_ms)
-            .OnTrue(std::move(once))
+            .OnTrue(std::move(command))
         .MultiPress(2, 0.4_s)
-            .OnTrue(twice.has_value() ? std::move(twice.value()) : frc2::cmd::None());
+            .OnTrue(command2.has_value() ? std::move(command2.value()) : frc2::cmd::None());
     }
 
     // Intake controls
     frc2::JoystickButton(&m_driveController, int(constants::controller::RightBumper)).
                          OnTrue(IntakeSetState(&m_intake, IntakeState::DeployedRollerOn)).
                          OnFalse(IntakeSetState(&m_intake, IntakeState::Stowed));
+
+    // Spindexer Controls
+    frc2::JoystickButton(&m_driveController, int(constants::controller::LeftBumper)).
+                         OnTrue(SpindexerSetState(&m_spindexer, SpindexerState::Spindexing)).
+                         OnFalse(SpindexerSetState(&m_spindexer, SpindexerState::Stopped));
+
+    // Driver POV controls
+    std::tuple<int, frc2::CommandPtr, std::optional<frc2::CommandPtr>> driverPOVBindings[] =
+    {
+        // Manual tower controls
+        {constants::controller::Pov_0, frc2::InstantCommand{[&]() { m_intake.JogPosition(2_V); }, {&m_intake}}.ToPtr(), 
+                frc2::InstantCommand{[&]() { m_intake.JogPosition(0_V); }, {&m_intake}}.ToPtr()},
+
+        // {constants::controller::Pov_90,  },
+
+        {constants::controller::Pov_180, frc2::InstantCommand{[&]() { m_intake.JogPosition(-2_V); }, {&m_intake}}.ToPtr(), 
+                frc2::InstantCommand{[&]() { m_intake.JogPosition(0_V); }, {&m_intake}}.ToPtr()}
+                
+        // {constants::controller::Pov_270, },
+    };
+
+    for (auto &[direction, command, command2] : driverPOVBindings)
+    {
+        frc2::POVButton(&m_driveController, direction)
+            .OnTrue(std::move(command))
+            .OnFalse(command2.has_value() ? std::move(command2.value()) : frc2::cmd::None());
+    }             
 }
 #pragma endregion
 
@@ -149,8 +168,11 @@ void RobotContainer::InitializeOperatorControls()
         {constants::controller::Y, TowerIdle(&m_tower),                               TowerAutomatic(&m_tower)},
         {constants::controller::X, TowerManualControl(&m_tower, &m_manualTowerState), std::nullopt},
 
-        {constants::controller::LeftStickButton,  frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches -= 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState)), std::nullopt},
-        {constants::controller::RightStickButton, frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorInches += 2_in;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState)), std::nullopt},
+        {constants::controller::LeftStickButton,  frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorDistance -= 0.1;}, {&m_tower}}
+                                                    .AndThen(TowerManualControl(&m_tower, &m_manualTowerState)), std::nullopt},
+        
+        {constants::controller::RightStickButton, frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorDistance += 0.1;}, {&m_tower}}
+                                                    .AndThen(TowerManualControl(&m_tower, &m_manualTowerState)), std::nullopt},
     };
 
     // Add the bindings to the operator controller
@@ -166,11 +188,17 @@ void RobotContainer::InitializeOperatorControls()
     std::pair<int, frc2::CommandPtr> operatorPOVBindings[] =
     {
         // Manual tower controls
-        {constants::controller::Pov_0,   frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed += 2.5_tps; Log("FlywheelSpeed ", m_manualTowerState.flywheelSpeed.value());}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
-        {constants::controller::Pov_90,  frc2::InstantCommand{[&] { m_manualTowerState.turretAngle += 5_deg;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
+        {constants::controller::Pov_0,   frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed += 2.5_tps;}, {&m_tower}}
+                                            .AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
 
-        {constants::controller::Pov_180, frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed -= 2.5_tps; Log("FlywheelSpeed ", m_manualTowerState.flywheelSpeed.value());}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
-        {constants::controller::Pov_270, frc2::InstantCommand{[&] { m_manualTowerState.turretAngle -= 5_deg;}, {&m_tower}}.AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
+        {constants::controller::Pov_90,  frc2::InstantCommand{[&] { m_manualTowerState.turretAngle += 5_deg;}, {&m_tower}}
+                                            .AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
+
+        {constants::controller::Pov_180, frc2::InstantCommand{[&] { m_manualTowerState.flywheelSpeed -= 2.5_tps;}, {&m_tower}}
+                                            .AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
+
+        {constants::controller::Pov_270, frc2::InstantCommand{[&] { m_manualTowerState.turretAngle -= 5_deg;}, {&m_tower}}
+                                            .AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
     };
 
     for (auto &[direction, command] : operatorPOVBindings)

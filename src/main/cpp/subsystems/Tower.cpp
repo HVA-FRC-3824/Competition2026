@@ -58,6 +58,10 @@ void Tower::SetState(TowerState newState)
         ctre::phoenix6::controls::Follower(m_flywheelMotor.GetDeviceID(), 
                                         ctre::phoenix6::signals::MotorAlignmentValue::Opposed)
     );
+
+    Log("Set State Turret", newState.turretAngle.value());
+    Log("Set State Flywheel", newState.flywheelSpeed.value());
+    Log("Set State Actuator", newState.hoodActuatorDistance);
     
     // Remember the state
     m_state = newState;
@@ -107,18 +111,20 @@ void Tower::SetFlywheel(units::turns_per_second_t input)
 
 #pragma region SetActuator
 /// @brief Activates the actuator which moves linearly to move the hood by some degrees, check the manual https://andymark.com/products/linear-servo-actuators
-/// @param position The position input value to set the hood actuator 
-void Tower::SetActuator(units::inch_t position)
+/// @param position The position input value to set the hood actuator 0,1
+void Tower::SetActuator(double position)
 {
-    // Do not allow actuator to move past the min or max lengths
-    position = std::clamp(position, TowerConstants::MinLength, TowerConstants::MaxLength);
+    //0,1
+    position;
 
-    // Convert position in inches to actuator position (0-1)
-    double actuatorPosition = (position - TowerConstants::MinLength) / TowerConstants::ActuatorDistanceConversionFactor;
-	actuatorPosition = std::clamp(actuatorPosition, 0.0, 1.0);
+    //-0.5,0.5
+    position -= 0.5;
+
+    // -0.95, 0.95
+    position *= 1.9;
 
     // Although this says SetSpeed, this actually does position
-	m_hoodActuator.SetSpeed(actuatorPosition);
+	m_hoodActuator.SetSpeed(position);
 }
 #pragma endregion
 
@@ -166,7 +172,7 @@ units::degree_t Tower::GetTurretAngle()
 /// @param speed The chassis speeds of the robot relative to the field
 TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relativeDistance, frc::ChassisSpeeds speed, frc::Rotation2d chassisRotation)
 {
-    TowerState newState{towerMode, 0_deg, 0.0_rpm, 0.0_in};
+    TowerState newState{towerMode, 0_deg, 0.0_rpm, 0.0};
 
     // Create a new Pose2d from the relative distance and apply speed based translations
     // Predict where the target will be in 0.5 seconds using frc::Twist2d
@@ -192,13 +198,13 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relative
         
         // Change it by the rotation to keep straight
         newState.turretAngle -= chassisRotation.Degrees();
+        newState.turretAngle -= 180_deg;
     }
 
     auto distance = 1_m * std::abs(newRelativeDistance.Translation().Norm().value());
 
     // Calculate hood actuator position based on distance
-    newState.hoodActuatorInches = 1_in * CalculatePolynomial(distance, TowerConstants::HoodA, TowerConstants::HoodB, TowerConstants::HoodC);
-    // newState.hoodActuatorInches = std::clamp(newState.hoodActuatorInches, TowerConstants::MinLength, TowerConstants::MaxLength);
+    newState.hoodActuatorDistance = CalculatePolynomial(distance, TowerConstants::HoodA, TowerConstants::HoodB, TowerConstants::HoodC);
 
     // Calculate the flywheel speed based on distance
     newState.flywheelSpeed = 1_rpm * CalculatePolynomial(distance, TowerConstants::FlywheelA, TowerConstants::FlywheelB, TowerConstants::FlywheelC);
@@ -267,9 +273,9 @@ void Tower::Periodic()
         case TowerMode::Idle:
         {
             // Do not power down flywheel, do not move turret, do not move hood, wait until further inputs
-            m_state.flywheelSpeed      = 0_rpm;
-            m_state.hoodActuatorInches = 0_in;
-            m_state.turretAngle        = 0_deg;
+            m_state.flywheelSpeed        = 0_rpm;
+            m_state.hoodActuatorDistance = 0;
+            m_state.turretAngle          = 0_deg;
             break;
         }
 
@@ -286,7 +292,7 @@ void Tower::Periodic()
                 if (results.empty())
                 {
                     // There are no results
-                    return;
+                    break;
                 }
                 else
                 {
@@ -341,13 +347,13 @@ void Tower::Periodic()
                         m_state = CalculateShot(TowerMode::ShootingToHub, hubDistance, chassisSpeed, chassisPose.Rotation());
 
                         // Apply turret angle after CalculateShot, so it isn't overwritten
-                        m_state.turretAngle = turretAngle - GetTurretAngle();
+                        m_state.turretAngle = GetTurretAngle() + turretAngle;
                     }
                 }
                 else
                 {
                     // No targets found, do not shoot
-                    return;
+                    break;
                 }
             }
             else // If not using the turret camera, base relative distance on field pose
@@ -356,9 +362,7 @@ void Tower::Periodic()
                 frc::Pose3d Hub = m_isBlue ? constants::Field::BlueHub : constants::Field::RedHub;
                 
                 // Calculate the relative distance from the turret center to the hub
-                relativeDistance = Hub.ToPose2d().Translation() - (chassisPose.Translation() + TowerConstants::OffsetTurretFromRobotCenter.Translation().ToTranslation2d());
-
-
+                relativeDistance = (chassisPose.Translation() + TowerConstants::OffsetTurretFromRobotCenter.Translation().ToTranslation2d()) - Hub.ToPose2d().Translation();
             }
 
             // Calculate the shot parameters based on the relative distance and chassis speed
@@ -399,7 +403,7 @@ void Tower::Periodic()
 
     // Set flywheel speed and hood actuator position
     SetFlywheel(m_state.flywheelSpeed);
-    SetActuator(m_state.hoodActuatorInches);
+    SetActuator(m_state.hoodActuatorDistance);
     
     // If its in automatic mode, prepare the state for the next cycle
     if (isAutomatic)
@@ -407,7 +411,7 @@ void Tower::Periodic()
 
     /// *** Update logging *** ///
 
-    Log("Desired Hood Length ", m_state.hoodActuatorInches.value());
+    Log("Desired Hood Length ", m_state.hoodActuatorDistance);
     Log("Desired Flywheel Speed ", m_state.flywheelSpeed.value());
     Log("Desired Turret Angle ", m_state.turretAngle.value());
 

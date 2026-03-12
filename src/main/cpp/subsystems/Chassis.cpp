@@ -43,7 +43,7 @@ Chassis::Chassis()
 void Chassis::Drive(const frc::ChassisSpeeds &speeds)
 {
     // Call the relative drive method with the correct frame of reference
-    DriveRelative(m_isFieldRelative ? frc::ChassisSpeeds::FromFieldRelativeSpeeds(speeds, GetHeading()) : speeds);
+    DriveRelative(m_isFieldRelative ? frc::ChassisSpeeds::FromFieldRelativeSpeeds(speeds, GetDriverHeading()) : speeds);
 }
 #pragma endregion
 
@@ -189,16 +189,21 @@ void Chassis::ToggleXMode()
 }
 #pragma endregion
 
-#pragma region GetHeading
-/// @brief Method to get the robot heading.
-/// @return The robot heading.
-frc::Rotation2d Chassis::GetHeading()
+#pragma region GetDriverHeading
+/// @brief Method to get the robot heading for the driver.
+/// @return The robot driver heading.
+frc::Rotation2d Chassis::GetDriverHeading()
 {
-    if (frc::RobotBase::IsSimulation())
-        return m_simGyro;
+    return m_gyro.GetDriverHeading();
+}
+#pragma endregion
 
-    // Return the gyro rotation (negated because NavX is mounted upside down)
-    return -m_gyro.GetRotation2d();
+#pragma region GetPoseHeading
+/// @brief Method to get the robot heading for odometry.
+/// @return The robot pose heading.
+frc::Rotation2d Chassis::GetPoseHeading()
+{
+    return m_gyro.GetPoseHeading();
 }
 #pragma endregion
 
@@ -232,10 +237,10 @@ frc::ChassisSpeeds Chassis::GetSpeeds()
 void Chassis::Periodic()
 {
     // Update gyro sim, advance by the cycle time (20 milliseconds)
-    m_simGyro += m_desiredSpeeds.omega * 0.02_s;
+    m_gyro.SimPeriodic(units::degrees_per_second_t{m_desiredSpeeds.omega.value()});
 
     // Update the pose estimator
-    m_poseEstimator.Update(GetHeading(), GetModulePositions());
+    m_poseEstimator.Update(GetPoseHeading(), GetModulePositions());
 
     if (frc::RobotBase::IsSimulation())
     {
@@ -257,7 +262,7 @@ void Chassis::Periodic()
     Log("Desired Swerve Module States ", m_desiredStates);
 
     Log("Actual Robot Pose ", GetPose());
-    Log("Gyro", GetHeading().Degrees().value());
+    Log("Driver Heading", GetDriverHeading().Degrees().value());
     Log("Field relative ",    m_isFieldRelative);
 }
 #pragma endregion

@@ -13,8 +13,9 @@
 #include <frc2/command/button/POVButton.h>
 
 #include "ConstantsRoboRio.h"
+#include "lib/Logging.h"
 
-#define ButtonFunction(button)\
+#define BUTTON_FUNCTION(button)\
 ButtonConfiguration *button(                                                          \
     ButtonMode mode,                                                                  \
     frc2::CommandPtr command,                                                         \
@@ -77,24 +78,24 @@ class Controller : frc2::SubsystemBase
 
                 }
 
-                ButtonFunction(A)
-                ButtonFunction(B)
-                ButtonFunction(X)
-                ButtonFunction(Y)
-                ButtonFunction(LeftBumper)
-                ButtonFunction(RightBumper)
-                ButtonFunction(Back)
-                ButtonFunction(Start)
-                ButtonFunction(LeftStickButton)
-                ButtonFunction(RightStickButton)
-                ButtonFunction(Pov_0)
-                ButtonFunction(Pov_45)
-                ButtonFunction(Pov_90)
-                ButtonFunction(Pov_135)
-                ButtonFunction(Pov_180)
-                ButtonFunction(Pov_225)
-                ButtonFunction(Pov_270)
-                ButtonFunction(Pov_315)
+                BUTTON_FUNCTION(A)
+                BUTTON_FUNCTION(B)
+                BUTTON_FUNCTION(X)
+                BUTTON_FUNCTION(Y)
+                BUTTON_FUNCTION(LeftBumper)
+                BUTTON_FUNCTION(RightBumper)
+                BUTTON_FUNCTION(Back)
+                BUTTON_FUNCTION(Start)
+                BUTTON_FUNCTION(LeftStickButton)
+                BUTTON_FUNCTION(RightStickButton)
+                BUTTON_FUNCTION(Pov_0)
+                BUTTON_FUNCTION(Pov_45)
+                BUTTON_FUNCTION(Pov_90)
+                BUTTON_FUNCTION(Pov_135)
+                BUTTON_FUNCTION(Pov_180)
+                BUTTON_FUNCTION(Pov_225)
+                BUTTON_FUNCTION(Pov_270)
+                BUTTON_FUNCTION(Pov_315)
 
             private:
                 frc::XboxController *m_controller;
@@ -116,9 +117,70 @@ class Controller : frc2::SubsystemBase
         ButtonConfiguration m_configs;
 };
 
-class NoFrc2Controller
+#define CUSTOM_BUTTON_FUNCTION(button)                                                                             \
+ButtonConfiguration *button(                                                                                       \
+    ButtonMode mode,                                                                                               \
+    frc2::CommandPtr command,                                                                                      \
+    std::optional<frc2::CommandPtr> optionalCommand2 = std::nullopt)                                               \
+{                                                                                                                  \
+    auto command2 = optionalCommand2.value_or(frc2::InstantCommand{}.ToPtr());                                     \
+    m_triggers.push([&]() {                                                                                        \
+        /*Check if the button is pressed and*/                                                                     \
+        /*convert the POVs to real array indexes*/                                                                 \
+        int index = Buttons::button;                                                                               \
+        bool isPressed = false;                                                                                    \
+        if (index > Buttons::RightStickButton || index == Buttons::Pov_0)                                          \
+        {                                                                                                          \
+            isPressed = m_controller->GetPov(index);                                                               \
+                                                                                                                   \
+            if (index == Buttons::Pov_0)   index =  0;                                                             \
+            if (index == Buttons::Pov_45)  index = 11;                                                             \
+            if (index == Buttons::Pov_90)  index = 12;                                                             \
+            if (index == Buttons::Pov_135) index = 13;                                                             \
+            if (index == Buttons::Pov_180) index = 14;                                                             \
+            if (index == Buttons::Pov_225) index = 15;                                                             \
+            if (index == Buttons::Pov_270) index = 16;                                                             \
+            if (index == Buttons::Pov_315) index = 17;                                                             \
+        }                                                                                                          \
+        else                                                                                                       \
+        {                                                                                                          \
+            isPressed = m_controller->GetRawButton(index);                                                         \
+        }                                                                                                          \
+                                                                                                                   \
+        if (mode == ButtonMode::DoubleTap)                                                                         \
+        {                                                                                                          \
+                                                                                                                   \
+            if (m_controller->GetAButton() &&                                                                      \
+                m_lastPressed[index] - (frc::RobotController::GetTime() * 1_us).convert<units::second_t>() < 0.5_s)\
+            {                                                                                                      \
+                frc2::CommandScheduler::GetInstance().Schedule(command2);                                          \
+            }                                                                                                      \
+            else if (m_controller->GetAButton())                                                                   \
+            {                                                                                                      \
+                frc2::CommandScheduler::GetInstance().Schedule(command);                                           \
+            }                                                                                                      \
+                                                                                                                   \
+            m_lastPressed[index] = (frc::RobotController::GetTime() * 1_us).convert<units::second_t>();            \
+        }                                                                                                          \
+        else if (mode == ButtonMode::Hold)                                                                         \
+        {                                                                                                          \
+            if (m_controller->GetAButton())                                                                        \
+            {                                                                                                      \
+                frc2::CommandScheduler::GetInstance().Schedule(command);                                           \
+            }                                                                                                      \
+            else                                                                                                   \
+            {                                                                                                      \
+                frc2::CommandScheduler::GetInstance().Schedule(command2);                                          \
+            }                                                                                                      \
+        }                                                                                                          \
+    });                                                                                                            \
+    return this;                                                                                                   \
+}                                                                                                                  \
+
+class NoTriggerController
 {
     private:
+
         class ButtonConfiguration
         {
             public:
@@ -128,61 +190,31 @@ class NoFrc2Controller
 
                 }
 
-                ButtonConfiguration *A(     
-                    ButtonMode mode,     
-                    frc2::CommandPtr command,     
-                    std::optional<frc2::CommandPtr> optionalCommand2 = std::nullopt)     
+                CUSTOM_BUTTON_FUNCTION(A)
+                CUSTOM_BUTTON_FUNCTION(B)
+                CUSTOM_BUTTON_FUNCTION(X)
+                CUSTOM_BUTTON_FUNCTION(Y)
+                CUSTOM_BUTTON_FUNCTION(LeftBumper)
+                CUSTOM_BUTTON_FUNCTION(RightBumper)
+                CUSTOM_BUTTON_FUNCTION(Back)
+                CUSTOM_BUTTON_FUNCTION(Start)
+                CUSTOM_BUTTON_FUNCTION(LeftStickButton)
+                CUSTOM_BUTTON_FUNCTION(RightStickButton)
+                CUSTOM_BUTTON_FUNCTION(Pov_0)
+                CUSTOM_BUTTON_FUNCTION(Pov_45)
+                CUSTOM_BUTTON_FUNCTION(Pov_90)
+                CUSTOM_BUTTON_FUNCTION(Pov_135)
+                CUSTOM_BUTTON_FUNCTION(Pov_180)
+                CUSTOM_BUTTON_FUNCTION(Pov_225)
+                CUSTOM_BUTTON_FUNCTION(Pov_270)
+                CUSTOM_BUTTON_FUNCTION(Pov_315)
+
+                void Poll()
                 {
-                    auto command2 = optionalCommand2.value_or(frc2::InstantCommand{}.ToPtr());
-
-
-                    m_triggers.push([&]() {
-                        // Check if the button is pressed and
-                        // convert the POVs to real array indexes
-                        int index = Buttons::A;
-                        bool isPressed = false;
-                        if (index > Buttons::RightStickButton || index == Buttons::Pov_0)
-                        {
-                            isPressed = m_controller->GetPov(index);
-
-                            if (index == Buttons::Pov_0)   index =  0;
-                            if (index == Buttons::Pov_45)  index = 11;
-                            if (index == Buttons::Pov_90)  index = 12;
-                            if (index == Buttons::Pov_135) index = 13;
-                            if (index == Buttons::Pov_180) index = 14;
-                            if (index == Buttons::Pov_225) index = 15;
-                            if (index == Buttons::Pov_270) index = 16;
-                            if (index == Buttons::Pov_315) index = 17;
-                        } 
-                        else
-                        {
-                            isPressed = m_controller->GetRawButton(index);
-                        }
-
-                        if (mode == ButtonMode::DoubleTap)     
-                        {
-
-                            if (m_controller->GetAButton() && 
-                                m_lastPressed[index] - (frc::RobotController::GetTime() * 1_us).convert<units::second_t>() < 0.5_s)
-                            {
-                                frc2::CommandScheduler::GetInstance().Schedule(command2);
-                            } 
-                            else if (m_controller->GetAButton)
-                                
-                            m_lastPressed[index] = (frc::RobotController::GetTime() * 1_us).convert<units::second_t>();
-                        }
-                        else  
-                        {     
-                            if (m_controller->GetAButton())
-                            {
-                                frc2::CommandScheduler::GetInstance().Schedule(command);
-                            } else
-                            {
-                                frc2::CommandScheduler::GetInstance().Schedule(command2);
-                            }
-                        }
-                    });
-                    return this;
+                    for (auto &trigger : m_triggers)
+                    {
+                        trigger();
+                    }
                 }
 
             private:
@@ -193,9 +225,57 @@ class NoFrc2Controller
         };
     
     public:
-        
+        NoTriggerController(UsbPort_t port) :
+            m_controller{port},
+            m_controlLayers{
+                ButtonConfiguration{&m_controller},
+                ButtonConfiguration{&m_controller},
+                ButtonConfiguration{&m_controller},
+                ButtonConfiguration{&m_controller},
+                ButtonConfiguration{&m_controller}
+            }
+        {
+
+        }
+
+        ButtonConfiguration *ConfigureLayer(int slot)
+        {
+            try 
+            {
+                m_controlLayers[slot];
+            }
+            catch (int e)
+            {
+                Log("Controller Error! ", std::string("Slot out of bounds / " + e));
+                return new ButtonConfiguration{&m_controller};
+            }
+
+            return &m_controlLayers[slot];
+        }
+
+        void SetActiveSlot(int slot)
+        {
+            try 
+            {
+                m_controlLayers[slot];
+            }
+            catch (int e)
+            {
+                Log("Controller Error! ", std::string("Slot out of bounds / " + e));
+            }
+
+            m_activeLayer = slot;
+        }
+
+        void Poll()
+        {
+            m_controlLayers[m_activeLayer].Poll();
+        }
         
     private:
 
         frc::XboxController m_controller;
+
+        std::array<ButtonConfiguration, 5> m_controlLayers;
+        int                                m_activeLayer = 0;
 };
