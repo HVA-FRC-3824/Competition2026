@@ -59,7 +59,7 @@ namespace ChassisConstants
         frc::SwerveModuleState{0_mps, 315_deg}   // BR
     };
 
-    constexpr pathplanner::PathConstraints constraints{MaximumSpeed, 3_mps_sq, MaximumAngularVelocity, 3_rad_per_s_sq};
+    constexpr pathplanner::PathConstraints constraints{MaximumSpeed, MaximumSpeed / 1_s, MaximumAngularVelocity, MaximumAngularVelocity / 1_s};
     
     constexpr std::string_view             BackCameraName{"CameraBack"};
 

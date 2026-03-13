@@ -28,7 +28,7 @@ frc::Rotation2d Gyro::GetPoseHeading()
 
     // Optional alliance check for the 180 offset in pose estimation
     auto alliance = frc::DriverStation::GetAlliance();
-    if (alliance && alliance.value() == frc::DriverStation::Alliance::kBlue)
+    if (alliance && alliance.value() != frc::DriverStation::Alliance::kBlue)
     {
         heading = heading + frc::Rotation2d{180_deg};
     }

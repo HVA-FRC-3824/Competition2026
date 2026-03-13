@@ -308,50 +308,54 @@ void Tower::Periodic()
                     // Get a list of currently tracked targets.
                     for (auto target : result.GetTargets())
                     {
-                        Log("ID", target.fiducialId);
-        
-                        // Camera offset angles (small values - how far target is from camera center)
-                        Log("Camera Offset Skew",  target.GetSkew());
-                        Log("Camera Offset Pitch", target.GetPitch());
-                        Log("Camera Offset Yaw",   target.GetYaw());
-        
-                        // Extract the x and y distances to the target
-                        frc::Transform3d tracketTarget = target.GetBestCameraToTarget();
-                        Log("Distance X", tracketTarget.X().value());
-                        Log("Distance Y", tracketTarget.Y().value());
-                        Log("Distance Z", tracketTarget.Z().value());
-        
-                        // Target orientation in space (what PhotonVision UI shows)
-                        auto rotation = tracketTarget.Rotation();
-                        Log("Target Roll (X)",  rotation.X().convert<units::degrees>().value());
-                        Log("Target Pitch (Y)", rotation.Y().convert<units::degrees>().value());
-                        Log("Target Yaw (Z)",   rotation.Z().convert<units::degrees>().value());
-                    
-                        // Additional debug info
-                        Log("Area",      target.GetArea());
-                        Log("Ambiguity", target.GetPoseAmbiguity());
-        
-                        // Translate the actual target to be behind the AprilTag
-                        // The AprilTag's X-axis points out from the tag, so we translate along -X to go "behind" it
-                        frc::Transform3d offsetToHub{frc::Translation3d{-23.5_in, 0_m, 0_m}, frc::Rotation3d{}};
-                        frc::Transform3d cameraToHub = tracketTarget + offsetToHub;
-        
-                        // Get the 2D distance to the actual hub target
-                        frc::Translation2d hubDistance = cameraToHub.Translation().ToTranslation2d();
-                        Log("Hub Distance X",    hubDistance.X().value());
-                        Log("Hub Distance Y",    hubDistance.Y().value());
-                        Log("Hub Distance Norm", hubDistance.Norm().value());
-        
-                        // Calculate the turret angle needed to aim at the hub
-                        // atan2(Y, X) gives the angle from turret centerline to the hub
-                        units::degree_t turretAngle = units::math::atan2(hubDistance.Y(), hubDistance.X());
-                        Log("Turret Angle to Hub (deg)", turretAngle.value());
-        
-                        // Calculate the shot parameters based on the hub distance and chassis speed
-                        m_state = CalculateShot(TowerMode::ShootingToHub, hubDistance, chassisSpeed, chassisPose.Rotation());
+                        if (target.fiducialId == 10 || target.fiducialId == 26)
+                        {
 
-                        // Apply turret angle after CalculateShot, so it isn't overwritten
-                        m_state.turretAngle = GetTurretAngle() + turretAngle;
+                            Log("ID", target.fiducialId);
+            
+                            // Camera offset angles (small values - how far target is from camera center)
+                            Log("Camera Offset Skew",  target.GetSkew());
+                            Log("Camera Offset Pitch", target.GetPitch());
+                            Log("Camera Offset Yaw",   target.GetYaw());
+            
+                            // Extract the x and y distances to the target
+                            frc::Transform3d tracketTarget = target.GetBestCameraToTarget();
+                            Log("Distance X", tracketTarget.X().value());
+                            Log("Distance Y", tracketTarget.Y().value());
+                            Log("Distance Z", tracketTarget.Z().value());
+            
+                            // Target orientation in space (what PhotonVision UI shows)
+                            auto rotation = tracketTarget.Rotation();
+                            Log("Target Roll (X)",  rotation.X().convert<units::degrees>().value());
+                            Log("Target Pitch (Y)", rotation.Y().convert<units::degrees>().value());
+                            Log("Target Yaw (Z)",   rotation.Z().convert<units::degrees>().value());
+                        
+                            // Additional debug info
+                            Log("Area",      target.GetArea());
+                            Log("Ambiguity", target.GetPoseAmbiguity());
+            
+                            // Translate the actual target to be behind the AprilTag
+                            // The AprilTag's X-axis points out from the tag, so we translate along -X to go "behind" it
+                            frc::Transform3d offsetToHub{frc::Translation3d{-23.5_in, 0_m, 0_m}, frc::Rotation3d{}};
+                            frc::Transform3d cameraToHub = tracketTarget + offsetToHub;
+            
+                            // Get the 2D distance to the actual hub target
+                            frc::Translation2d hubDistance = cameraToHub.Translation().ToTranslation2d();
+                            Log("Hub Distance X",    hubDistance.X().value());
+                            Log("Hub Distance Y",    hubDistance.Y().value());
+                            Log("Hub Distance Norm", hubDistance.Norm().value());
+            
+                            // Calculate the turret angle needed to aim at the hub
+                            // atan2(Y, X) gives the angle from turret centerline to the hub
+                            units::degree_t turretAngle = units::math::atan2(hubDistance.Y(), hubDistance.X());
+                            Log("Turret Angle to Hub (deg)", turretAngle.value());
+            
+                            // Calculate the shot parameters based on the hub distance and chassis speed
+                            m_state = CalculateShot(TowerMode::ShootingToHub, hubDistance, chassisSpeed, chassisPose.Rotation());
+
+                            // Apply turret angle after CalculateShot, so it isn't overwritten
+                            m_state.turretAngle = GetTurretAngle() + turretAngle;
+                        }
                     }
                 }
                 else

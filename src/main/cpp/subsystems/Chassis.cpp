@@ -15,8 +15,8 @@ Chassis::Chassis()
         [this] (auto speeds, auto feedforwards) { DriveRelative(speeds); }, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
         std::make_shared<pathplanner::PPHolonomicDriveController>(          // PPHolonomicController is the built in path following controller for holonomic drive trains
             // TODO: magic numbers, test these
-            pathplanner::PIDConstants(5.0, 0.0, 0.0),                       // Translation PID constants
-            pathplanner::PIDConstants(5.0, 0.0, 0.0)                        // Rotation PID constants
+            pathplanner::PIDConstants(1.0, 0.0, 0.0),                       // Translation PID constants
+            pathplanner::PIDConstants(1.0, 0.0, 0.0)                        // Rotation PID constants
         ),
         config,  // The robot configuration
         []() {
