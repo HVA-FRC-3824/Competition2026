@@ -19,7 +19,7 @@ void SparkMaxConfiguration(rev::spark::SparkMax *motor,
 
     // Configure the motor controller
     sparkMaxConfig
-        .SetIdleMode(brakeMode 
+        .SetIdleMode(brakeMode
                             ? rev::spark::SparkBaseConfig::IdleMode::kBrake 
                             : rev::spark::SparkBaseConfig::IdleMode::kCoast)
         .SmartCurrentLimit(currentLimit.value());

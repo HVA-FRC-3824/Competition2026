@@ -59,9 +59,6 @@ namespace TowerConstants
     constexpr auto MinAngle           =  15_deg * -4; 
     constexpr auto MaxAngle           =  15_deg * 14.45;
  
-    constexpr auto MaxLength          = 14.336_in;  // TODO: test these lengths, they're most likely accurate
-    constexpr auto MinLength          =  8.946_in;  // I got these from team 102 from 2022, they used the same actuator
-
     constexpr auto ActuatorLowerBound = -0.95;      // Comes from 102 too
     constexpr auto ActuatorUpperBound =  0.95;
 
@@ -71,9 +68,9 @@ namespace TowerConstants
     constexpr auto HoodB              = 0.0;
     constexpr auto HoodC              = 0.0;
     
-    constexpr auto FlywheelA          = 0.0;
-    constexpr auto FlywheelB          = 13.571;
-    constexpr auto FlywheelC          = 50;  
+    constexpr auto FlywheelA          = 0.00015427742689; 
+    constexpr auto FlywheelB          = 0.133316089708683;
+    constexpr auto FlywheelC          = 38.042989486793;  
     
     constexpr auto TurretGearReduction              = 24.0; // There's a gearbox, and then a pulley, and then a small gear and a big gear, too many numbers for programming
 
@@ -97,6 +94,8 @@ class Tower : public frc2::SubsystemBase
         void             TestActuator(double position) { m_hoodActuator.SetSpeed(position); }
 
         void             Periodic() override;
+        
+        units::degree_t m_turretOffset = 0_deg; 
 
     private: 
     

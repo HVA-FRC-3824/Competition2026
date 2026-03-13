@@ -91,13 +91,6 @@ void Chassis::SetModuleStates(wpi::array<frc::SwerveModuleState, 4> states)
 /// @brief Method to zero the robot heading.
 void Chassis::ResetGyroAngle()
 {
-    // // Do the sim representation
-    // if (frc::RobotBase::IsSimulation())
-    // {
-    //     m_simGyro = 0_deg;
-    //     return;
-    // }
-        
     // Zero the gyro heading
     m_gyro.Reset();
 }
@@ -189,6 +182,15 @@ void Chassis::ToggleXMode()
 }
 #pragma endregion
 
+#pragma region ToggleSlowMode
+/// @brief Method to flip slow mode.
+void Chassis::ToggleSlowMode()
+{
+    // Set whether the chassis in x mode
+    m_isSlowMode = !m_isSlowMode;
+}
+#pragma endregion
+
 #pragma region GetDriverHeading
 /// @brief Method to get the robot heading for the driver.
 /// @return The robot driver heading.
@@ -240,7 +242,7 @@ void Chassis::Periodic()
     m_gyro.SimPeriodic(units::degrees_per_second_t{m_desiredSpeeds.omega.value()});
 
     // Update the pose estimator
-    m_poseEstimator.Update(GetPoseHeading(), GetModulePositions());
+    m_poseEstimator.Update(GetPose().Rotation().Degrees() + (m_kinematics.ToChassisSpeeds(GetModuleStates()).omega / (1 / 0.02_s)), GetModulePositions());
 
     if (frc::RobotBase::IsSimulation())
     {

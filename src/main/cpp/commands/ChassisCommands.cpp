@@ -68,3 +68,17 @@ frc2::CommandPtr ToggleFieldCentricity(Chassis *chassis)
     }.ToPtr();
 }
 #pragma endregion
+
+#pragma region ToggleSlowMode
+/// @brief Creates a command to flip the slowness of the chassis.
+/// @param chassis A pointer to the chassis subsystem.
+/// @return A CommandPtr that flips the slowness.
+frc2::CommandPtr ToggleSlowMode(Chassis *chassis)
+{
+    // Create and return a InstantCommand that flips the field centricity
+    return frc2::InstantCommand{
+        [chassis] () { chassis->ToggleSlowMode(); }, // Execution function
+        { chassis } // Requirements (subsystems required by this command)
+    }.ToPtr();
+}
+#pragma endregion

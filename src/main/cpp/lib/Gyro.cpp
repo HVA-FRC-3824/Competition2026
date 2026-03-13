@@ -5,6 +5,7 @@
 /// @brief Constructor for the Gyro wrapper
 Gyro::Gyro()
 {
+    
 }
 #pragma endregion
 

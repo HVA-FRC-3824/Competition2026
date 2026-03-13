@@ -45,7 +45,7 @@ namespace ChassisConstants
     constexpr units::degree_t BackLeftForwardAngle  { -0.361328 * 360.0 };
     constexpr units::degree_t BackRightForwardAngle { -0.276855 * 360.0 };
 
-    constexpr auto MaximumSpeed = 1_mps;
+    constexpr auto MaximumSpeed = 7_fps;
     constexpr auto MaximumAngularVelocity = 1_rad_per_s * (std::numbers::pi / 2);
 
     constexpr units::inch_t WheelBase {30.0};
@@ -119,8 +119,8 @@ class Chassis : public frc2::SubsystemBase
         wpi::array<frc::SwerveModulePosition, 4> GetModulePositions();
     
         void                                     ToggleFieldCentric();
-        
         void                                     ToggleXMode();
+        void                                     ToggleSlowMode();
 
         frc::Rotation2d                          GetDriverHeading();
         frc::Rotation2d                          GetPoseHeading();
@@ -176,6 +176,8 @@ class Chassis : public frc2::SubsystemBase
         bool                         m_isFieldRelative = false;
 
         bool                         m_isXMode = false;
+
+        bool                         m_isSlowMode = false;
     
         Gyro                         m_gyro;
 

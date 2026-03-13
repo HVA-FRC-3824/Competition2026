@@ -133,6 +133,8 @@ void Tower::SetActuator(double position)
 /// @param angle The angle in degrees to set the turret to
 void Tower::SetTurretAngle(units::degree_t angle)
 {
+
+    angle += 180_deg + m_turretOffset;
     // Normalize to [0, 360), then shift into [MinAngle, MinAngle + 360)
     double normalized = std::fmod(angle.value() - TowerConstants::MinAngle.value(), 360.0);
     if (normalized < 0) normalized += 360.0;
@@ -193,7 +195,7 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relative
         // Adjust turret angle based on predicted target position
         // NOTE: I would use the gcem atan2 function, but whether it uses radians or degrees is ambiguous 
         // and the return type is arbitrary, also gcem seem
-        newState.turretAngle = 1_deg * (std::atan2(newRelativeDistance.Y().value(), newRelativeDistance.X().value()) * (180/std::numbers::pi));
+        newState.turretAngle = units::math::atan2(newRelativeDistance.Y(), newRelativeDistance.X());
         Log("desired turret angle ", newState.turretAngle.value());
         
         // Change it by the rotation to keep straight
@@ -202,12 +204,13 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relative
     }
 
     auto distance = 1_m * std::abs(newRelativeDistance.Translation().Norm().value());
+    Log("Measured Distance", (1_in * distance).value());
 
     // Calculate hood actuator position based on distance
-    newState.hoodActuatorDistance = CalculatePolynomial(distance, TowerConstants::HoodA, TowerConstants::HoodB, TowerConstants::HoodC);
+    newState.hoodActuatorDistance = towerMode == TowerMode::PassingToAdjacentZone ? 1.0 : 0.0;
 
     // Calculate the flywheel speed based on distance
-    newState.flywheelSpeed = 1_rpm * CalculatePolynomial(distance, TowerConstants::FlywheelA, TowerConstants::FlywheelB, TowerConstants::FlywheelC);
+    newState.flywheelSpeed = 1_tps * CalculatePolynomial(distance, TowerConstants::FlywheelA, TowerConstants::FlywheelB, TowerConstants::FlywheelC);
 
     // Return the new calculated state
     return newState;
@@ -281,6 +284,7 @@ void Tower::Periodic()
 
         case TowerMode::ShootingToHub:
         {
+
             frc::Translation2d relativeDistance;
 
             // When using the turret camera, relative distance is based on the turret
@@ -362,7 +366,7 @@ void Tower::Periodic()
                 frc::Pose3d Hub = m_isBlue ? constants::Field::BlueHub : constants::Field::RedHub;
                 
                 // Calculate the relative distance from the turret center to the hub
-                relativeDistance = (chassisPose.Translation() + TowerConstants::OffsetTurretFromRobotCenter.Translation().ToTranslation2d()) - Hub.ToPose2d().Translation();
+                relativeDistance =  (chassisPose.Translation() + TowerConstants::OffsetTurretFromRobotCenter.Translation().ToTranslation2d()) - Hub.ToPose2d().Translation();
             }
 
             // Calculate the shot parameters based on the relative distance and chassis speed
