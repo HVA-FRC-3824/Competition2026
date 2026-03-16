@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.817146932952923,
-        "y": 1.3631669044222543
+        "x": 7.898457831325301,
+        "y": 1.9805903614457838
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.854219058596053,
-        "y": 1.0425880624278263
+        "x": 7.9355299569684306,
+        "y": 1.6600115194513558
       },
       "isLocked": false,
       "linkedName": "RTC"
@@ -59,7 +59,7 @@
     "rotation": 90.0
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Close",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 87.70938995736147

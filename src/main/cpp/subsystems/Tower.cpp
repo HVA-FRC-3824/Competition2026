@@ -341,17 +341,17 @@ void Tower::Periodic()
     bool isAutomatic = m_state.mode == TowerMode::Automatic;
     if (isAutomatic)
     {
-        // If were in the neutral zone (or opposing zone), pass fuel to our alliance zone
+        // If were in our alliance zone, score fuel to our alliance zone
         if (m_isBlue ? chassisPose.X() < constants::Field::AllianceWallToAllianceZone :
-                       chassisPose.X() > constants::Field::FieldLength - constants::Field::AllianceWallToAllianceZone
+                       constants::Field::FieldLength - constants::Field::AllianceWallToAllianceZone < chassisPose.X()
             &&
             isActiveShift())
         {
             m_state.mode = TowerMode::ShootingToHub;
         }
-        // Otherwise shoot to the hub
         else
         {
+            // Otherwise shoot to the hub
             m_state.mode = TowerMode::PassingToAdjacentZone;
         }
     }

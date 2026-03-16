@@ -5,9 +5,21 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "Deploy Intake"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "SUFH"
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "Backup"
+            "pathName": "Middle to Depot"
           }
         },
         {

@@ -3,35 +3,39 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.532951807228916,
-        "y": 2.526975903614458
+        "x": 7.636192771084337,
+        "y": 4.47210843373494
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.3855421686746987,
-        "y": 1.5871927710843363
+        "x": 8.160722891566266,
+        "y": 5.433746987951806
       },
       "isLocked": false,
-      "linkedName": "RMTM"
+      "linkedName": "MFP"
     },
     {
       "anchor": {
-        "x": 2.2816144578313255,
-        "y": 2.2974939759036137
+        "x": 2.2488313253012047,
+        "y": 4.712518072289157
       },
       "prevControl": {
-        "x": 3.2210722891566266,
-        "y": 3.150048192771082
+        "x": 2.904493975903614,
+        "y": 6.384457831325301
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Outpost"
+      "linkedName": null
     }
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.4985826771653537,
-      "rotationDegrees": 180.0
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": -90.0
+    },
+    {
+      "waypointRelativePos": 0.759336099585053,
+      "rotationDegrees": -90.0
     }
   ],
   "constraintZones": [],
@@ -47,13 +51,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 135.57872556560773
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Middle",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -142.6333305872313
+    "rotation": -88.9769698113322
   },
   "useDefaultConstraints": true
 }
