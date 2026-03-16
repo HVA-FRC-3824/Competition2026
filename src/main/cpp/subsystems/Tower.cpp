@@ -12,16 +12,16 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
     TalonFXConfiguration(&m_turretMotor,
                          40_A,  // Current limit
                          true,  // Inverted
-                         false,  // Brake mode
+                         false, // Brake mode
                          false, // Continuous wrap
-                         0.8,   // P gain
-                         0.3,  // I gain
-                         0.07,  // D gain
+                         1.0,  // P gain
+                         0.35,  // I gain
+                         0.05,  // D gain
                          0.0,   // S (static friction feedforward)
                          0.0,   // V (velocity feedforward)
                          0.0,   // A (acceleration feedforward)
-                         5_tps,  // Velocity limit
-                         2.5_tr_per_s_sq); // Acceleration limit
+                         12_tps, // Velocity limit
+                         12_tr_per_s_sq); // Acceleration limit
 
     TalonFXConfiguration(&m_flywheelMotor,
                          40_A,            // Current limit
@@ -104,6 +104,10 @@ bool Tower::IsOnTarget()
 /// @param input The input value to set the flywheel motor speed
 void Tower::SetFlywheel(units::turns_per_second_t input)
 {
+    if (input == 0_tps)
+        m_flywheelMotor.SetControl(ctre::phoenix6::controls::VoltageOut{0_V});
+
+
     // Set the flywheel motor speed
     m_flywheelMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{input});
 }
@@ -122,6 +126,8 @@ void Tower::SetActuator(double position)
 
     // -0.95, 0.95
     position *= 1.9;
+
+    position = std::clamp(position, -0.95, 0.95);
 
     // Although this says SetSpeed, this actually does position
 	m_hoodActuator.SetSpeed(position);
@@ -170,66 +176,141 @@ units::degree_t Tower::GetTurretAngle()
 
 #pragma region CalculateShot
 /// @brief Changes the turret angle, flywheel speed, and hood actuator position based on distance and speed to target
-/// @param relativeDistance The relative distance to the target from the turret to the target
-/// @param speed The chassis speeds of the robot relative to the field
-TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d relativeDistance, frc::ChassisSpeeds speed, frc::Rotation2d chassisRotation)
+/// @param targetFieldPos The position of the target in field coordinates
+/// @param speed The chassis speeds of the robot relative to the robot itself
+/// @param chassisPose The current pose of the chassis in field coordinates
+TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d targetFieldPos, frc::ChassisSpeeds speed, frc::Pose2d chassisPose)
 {
     TowerState newState{towerMode, 0_deg, 0.0_rpm, 0.0};
 
-    // Create a new Pose2d from the relative distance and apply speed based translations
-    // Predict where the target will be in 0.5 seconds using frc::Twist2d
-    // Add that to the distance to target
-    frc::Pose2d  newRelativeDistance = frc::Pose2d{relativeDistance, 0_deg};
-    frc::Twist2d changeInPosition    = speed.ToTwist2d(0.5_s);
+    // Predict where the chassis will be in 0.5 seconds
+    frc::Twist2d changeInPosition = speed.ToTwist2d(0.5_s);
+    frc::Pose2d futureChassisPose = chassisPose.Exp(changeInPosition);
     
-    // newRelativeDistance = newRelativeDistance.TransformBy(frc::Transform2d{changeInPosition.dx, changeInPosition.dy, changeInPosition.dtheta});
+    // Calculate where the turret will be in field coordinates in 0.5s
+    // The offset is robot relative, so we rotate it by the future chassis rotation
+    frc::Translation2d turretRobotOffset = TowerConstants::OffsetTurretFromRobotCenter.Translation().ToTranslation2d();
+    frc::Translation2d futureTurretPos = futureChassisPose.Translation() + turretRobotOffset.RotateBy(futureChassisPose.Rotation());
+    
+    // The vector from the future turret to the field target
+    frc::Translation2d futureTurretToTarget = targetFieldPos - futureTurretPos;
 
-    // Calculate turret angle
     if (m_usingTurretCamera)
     {
         // Adjust turret angle based on target yaw                  
-        newState.turretAngle = 0.0_deg;
+        newState.turretAngle = 0.0_deg; // Handled outside in Periodic
     }
     else
     {
         // Adjust turret angle based on predicted target position
-        // NOTE: I would use the gcem atan2 function, but whether it uses radians or degrees is ambiguous 
-        // and the return type is arbitrary, also gcem seem
-        newState.turretAngle = units::math::atan2(newRelativeDistance.Y(), newRelativeDistance.X());
+        units::degree_t angleToTargetInField = units::math::atan2(futureTurretToTarget.Y(), futureTurretToTarget.X());
+        newState.turretAngle = angleToTargetInField - futureChassisPose.Rotation().Degrees();
         Log("desired turret angle ", newState.turretAngle.value());
-        
-        // Change it by the rotation to keep straight
-        newState.turretAngle -= chassisRotation.Degrees();
-        newState.turretAngle -= 180_deg;
     }
 
-    auto distance = 1_m * std::abs(newRelativeDistance.Translation().Norm().value());
-    Log("Measured Distance", (1_in * distance).value());
+    auto distance = futureTurretToTarget.Norm();
+    Log("Measured Distance", distance.value());
 
-    // Calculate hood actuator position based on distance
-    newState.hoodActuatorDistance = towerMode == TowerMode::PassingToAdjacentZone ? 1.0 : 0.0;
+    // Handle single or empty vector
+    if (TowerConstants::knownDataPoints.empty()) 
+    {
+        return m_state;
+    }
+    else if (TowerConstants::knownDataPoints.size() == 1) 
+    {
+        const auto &[dist, flywheel, hood] = TowerConstants::knownDataPoints[0];
+        
+        m_state.flywheelSpeed        = flywheel;
+        m_state.hoodActuatorDistance = hood;
+    }
 
-    // Calculate the flywheel speed based on distance
-    newState.flywheelSpeed = 1_tps * CalculatePolynomial(distance, TowerConstants::FlywheelA, TowerConstants::FlywheelB, TowerConstants::FlywheelC);
+    // Handle edge cases (distance below minimum or above maximum)
+    else if (distance <= std::get<0>(TowerConstants::knownDataPoints.front())) 
+    {
+        const auto& [dist, flywheel, hood] = TowerConstants::knownDataPoints.front();
+        m_state.flywheelSpeed = flywheel;
+        m_state.hoodActuatorDistance = hood;
+    } 
+    else if (distance >= std::get<0>(TowerConstants::knownDataPoints.back())) 
+    {
+        const auto& [dist, flywheel, hood] = TowerConstants::knownDataPoints.back();
+        m_state.flywheelSpeed = flywheel;
+        m_state.hoodActuatorDistance = hood;
+    }
 
+    // Linearly deduce partial data of a third point by the full data of two adjacent points
+    else
+    {
+        for (int i = 0; i < TowerConstants::knownDataPoints.size() - 1; i++)
+        {
+            const auto &[lowerDist, lowerFlywheel, lowerHood]    = TowerConstants::knownDataPoints[i];
+            const auto &[higherDist, higherFlywheel, higherHood] = TowerConstants::knownDataPoints[i + 1];
+            
+            if (lowerDist <= distance && distance <= higherDist)
+            {
+                // Calculate interpolation ratio
+                auto ratio = (distance - lowerDist) / (higherDist - lowerDist);
+                
+                // Linear interpolation
+                m_state.flywheelSpeed        = lowerFlywheel + (ratio * (higherFlywheel - lowerFlywheel));
+                m_state.hoodActuatorDistance = lowerHood     + (ratio * (higherHood - lowerHood));
+                
+                break;
+            }
+        }
+    }
+    
     // Return the new calculated state
     return newState;
 }
 #pragma endregion
 
-#pragma region CalculatePolynomial
-/// @brief  Calculates a polynomial value based on the given distance and coefficients
-/// @param distance The distance value in meters to the HUD
-/// @param a The a coefficient of the polynomial
-/// @param b The b coefficient of the polynomial
-/// @param c The c coefficient of the polynomial
-/// @return The calculated polynomial value
-double Tower::CalculatePolynomial(units::inch_t distance, double a, double b, double c)
-{
-    // Calculate the polynomial value
-    return a * std::pow(distance.value(), 2) + b * distance.value() + c;
-}
-#pragma endregion
+#define isActiveShift() ([]() -> bool {                                   \
+    auto alliance = frc::DriverStation::GetAlliance();                    \
+    /* If we have no alliance, we cannot be enabled, therefore no hub. */ \
+    if (!alliance) {                                                      \
+      return false;                                                       \
+    }                                                                     \
+    /* Hub is always enabled in autonomous. */                            \
+    if (frc::DriverStation::IsAutonomousEnabled()) {                      \
+      return true;                                                        \
+    }                                                                     \
+    /* At this point, if we're not teleop enabled, there is no hub. */    \
+    if (!frc::DriverStation::IsTeleopEnabled()) {                         \
+      return false;                                                       \
+    }                                                                     \
+    /* We're teleop enabled, compute. */                                  \
+    auto matchTime = frc::DriverStation::GetMatchTime();                  \
+    auto gameData  = frc::DriverStation::GetGameSpecificMessage();        \
+    /* If we have no game data, we cannot compute, assume hub is active,  \
+    as its likely early in teleop.                                        \
+     */                                                                   \
+    if (gameData.empty()) {                                               \
+      return true;                                                        \
+    }                                                                     \
+    bool redInactiveFirst = !(gameData.at(0) == 'B');                     \
+    /* Shift was is active for blue if red won auto, or red if blue won auto. */ \
+    bool shift1Active = (alliance.value() == frc::DriverStation::Alliance::kRed) ? !redInactiveFirst : redInactiveFirst; \
+    if (matchTime > 130.0_s) {                                            \
+      /* Transition shift, hub is active. */                              \
+      return true;                                                        \
+    } else if (matchTime > 105.0_s) {                                     \
+      /* Shift 1 */                                                       \
+      return shift1Active;                                                \
+    } else if (matchTime > 80.0_s) {                                      \
+      /* Shift 2 */                                                       \
+      return !shift1Active;                                               \
+    } else if (matchTime > 55.0_s) {                                      \
+      /* Shift 3 */                                                       \
+      return shift1Active;                                                \
+    } else if (matchTime > 30.0_s) {                                      \
+      /* Shift 4 */                                                       \
+      return !shift1Active;                                               \
+    } else {                                                              \
+      /* End game, hub always active.  */                                 \
+      return true;                                                        \
+    }                                                                     \
+})()
 
 #pragma region Periodic
 /// @brief Periodic method for the Tower subsystem, called periodically by the CommandScheduler
@@ -252,6 +333,8 @@ void Tower::Periodic()
     // Update the chassis current pose and speed
     auto chassisPose  = m_chassisPoseSupplier();
     auto chassisSpeed = m_chassisSpeedsSupplier();
+    
+    Log("Is blue", m_isBlue);
 
     // We'll assign the state based on our location. 
     // After the calculations, we'll reassign the state to Automatic for the next cycle
@@ -260,164 +343,44 @@ void Tower::Periodic()
     {
         // If were in the neutral zone (or opposing zone), pass fuel to our alliance zone
         if (m_isBlue ? chassisPose.X() < constants::Field::AllianceWallToAllianceZone :
-                       chassisPose.X() < constants::Field::FieldLength - constants::Field::AllianceWallToAllianceZone)
+                       chassisPose.X() > constants::Field::FieldLength - constants::Field::AllianceWallToAllianceZone
+            &&
+            isActiveShift())
         {
-            m_state.mode = TowerMode::PassingToAdjacentZone;
+            m_state.mode = TowerMode::ShootingToHub;
         }
         // Otherwise shoot to the hub
         else
         {
-            m_state.mode = TowerMode::ShootingToHub;
+            m_state.mode = TowerMode::PassingToAdjacentZone;
         }
     }
 
-    switch (m_state.mode)
+    if (m_state.mode == TowerMode::Idle)
     {
-        case TowerMode::Idle:
-        {
-            // Do not power down flywheel, do not move turret, do not move hood, wait until further inputs
-            m_state.flywheelSpeed        = 0_rpm;
-            m_state.hoodActuatorDistance = 0;
-            m_state.turretAngle          = 0_deg;
-            break;
-        }
-
-        case TowerMode::ShootingToHub:
-        {
-
-            frc::Translation2d relativeDistance;
-
-            // When using the turret camera, relative distance is based on the turret
-            if (m_usingTurretCamera)
-            {
-                std::vector<photon::PhotonPipelineResult> results = m_turretCamera.GetAllUnreadResults();
-
-                photon::PhotonPipelineResult result;
-                if (results.empty())
-                {
-                    // There are no results
-                    break;
-                }
-                else
-                {
-                    result = results.back();
-                }
-
-                if (result.HasTargets())
-                {
-                    // Get a list of currently tracked targets.
-                    for (auto target : result.GetTargets())
-                    {
-                        if (target.fiducialId == 10 || target.fiducialId == 26)
-                        {
-
-                            Log("ID", target.fiducialId);
-            
-                            // Camera offset angles (small values - how far target is from camera center)
-                            Log("Camera Offset Skew",  target.GetSkew());
-                            Log("Camera Offset Pitch", target.GetPitch());
-                            Log("Camera Offset Yaw",   target.GetYaw());
-            
-                            // Extract the x and y distances to the target
-                            frc::Transform3d tracketTarget = target.GetBestCameraToTarget();
-                            Log("Distance X", tracketTarget.X().value());
-                            Log("Distance Y", tracketTarget.Y().value());
-                            Log("Distance Z", tracketTarget.Z().value());
-            
-                            // Target orientation in space (what PhotonVision UI shows)
-                            auto rotation = tracketTarget.Rotation();
-                            Log("Target Roll (X)",  rotation.X().convert<units::degrees>().value());
-                            Log("Target Pitch (Y)", rotation.Y().convert<units::degrees>().value());
-                            Log("Target Yaw (Z)",   rotation.Z().convert<units::degrees>().value());
-                        
-                            // Additional debug info
-                            Log("Area",      target.GetArea());
-                            Log("Ambiguity", target.GetPoseAmbiguity());
-            
-                            // Translate the actual target to be behind the AprilTag
-                            // The AprilTag's X-axis points out from the tag, so we translate along -X to go "behind" it
-                            frc::Transform3d offsetToHub{frc::Translation3d{-23.5_in, 0_m, 0_m}, frc::Rotation3d{}};
-                            frc::Transform3d cameraToHub = tracketTarget + offsetToHub;
-            
-                            // Get the 2D distance to the actual hub target
-                            frc::Translation2d hubDistance = cameraToHub.Translation().ToTranslation2d();
-                            Log("Hub Distance X",    hubDistance.X().value());
-                            Log("Hub Distance Y",    hubDistance.Y().value());
-                            Log("Hub Distance Norm", hubDistance.Norm().value());
-            
-                            // Calculate the turret angle needed to aim at the hub
-                            // atan2(Y, X) gives the angle from turret centerline to the hub
-                            units::degree_t turretAngle = units::math::atan2(hubDistance.Y(), hubDistance.X());
-                            Log("Turret Angle to Hub (deg)", turretAngle.value());
-            
-                            // Calculate the shot parameters based on the hub distance and chassis speed
-                            m_state = CalculateShot(TowerMode::ShootingToHub, hubDistance, chassisSpeed, chassisPose.Rotation());
-
-                            // Apply turret angle after CalculateShot, so it isn't overwritten
-                            m_state.turretAngle = GetTurretAngle() + turretAngle;
-                        }
-                    }
-                }
-                else
-                {
-                    // No targets found, do not shoot
-                    break;
-                }
-            }
-            else // If not using the turret camera, base relative distance on field pose
-            {
-                // Sets our hub based on our alliance
-                frc::Pose3d Hub = m_isBlue ? constants::Field::BlueHub : constants::Field::RedHub;
-                
-                // Calculate the relative distance from the turret center to the hub
-                relativeDistance =  (chassisPose.Translation() + TowerConstants::OffsetTurretFromRobotCenter.Translation().ToTranslation2d()) - Hub.ToPose2d().Translation();
-            }
-
-            // Calculate the shot parameters based on the relative distance and chassis speed
-            m_state = CalculateShot(TowerMode::ShootingToHub, relativeDistance, chassisSpeed, chassisPose.Rotation());
-            break;
-        }
-
-        case TowerMode::PassingToAdjacentZone:
-        {
-            // Based on alliance color, find the nearest point in our alliance zone to pass to
-            // We decide between the close and the far points so that we can avoid hitting the hub net
-            auto targetPoint = chassisPose.Translation().Nearest({m_isBlue ? constants::Field::BlueAllianceZoneClose.Translation() : constants::Field::RedAllianceZoneClose.Translation(),
-                                                                  m_isBlue ? constants::Field::BlueAllianceZoneFar.Translation()   : constants::Field::RedAllianceZoneFar.Translation()});
-            
-            auto relativeDistance = targetPoint - chassisPose.Translation();
-
-            m_state = CalculateShot(TowerMode::PassingToAdjacentZone, relativeDistance, chassisSpeed, chassisPose.Rotation());
-            break;
-        }
-
-        default:
-        {
-            break;
-        }
+        m_state.turretAngle          = 0_deg;
+        m_state.flywheelSpeed        = 0_rpm;
+        m_state.hoodActuatorDistance = 0;
     }
+    else if (m_state.mode != TowerMode::ManualControl)
+    {
+        auto targetFieldPos = m_state.mode == TowerMode::ShootingToHub ? 
+            (m_isBlue ? constants::Field::BlueHub : constants::Field::RedHub).ToPose2d().Translation()
+            :
+            chassisPose.Translation().Nearest({
+                m_isBlue ? constants::Field::BlueAllianceZoneClose.Translation() : constants::Field::RedAllianceZoneClose.Translation(), 
+                m_isBlue ? constants::Field::BlueAllianceZoneFar.Translation()   : constants::Field::RedAllianceZoneFar.Translation()});
 
-    // Apply the calculated state to the hardware
-    // if (m_usingTurretCamera)
-    // {
-    //     SetTurretAngle(m_state.turretAngle);
-    // } 
-    // else
-    // {
-        SetTurretAngle(m_state.turretAngle);
-        Log("turret showing gyro ", chassisPose.Rotation().Degrees().value());
-        Log("turret before gyro ", m_state.turretAngle.value());
-    // }
-
-    // Set flywheel speed and hood actuator position
+        m_state = CalculateShot(m_state.mode, targetFieldPos, chassisSpeed, chassisPose);
+    }
+    
+    SetTurretAngle(m_state.turretAngle);
     SetFlywheel(m_state.flywheelSpeed);
     SetActuator(m_state.hoodActuatorDistance);
     
     // If its in automatic mode, prepare the state for the next cycle
     if (isAutomatic)
         m_state.mode = TowerMode::Automatic;
-
-    /// *** Update logging *** ///
 
     Log("Desired Hood Length ", m_state.hoodActuatorDistance);
     Log("Desired Flywheel Speed ", m_state.flywheelSpeed.value());

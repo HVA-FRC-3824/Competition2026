@@ -5,9 +5,9 @@
     "data": {
       "commands": [
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "SUFH"
+            "pathName": "Right to center"
           }
         },
         {
@@ -19,7 +19,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right to Outpost"
+            "pathName": "Right Midfield"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "SUFH"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Midfield To Mid"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Upper Mid To Outpost"
           }
         },
         {

@@ -22,7 +22,7 @@ Intake::Intake()
     TalonFXConfiguration(&m_intakePositionMotor,
                          20.0_A,           // Maximum Amperage
                          true,             // Inverted
-                         true,             // Brake mode
+                         false,             // Brake mode
                          false,            // Continuous wrap
                          0.0, //10.0,             // P gain
                          0.0, //1.0,              // I gain

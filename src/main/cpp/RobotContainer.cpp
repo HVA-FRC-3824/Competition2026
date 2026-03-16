@@ -49,8 +49,6 @@ RobotContainer::RobotContainer()
         }, {&m_leds}}
         .AndThen(SetLedStatus(&m_leds, &m_ledMode))
     );
-
-    m_intake.SetDefaultCommand(frc2::InstantCommand{[&]() { m_intake.JogPosition(0_V); }, {&m_intake}}.ToPtr());
 }
 #pragma endregion
 
@@ -59,11 +57,11 @@ RobotContainer::RobotContainer()
 void RobotContainer::InitializePathPlanner()
 {
     // Register Commands
-    PATHFINDER_COMMAND("Shoot All",        ShootToHub(&m_spindexer, &m_tower));
+    PATHFINDER_COMMAND("Shoot All",        SpindexerSetState(&m_spindexer, SpindexerState::Spindexing));
     PATHFINDER_COMMAND("Stop Shooting",    SpindexerSetState(&m_spindexer, SpindexerState::Stopped));
-    PATHFINDER_COMMAND("Spin Up For Hub",  TowerAimHub(&m_tower));
+    pathplanner::NamedCommands::registerCommand("SUFH", std::move(TowerAimHub(&m_tower)));
     PATHFINDER_COMMAND("Spin Up For Zone", TowerAimPassZone(&m_tower));
-    PATHFINDER_COMMAND("Deploy Intake",    IntakeSetState(&m_intake, IntakeState::DeployedRollerOn).AndThen(frc2::InstantCommand{[=]() { m_intake.JogPosition(2_V); }, {&m_intake}}.ToPtr()).WithTimeout(0.5_s).AndThen(frc2::InstantCommand{[=]() { m_intake.JogPosition(0_V); }, {&m_intake}}.ToPtr()));
+    PATHFINDER_COMMAND("Deploy Intake",    IntakeJogOut(&m_intake).AndThen(IntakeSetState(&m_intake, IntakeState::DeployedRollerOn)));
     PATHFINDER_COMMAND("Stow Intake",      IntakeSetState(&m_intake, IntakeState::Stowed));
     PATHFINDER_COMMAND("Deploy Climb",     ClimbDeploy(&m_climb));
     PATHFINDER_COMMAND("Retract Climb",    ClimbRetract(&m_climb));
@@ -94,14 +92,16 @@ void RobotContainer::InitializeDriverControls()
     std::tuple<Button_t, frc2::CommandPtr, std::optional<frc2::CommandPtr>> driverBindings[] =
     {
         // Chassis heading controls
-        {constants::controller::A,          ChassisZeroHeading(&m_chassis),    std::nullopt},
-        {constants::controller::B,          ToggleFieldCentricity(&m_chassis), std::nullopt},
+        {constants::controller::A,           ChassisZeroHeading(&m_chassis),    std::nullopt},
+        {constants::controller::B,           ToggleFieldCentricity(&m_chassis), std::nullopt},
 
         // Chassis module controls
-        {constants::controller::X,          ChassisXMode(&m_chassis), std::nullopt},
+        {constants::controller::X,           ChassisXMode(&m_chassis), std::nullopt},
 
         // Climb controls
-        {constants::controller::Y,          ClimbRetract(&m_climb), ClimbDeploy(&m_climb)},
+        {constants::controller::Y,           ClimbRetract(&m_climb), ClimbDeploy(&m_climb)},
+
+        {constants::controller::RightBumper, IntakeToggleRollers(&m_intake), IntakeJogOut(&m_intake)},
     };
 
     // Add the bindings to the driver controller
@@ -113,25 +113,17 @@ void RobotContainer::InitializeDriverControls()
             .OnTrue(command2.has_value() ? std::move(command2.value()) : frc2::cmd::None());
     }
 
-    // Intake controls
-    frc2::JoystickButton(&m_driveController, int(constants::controller::RightBumper)).
-                         OnTrue(IntakeSetState(&m_intake, IntakeState::DeployedRollerOn)).
-                         OnFalse(IntakeSetState(&m_intake, IntakeState::Stowed));
-
-    // Spindexer Controls
-    frc2::JoystickButton(&m_driveController, int(constants::controller::LeftBumper)).
-                         OnTrue(SpindexerSetState(&m_spindexer, SpindexerState::Spindexing)).
-                         OnFalse(SpindexerSetState(&m_spindexer, SpindexerState::Stopped));
+    frc2::JoystickButton(&m_driveController, constants::controller::LeftBumper).OnTrue(SpindexerSetState(&m_spindexer, SpindexerState::Spindexing)).OnFalse(SpindexerSetState(&m_spindexer, SpindexerState::Stopped));
 
     // Driver POV controls
     std::tuple<int, frc2::CommandPtr, std::optional<frc2::CommandPtr>> driverPOVBindings[] =
     {
         // Manual tower controls
-        {constants::controller::Pov_0, frc2::InstantCommand{[&]() { m_intake.JogPosition(2_V); }, {&m_intake}}.ToPtr(), std::nullopt},
+        {constants::controller::Pov_0, frc2::InstantCommand{[=]() { m_intake.JogPosition(1_V plus_quite_a_bit); }, {&m_intake}}.ToPtr(), frc2::InstantCommand{[&]() { m_intake.JogPosition(0_V); }, {&m_intake}}.ToPtr()},
 
         // {constants::controller::Pov_90,  },
 
-        {constants::controller::Pov_180, frc2::InstantCommand{[&]() { m_intake.JogPosition(-2_V); }, {&m_intake}}.ToPtr(), std::nullopt},
+        {constants::controller::Pov_180, frc2::InstantCommand{[=]() { m_intake.JogPosition(-1_V plus_quite_a_bit); }, {&m_intake}}.ToPtr(), frc2::InstantCommand{[&]() { m_intake.JogPosition(0_V); }, {&m_intake}}.ToPtr()},
                 
         {constants::controller::Pov_270, ToggleSlowMode(&m_chassis), std::nullopt},
     };
@@ -141,7 +133,7 @@ void RobotContainer::InitializeDriverControls()
         frc2::POVButton(&m_driveController, direction)
             .OnTrue(std::move(command))
             .OnFalse(command2.has_value() ? std::move(command2.value()) : frc2::cmd::None());
-    }             
+    }
 }
 #pragma endregion
 
@@ -167,7 +159,7 @@ void RobotContainer::InitializeOperatorControls()
     {   
         // Tower state
         {constants::controller::A, TowerAimHub(&m_tower),                             frc2::InstantCommand{[&]() {m_tower.m_turretOffset = 0_deg;}, {&m_tower}}.ToPtr()},
-        {constants::controller::B, TowerAimPassZone(&m_tower),                        std::nullopt},
+        {constants::controller::B, TowerAimPassZone(&m_tower),                        frc2::InstantCommand{[&]() {m_tower.m_turretOffset = 0_deg;}, {&m_tower}}.ToPtr()},
         {constants::controller::Y, TowerIdle(&m_tower),                               TowerAutomatic(&m_tower)},
         {constants::controller::X, TowerManualControl(&m_tower, &m_manualTowerState), std::nullopt},
 
@@ -228,7 +220,7 @@ void RobotContainer::ResetWheelAnglesToZero()
 void RobotContainer::ResetGyroAngle()
 {
     // Reset the gyro angle to zero position
-    m_chassis.ResetGyroAngle();
+    m_chassis.ResetPoseGyroAngle();
 }
 #pragma endregion
 
@@ -247,7 +239,7 @@ std::function<frc::ChassisSpeeds()> RobotContainer::GetSpeeds()
         return frc::ChassisSpeeds{
             -ChassisConstants::MaximumSpeed           * frc::ApplyDeadband( m_driveController.GetRawAxis(1), constants::controller::TranslationDeadZone),
             -ChassisConstants::MaximumSpeed           * frc::ApplyDeadband( m_driveController.GetRawAxis(0), constants::controller::TranslationDeadZone),
-             ChassisConstants::MaximumAngularVelocity * frc::ApplyDeadband(-m_driveController.GetRawAxis(4), constants::controller::RotateDeadZone)
+             ChassisConstants::MaximumAngularVelocity * frc::ApplyDeadband(GetExponentialValue(-m_driveController.GetRawAxis(4), 2), constants::controller::RotateDeadZone)
         };
     };
 }

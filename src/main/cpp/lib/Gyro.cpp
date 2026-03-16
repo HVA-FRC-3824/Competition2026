@@ -1,11 +1,18 @@
 #include "lib/Gyro.h"
+
 #include <frc/RobotBase.h>
 
 #pragma region Gyro
 /// @brief Constructor for the Gyro wrapper
 Gyro::Gyro()
 {
-    
+    // Optional alliance check for the 180 offset in pose estimation
+    auto alliance = frc::DriverStation::GetAlliance();
+
+    if (alliance && alliance.value() == frc::DriverStation::Alliance::kBlue)
+    {
+        m_poseOffset = frc::Rotation2d{180_deg};
+    }   
 }
 #pragma endregion
 
@@ -26,23 +33,24 @@ frc::Rotation2d Gyro::GetPoseHeading()
 {
     auto heading = GetRawHeading() - m_poseOffset;
 
-    // Optional alliance check for the 180 offset in pose estimation
-    auto alliance = frc::DriverStation::GetAlliance();
-    if (alliance && alliance.value() != frc::DriverStation::Alliance::kBlue)
-    {
-        heading = heading + frc::Rotation2d{180_deg};
-    }
-
     return heading;
 }
 #pragma endregion
 
-#pragma region Reset
+#pragma region DriverReset
 /// @brief Resets driver offsets to the current actual gyro heading
-void Gyro::Reset()
+void Gyro::DriverReset()
 {
     frc::Rotation2d currentHeading = GetRawHeading();
     m_driverOffset = currentHeading;
+}
+#pragma endregion
+
+#pragma region PoseReset
+/// @brief Resets driver offsets to the current actual gyro heading
+void Gyro::PoseReset()
+{
+    m_gyro.Reset();
 }
 #pragma endregion
 

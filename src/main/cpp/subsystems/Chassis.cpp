@@ -62,9 +62,13 @@ void Chassis::DriveRelative(const frc::ChassisSpeeds &speeds)
         m_desiredStates = ChassisConstants::xStates;
         return;
     }
-
-    // Save the desired speeds for logging later
+    
     m_desiredSpeeds = speeds;
+
+    if (m_isSlowMode)
+    {
+        m_desiredSpeeds = m_desiredSpeeds * (1/4);
+    }
 
     // Save the desired states for use and logging later
     m_desiredStates = m_kinematics.ToSwerveModuleStates(speeds);
@@ -92,7 +96,7 @@ void Chassis::SetModuleStates(wpi::array<frc::SwerveModuleState, 4> states)
 void Chassis::ResetGyroAngle()
 {
     // Zero the gyro heading
-    m_gyro.Reset();
+    m_gyro.DriverReset();
 }
 #pragma endregion
 
@@ -116,13 +120,13 @@ void Chassis::ResetWheelAnglesToZero()
 /// @brief Resets Pose and odometry
 void Chassis::ResetPose(frc::Pose2d pose)
 {
-    for (auto &swerveModule : m_swerveModules)
-    {
-        swerveModule.ResetEncoders();
-    }
+    // for (auto &swerveModule : m_swerveModules)
+    // {
+    //     swerveModule.ResetEncoders();
+    // }
 
-    m_poseEstimator.Update(pose.Rotation(), GetModulePositions());
-
+    ResetPoseGyroAngle();
+    
     m_poseEstimator.ResetPose(pose);
     Log("Reset Pose ", pose.X().value());
 
@@ -242,7 +246,7 @@ void Chassis::Periodic()
     m_gyro.SimPeriodic(units::degrees_per_second_t{m_desiredSpeeds.omega.value()});
 
     // Update the pose estimator
-    m_poseEstimator.Update(GetPose().Rotation().Degrees() + (m_kinematics.ToChassisSpeeds(GetModuleStates()).omega / (1 / 0.02_s)), GetModulePositions());
+    m_poseEstimator.Update(GetPoseHeading(), GetModulePositions());
 
     if (frc::RobotBase::IsSimulation())
     {
@@ -252,7 +256,7 @@ void Chassis::Periodic()
     else
     {
         // This also updates the pose estimator with vision as well as updating photonvisions internal estimators
-        m_topVision.Periodic();
+        // m_topVision.Periodic();
         m_backVision.Periodic();
     }
 

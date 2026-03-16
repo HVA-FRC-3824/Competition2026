@@ -45,7 +45,7 @@ namespace ChassisConstants
     constexpr units::degree_t BackLeftForwardAngle  { -0.361328 * 360.0 };
     constexpr units::degree_t BackRightForwardAngle { -0.276855 * 360.0 };
 
-    constexpr auto MaximumSpeed = 7_fps;
+    constexpr auto MaximumSpeed = 9_fps;
     constexpr auto MaximumAngularVelocity = 1_rad_per_s * (std::numbers::pi / 2);
 
     constexpr units::inch_t WheelBase {30.0};
@@ -112,6 +112,7 @@ class Chassis : public frc2::SubsystemBase
         void                                     SetModuleStates(wpi::array<frc::SwerveModuleState, 4> states);
 
         void                                     ResetGyroAngle();
+        void                                     ResetPoseGyroAngle() { m_gyro.PoseReset(); }
         void                                     ResetWheelAnglesToZero();
         void                                     ResetPose(frc::Pose2d pose);
 

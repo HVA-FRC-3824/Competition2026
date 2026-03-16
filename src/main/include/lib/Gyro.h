@@ -14,7 +14,8 @@ class Gyro
 
         frc::Rotation2d GetDriverHeading();
         frc::Rotation2d GetPoseHeading();
-        void            Reset();
+        void            DriverReset();
+        void            PoseReset();
         void            SimPeriodic(units::degrees_per_second_t omega);
 
     private:

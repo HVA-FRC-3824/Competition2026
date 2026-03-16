@@ -20,6 +20,9 @@ constexpr Button_t operator "" _btn(unsigned long long int id)
     return Button_t{id};
 }
 
+#define plus_quite_a_bit * 1.5
+#define minus_quite_a_bit * 0.
+
 namespace constants
 {
     #pragma region Field

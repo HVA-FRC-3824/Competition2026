@@ -10,3 +10,4 @@
 #pragma endregion
 
 frc2::CommandPtr SpindexerSetState(Spindexer* spindexer, SpindexerState state);
+frc2::CommandPtr SpindexerToggle(Spindexer* spindexer);

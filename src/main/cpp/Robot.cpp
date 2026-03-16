@@ -21,6 +21,8 @@ void Robot::RobotPeriodic()
 {
     // Run the command scheduler
     frc2::CommandScheduler::GetInstance().Run();
+
+    Log("Battery Voltage ", frc::DriverStation::GetBatteryVoltage());
 }
 #pragma endregion
 
@@ -33,6 +35,9 @@ void Robot::AutonomousInit()
 
     // Set the swerve wheels to zero
     m_robotContainer->ResetWheelAnglesToZero();
+
+    auto bulls = pathplanner::AutoBuilder::buildAutoChooserFilter([&](const auto &bs) {return false;}, "NOTHING, IT DOES NOTHING");
+    frc2::CommandScheduler::GetInstance().Schedule(bulls.GetSelected() ? bulls.GetSelected() : frc2::cmd::None().Unwrap().release());
 
     // Get the selected autonomous command
     m_autonomousCommand = m_robotContainer->GetAutonomousCommand();
@@ -58,9 +63,13 @@ void Robot::AutonomousPeriodic()
 /// @brief Method is called when switching to teleoperated mode.
 void Robot::TeleopInit()
 {
+    m_autoTimes++;
+
     // Set the swerve wheels to zero
     // Note: Only needed if autonomous was not executed (i.e., during testing)
     m_robotContainer->ResetWheelAnglesToZero();
+
+    m_robotContainer->SetUpChassis();
 
     // This makes sure that the autonomous stops running when teleop starts running.
     if (m_autonomousCommand != nullptr)
@@ -92,7 +101,12 @@ void Robot::DisabledInit()
 /// @brief Method is called periodically when the robot is disabled.
 void Robot::DisabledPeriodic()
 {
-
+    if (!m_initDone)
+    {
+        // Reset the robot gyro
+        (m_robotContainer = RobotContainer::GetInstance())->ResetGyroAngle();
+        m_initDone = true;
+    }
 }
 #pragma endregion
 
@@ -127,6 +141,11 @@ void Robot::SimulationPeriodic()
 
 }
 #pragma endregion
+
+void Robot::DriverStationConnected()
+{
+
+}
 
 #ifndef RUNNING_FRC_TESTS
 int main()

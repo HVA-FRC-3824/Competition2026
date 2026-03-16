@@ -5,22 +5,15 @@
     "data": {
       "commands": [
         {
-          "type": "race",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "Spin Up For Hub"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Far To Mid"
-                }
-              }
-            ]
+            "name": "SUFH"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Far To Mid"
           }
         },
         {

@@ -3,6 +3,7 @@
 #pragma region Includes
 #include <pathplanner/lib/auto/NamedCommands.h>
 #include <pathplanner/lib/commands/PathPlannerAuto.h>
+#include <pathplanner/lib/auto/AutoBuilder.h>
 
 #include <frc2/command/button/JoystickButton.h>
 #include <frc2/command/button/POVButton.h>
@@ -46,6 +47,8 @@ class RobotContainer
         void                   ResetGyroAngle();
 
         frc2::Command*         GetAutonomousCommand() { return m_autoChooser.GetSelected(); }; 
+
+        void                   SetUpChassis() { m_chassis.ResetGyroAngle(); m_chassis.ToggleFieldCentric(); }
 
     private:
 

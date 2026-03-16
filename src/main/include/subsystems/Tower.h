@@ -64,13 +64,12 @@ namespace TowerConstants
 
     constexpr auto TargetTolerance    = 0.10;       // Percent of the target
 
-    constexpr auto HoodA              = 0.0;
-    constexpr auto HoodB              = 0.0;
-    constexpr auto HoodC              = 0.0;
-    
-    constexpr auto FlywheelA          = 0.00015427742689; 
-    constexpr auto FlywheelB          = 0.133316089708683;
-    constexpr auto FlywheelC          = 38.042989486793;  
+    constexpr auto knownDataPoints    = std::array<std::tuple<units::inch_t, units::turns_per_second_t, double>, 4>{{
+        {56.25_in,  45.0_tps,  0.0},
+        {91.25_in,  52.25_tps, 0.0},
+        {104.25_in, 55.0_tps,  0.0},
+        {194.0_in,  70.0_tps,  0.0}
+    }};
     
     constexpr auto TurretGearReduction              = 24.0; // There's a gearbox, and then a pulley, and then a small gear and a big gear, too many numbers for programming
 
@@ -105,8 +104,7 @@ class Tower : public frc2::SubsystemBase
         void             SetTurretAngle(units::degree_t angle);
         units::degree_t  GetTurretAngle();
 
-        TowerState       CalculateShot(TowerMode towerMode, frc::Translation2d relativeDistance, frc::ChassisSpeeds chassisSpeed, frc::Rotation2d chassisRotation);
-        double           CalculatePolynomial(units::inch_t distance, double a, double b, double c);
+        TowerState       CalculateShot(TowerMode towerMode, frc::Translation2d targetFieldPos, frc::ChassisSpeeds chassisSpeed, frc::Pose2d chassisPose);
 
         bool                                m_isBlue = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) == frc::DriverStation::Alliance::kBlue;
 

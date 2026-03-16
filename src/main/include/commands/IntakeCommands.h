@@ -10,3 +10,5 @@
 #pragma endregion
 
 frc2::CommandPtr IntakeSetState(Intake *intake, IntakeState state);
+frc2::CommandPtr IntakeJogOut(Intake *intake);
+frc2::CommandPtr IntakeToggleRollers(Intake *intake);

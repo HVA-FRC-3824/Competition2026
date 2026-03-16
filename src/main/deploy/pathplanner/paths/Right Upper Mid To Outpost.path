@@ -3,32 +3,37 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.243481927710843,
-        "y": 6.021084165477889
+        "x": 2.532951807228916,
+        "y": 2.526975903614458
       },
       "prevControl": null,
       "nextControl": {
-        "x": 0.7259355653713289,
-        "y": 6.0081455064194005
+        "x": 1.3855421686746987,
+        "y": 1.5871927710843363
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "RMTM"
     },
     {
       "anchor": {
-        "x": 0.6533855421686747,
-        "y": 6.021084165477889
+        "x": 2.2816144578313255,
+        "y": 2.2974939759036137
       },
       "prevControl": {
-        "x": 0.9812168674698796,
-        "y": 6.034771084337349
+        "x": 3.2210722891566266,
+        "y": 3.150048192771082
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Outpost"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.4985826771653537,
+      "rotationDegrees": 180.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -42,13 +47,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -177.71975016478106
+    "rotation": 180.0
   },
   "reversed": false,
-  "folder": "Far",
+  "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 177.6122253666843
+    "rotation": -142.6333305872313
   },
   "useDefaultConstraints": true
 }

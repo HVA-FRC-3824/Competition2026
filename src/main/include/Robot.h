@@ -29,6 +29,8 @@ class Robot : public frc::TimedRobot
         void SimulationInit()     override;
         void SimulationPeriodic() override;
 
+        void DriverStationConnected() override;
+
     private:
 
         // Pointer to the autonomous command
@@ -36,4 +38,8 @@ class Robot : public frc::TimedRobot
 
         // A pointer to the robot container class
         RobotContainer *m_robotContainer    = nullptr;
+
+        bool m_initDone = false;
+
+        int m_autoTimes = 0;
 };
