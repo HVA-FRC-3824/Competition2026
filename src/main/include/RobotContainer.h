@@ -10,13 +10,12 @@
 #include <frc2/command/InstantCommand.h>
 #include <frc2/command/RunCommand.h>
 
-#include <frc/Joystick.h>
-#include <frc/XboxController.h>
 
 #include <frc/filter/SlewRateLimiter.h>
 
-#include "subsystems/Leds.h"
+#include "lib/Controller.h"
 
+#include "subsystems/Leds.h"
 #include "subsystems/Chassis.h"
 #include "subsystems/Spindexer.h"
 #include "subsystems/Tower.h"
@@ -50,6 +49,8 @@ class RobotContainer
 
         void                   SetUpChassis() { m_chassis.ResetGyroAngle(); m_chassis.ToggleFieldCentric(); }
 
+        void                   PollControllerInputs() { m_controller.Poll(); }
+
     private:
 
         // Private class constructor to configure the robot and SmartDashboard configuration
@@ -58,7 +59,7 @@ class RobotContainer
         void                                  InitializePathPlanner();
         void                                  InitializeDriverControls();
         void                                  InitializeOperatorControls();
- 
+
         std::function<frc::ChassisSpeeds()>   GetSpeeds();
 
         double                                GetExponentialValue(double joystickValue, double exponent);
@@ -70,6 +71,8 @@ class RobotContainer
 
         frc::XboxController                   m_driveController   {ConstantsUsbPort::DrivePort};
         frc::XboxController                   m_operatorController{ConstantsUsbPort::OperatorPort};
+
+        Controller m_controller = Controller{2};
 
         // Instantiate the robot subsystems
         Chassis   m_chassis{};

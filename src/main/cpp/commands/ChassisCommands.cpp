@@ -43,6 +43,23 @@ frc2::CommandPtr ChassisDrive(Chassis *chassis, std::function<frc::ChassisSpeeds
 }
 #pragma endregion
 
+#pragma region ChassisDrive
+ /// @brief Creates a command to drive the chassis using the provided speeds supplier.
+///  @param chassis A pointer to the chassis subsystem.
+///  @param chassisSpeedsSupplier The desired chassis speeds.
+///  @return A CommandPtr that executes the chassis drive functionality.
+frc2::CommandPtr ChassisDrive(Chassis *chassis, frc::ChassisSpeeds chassisSpeeds)
+{
+    // Create and return a repeating InstantCommand that drives the chassis
+    return frc2::InstantCommand
+    {
+        [chassis, chassisSpeeds] () { chassis->Drive(chassisSpeeds); },  // Execution function (runs repeatedly while the command is active)
+        { chassis }                                                                        // Requirements (subsystems required by this command)
+    }.ToPtr();
+    // because of how we implement it, I'm not sure if it needs to be .Repeatedly()'d but it won't hurt
+}
+#pragma endregion
+
 #pragma region ChassisDrivePose
 /// @brief Creates a command to drive the chassis to a specified pose.
 /// @param chassis A pointer to the chassis subsystem.

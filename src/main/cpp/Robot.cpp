@@ -63,8 +63,6 @@ void Robot::AutonomousPeriodic()
 /// @brief Method is called when switching to teleoperated mode.
 void Robot::TeleopInit()
 {
-    m_autoTimes++;
-
     // Set the swerve wheels to zero
     // Note: Only needed if autonomous was not executed (i.e., during testing)
     m_robotContainer->ResetWheelAnglesToZero();
@@ -85,7 +83,7 @@ void Robot::TeleopInit()
 /// @brief Method is called periodically when the robot is in tleloperated mode.
 void Robot::TeleopPeriodic()
 {
-
+    m_robotContainer->PollControllerInputs();
 }
 #pragma endregion
 

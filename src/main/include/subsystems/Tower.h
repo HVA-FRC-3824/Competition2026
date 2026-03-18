@@ -65,10 +65,10 @@ namespace TowerConstants
     constexpr auto TargetTolerance    = 0.10;       // Percent of the target
 
     constexpr auto knownDataPoints    = std::array<std::tuple<units::inch_t, units::turns_per_second_t, double>, 4>{{
-        {56.25_in,  45.0_tps,  0.0},
-        {91.25_in,  52.25_tps, 0.0},
-        {104.25_in, 55.0_tps,  0.0},
-        {194.0_in,  70.0_tps,  0.0}
+        {56.25_in,  50.0_tps, 0.0},
+        {91.25_in,  53.0_tps, 0.0},
+        {104.25_in, 55.0_tps, 0.0},
+        {194.0_in,  55.0_tps, 0.2}
     }};
     
     constexpr auto TurretGearReduction              = 24.0; // There's a gearbox, and then a pulley, and then a small gear and a big gear, too many numbers for programming

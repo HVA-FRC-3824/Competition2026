@@ -21,7 +21,7 @@ constexpr Button_t operator "" _btn(unsigned long long int id)
 }
 
 #define plus_quite_a_bit * 1.5
-#define minus_quite_a_bit * 0.
+#define minus_quite_a_bit * 0.5
 
 namespace constants
 {

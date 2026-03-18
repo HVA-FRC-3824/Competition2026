@@ -59,7 +59,7 @@ void RobotContainer::InitializePathPlanner()
     // Register Commands
     PATHFINDER_COMMAND("Shoot All",        SpindexerSetState(&m_spindexer, SpindexerState::Spindexing));
     PATHFINDER_COMMAND("Stop Shooting",    SpindexerSetState(&m_spindexer, SpindexerState::Stopped));
-    pathplanner::NamedCommands::registerCommand("SUFH", std::move(TowerAimHub(&m_tower)));
+    PATHFINDER_COMMAND("SUFH",             TowerAimHub(&m_tower));
     PATHFINDER_COMMAND("Spin Up For Zone", TowerAimPassZone(&m_tower));
     PATHFINDER_COMMAND("Deploy Intake",    IntakeJogOut(&m_intake).AndThen(IntakeSetState(&m_intake, IntakeState::DeployedRollerOn)));
     PATHFINDER_COMMAND("Stow Intake",      IntakeSetState(&m_intake, IntakeState::Stowed));
@@ -88,6 +88,33 @@ void RobotContainer::InitializeDriverControls()
     // POV Down     - Jog intake backwards (retract)
     // POV Left     - Tap to toggle between slow mode and sonic mode
 
+    // m_controller.ConfigureLayer(0)
+    //     // Chassis
+    //     ->ConfigureAxis([&](auto leftAxis, auto rightAxis) {
+            
+    //         return ChassisDrive(&m_chassis, frc::ChassisSpeeds{ChassisConstants::MaximumSpeed * leftAxis.x, 
+    //                                                            ChassisConstants::MaximumSpeed * leftAxis.y, 
+    //                                                            ChassisConstants::MaximumAngularVelocity * rightAxis.x});
+    //     })
+    //     ->ReverseLX()->ReverseLY()
+    //     ->A(ButtonMode::Hold,                ChassisZeroHeading(&m_chassis))
+    //     ->B(ButtonMode::Hold,                ToggleFieldCentricity(&m_chassis))
+    //     ->X(ButtonMode::Hold,                ChassisXMode(&m_chassis))
+    //     ->Pov_270(ButtonMode::Hold,          ToggleSlowMode(&m_chassis)) // ie left d-pad
+    //     // Climb
+    //     ->Y(ButtonMode::DoubleTap,           ClimbRetract(&m_climb), ClimbDeploy(&m_climb))
+    //     // Spindexer
+    //     ->LeftBumper( ButtonMode::Hold,      SpindexerSetState(&m_spindexer, SpindexerState::Spindexing), 
+    //                                          SpindexerSetState(&m_spindexer, SpindexerState::Stopped))
+    //     // Intake
+    //     ->RightBumper(ButtonMode::DoubleTap, IntakeToggleRollers(&m_intake), IntakeJogOut(&m_intake))
+    //     ->Pov_0(ButtonMode::Hold,   frc2::InstantCommand{[&]() { m_intake.JogPosition(1_V plus_quite_a_bit); }, {&m_intake}}.ToPtr(), 
+    //                                 frc2::InstantCommand{[&]() { m_intake.JogPosition(0_V); }, {&m_intake}}.ToPtr()) // ie up d-pad
+    //     ->Pov_180(ButtonMode::Hold, frc2::InstantCommand{[&]() { m_intake.JogPosition(-1_V plus_quite_a_bit); }, {&m_intake}}.ToPtr(), 
+    //                                 frc2::InstantCommand{[&]() { m_intake.JogPosition(0_V); }, {&m_intake}}.ToPtr()); // ie down d-pad
+    
+    // m_controller.SetActiveSlot(0);
+
     // A tuple of a button, a press once command, and a double-tap command
     std::tuple<Button_t, frc2::CommandPtr, std::optional<frc2::CommandPtr>> driverBindings[] =
     {
@@ -113,15 +140,15 @@ void RobotContainer::InitializeDriverControls()
             .OnTrue(command2.has_value() ? std::move(command2.value()) : frc2::cmd::None());
     }
 
-    frc2::JoystickButton(&m_driveController, constants::controller::LeftBumper).OnTrue(SpindexerSetState(&m_spindexer, SpindexerState::Spindexing)).OnFalse(SpindexerSetState(&m_spindexer, SpindexerState::Stopped));
+    frc2::JoystickButton(&m_driveController, constants::controller::LeftBumper)
+        .OnTrue( SpindexerSetState(&m_spindexer, SpindexerState::Spindexing))
+        .OnFalse(SpindexerSetState(&m_spindexer, SpindexerState::Stopped));
 
     // Driver POV controls
     std::tuple<int, frc2::CommandPtr, std::optional<frc2::CommandPtr>> driverPOVBindings[] =
     {
         // Manual tower controls
         {constants::controller::Pov_0, frc2::InstantCommand{[=]() { m_intake.JogPosition(1_V plus_quite_a_bit); }, {&m_intake}}.ToPtr(), frc2::InstantCommand{[&]() { m_intake.JogPosition(0_V); }, {&m_intake}}.ToPtr()},
-
-        // {constants::controller::Pov_90,  },
 
         {constants::controller::Pov_180, frc2::InstantCommand{[=]() { m_intake.JogPosition(-1_V plus_quite_a_bit); }, {&m_intake}}.ToPtr(), frc2::InstantCommand{[&]() { m_intake.JogPosition(0_V); }, {&m_intake}}.ToPtr()},
                 
