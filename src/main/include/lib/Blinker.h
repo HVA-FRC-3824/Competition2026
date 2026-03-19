@@ -7,7 +7,7 @@ class Blinker
 {
     public:
         
-        enum Pattern
+        enum class Pattern
         {
             FixedPaletteRainbowRainbowPalette = 199,
             FixedPaletteRainbowPartyPalette = 197,
@@ -69,61 +69,48 @@ class Blinker
             ColorOneStrobe = 15,
             ColorTwoEndToEndBlendToBlack = 17,
             ColorTwoLarsonScanner = 19,
-            ColorTwoLightChase =21,
-            ColorTwoHeartbeatSlow =23,
-            ColorTwoHeartbeatMedium =25,
-            ColorTwoHeartbeatFast =27,
-            ColorTwoBreathSlow =29,
-            ColorTwoBreathFast =31,
-            ColorTwoShot =33,
-            ColorTwoStrobe =35,
-            ColorOneAndTwoSparkleColorOneOnColorTwo =37,
-            ColorOneAndTwoSparkleColorTwoOnColorOne =39,
-            ColorOneAndTwoColorGradientColorOneAndTwo =41,
-            ColorOneAndTwoBeatsPerMinuteColorOneAndTwo =43,
-            ColorOneAndTwoEndToEndBlendColorOneToTwo =45,
-            ColorOneAndTwoEndToEndBlend =47,
-            ColorOneAndTwoColorOneAndColorTwoNoBlending =49,
-            ColorOneAndTwoTwinklesColorOneAndTwo =51,
-            ColorOneAndTwoColorWavesColorOneAndTwo =53,
-            ColorOneAndTwoSinelonColorOneAndTwo =55,
-            SolidColorsHotPink =57,
-            SolidColorsDarkRed =59,
-            SolidColorsRed =61,
-            SolidColorsRedOrange =63,
-            SolidColorsOrange =65,
-            SolidColorsGold =67,
-            SolidColorsYellow =69,
-            SolidColorsLawnGreen =71,
-            SolidColorsLime =73,
-            SolidColorsDarkGreen =75,
-            SolidColorsGreen =77,
-            SolidColorsBlueGreen =79,
-            SolidColorsAqua =81,
-            SolidColorsSkyBlue =83,
-            SolidColorsDarkBlue =85,
-            SolidColorsBlue =87,
-            SolidColorsBlueViolet =89,
-            SolidColorsViolet =91,
-            SolidColorsWhite =93,
+            ColorTwoLightChase = 21,
+            ColorTwoHeartbeatSlow = 23,
+            ColorTwoHeartbeatMedium = 25,
+            ColorTwoHeartbeatFast = 27,
+            ColorTwoBreathSlow = 29,
+            ColorTwoBreathFast = 31,
+            ColorTwoShot = 33,
+            ColorTwoStrobe = 35,
+            ColorOneAndTwoSparkleColorOneOnColorTwo = 37,
+            ColorOneAndTwoSparkleColorTwoOnColorOne = 39,
+            ColorOneAndTwoColorGradientColorOneAndTwo = 41,
+            ColorOneAndTwoBeatsPerMinuteColorOneAndTwo = 43,
+            ColorOneAndTwoEndToEndBlendColorOneToTwo = 45,
+            ColorOneAndTwoEndToEndBlend = 47,
+            ColorOneAndTwoColorOneAndColorTwoNoBlending = 49,
+            ColorOneAndTwoTwinklesColorOneAndTwo = 51,
+            ColorOneAndTwoColorWavesColorOneAndTwo = 53,
+            ColorOneAndTwoSinelonColorOneAndTwo = 55,
+            SolidColorsHotPink = 57,
+            SolidColorsDarkRed = 59,
+            SolidColorsRed = 61,
+            SolidColorsRedOrange = 63,
+            SolidColorsOrange = 65,
+            SolidColorsGold = 67,
+            SolidColorsYellow = 69,
+            SolidColorsLawnGreen = 71,
+            SolidColorsLime = 73,
+            SolidColorsDarkGreen = 75,
+            SolidColorsGreen = 77,
+            SolidColorsBlueGreen = 79,
+            SolidColorsAqua = 81,
+            SolidColorsSkyBlue = 83,
+            SolidColorsDarkBlue = 85,
+            SolidColorsBlue = 87,
+            SolidColorsBlueViolet = 89,
+            SolidColorsViolet = 91,
+            SolidColorsWhite = 93,
             SolidColorsGray = 95,
             SolidColorsDarkGray = 97,
             SolidColorsBlack = 99,
         };
-
-        static double PatternToBlink(Pattern pattern)
-        {
-           double pattern2 = pattern;
-           if (pattern2 > 100.0)
-           {
-            pattern2 -= 100.0;
-            pattern2 /= 100.0;
-            pattern2 *= -1.0;
-            return pattern2;
-           }
-            return pattern2 / 100.0;
-        }
-
+        
         explicit Blinker(int port) :
             m_led{port}
         {
@@ -136,6 +123,19 @@ class Blinker
         }
 
     private:
+
+        double PatternToBlink(Pattern pattern)
+        {
+           double pattern2 = (int) pattern;
+           if (pattern2 > 100.0)
+           {
+            pattern2 -= 100.0;
+            pattern2 /= 100.0;
+            pattern2 *= -1.0;
+            return pattern2;
+           }
+            return pattern2 / 100.0;
+        }
         
         frc::Spark m_led;
 };

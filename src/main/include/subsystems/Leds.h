@@ -7,13 +7,61 @@
 #include <frc2/command/SubsystemBase.h>
 
 #include <frc/AddressableLED.h>
-#include <frc/LEDPattern.h>
+#include "lib/Blinker.h"
+
 #include <frc/LEDPattern.h>
 
 #include "subsystems/Tower.h"
 
 #include "Constants.h"
 #include "ConstantsRoboRio.h"
+
+#define isActiveShift() ([]() -> bool {                                   \
+    auto alliance = frc::DriverStation::GetAlliance();                    \
+    /* If we have no alliance, we cannot be enabled, therefore no hub. */ \
+    if (!alliance) {                                                      \
+      return false;                                                       \
+    }                                                                     \
+    /* Hub is always enabled in autonomous. */                            \
+    if (frc::DriverStation::IsAutonomousEnabled()) {                      \
+      return true;                                                        \
+    }                                                                     \
+    /* At this point, if we're not teleop enabled, there is no hub. */    \
+    if (!frc::DriverStation::IsTeleopEnabled()) {                         \
+      return false;                                                       \
+    }                                                                     \
+    /* We're teleop enabled, compute. Run 3 seconds ahead */              \
+    auto matchTime = frc::DriverStation::GetMatchTime() - 3_s;            \
+    auto gameData  = frc::DriverStation::GetGameSpecificMessage();        \
+    /* If we have no game data, we cannot compute, assume hub is active,  \
+    as its likely early in teleop.                                        \
+     */                                                                   \
+    if (gameData.empty()) {                                               \
+      return true;                                                        \
+    }                                                                     \
+    bool redInactiveFirst = !(gameData.at(0) == 'B');                     \
+    /* Shift was is active for blue if red won auto, or red if blue won auto. */ \
+    bool shift1Active = (alliance.value() == frc::DriverStation::Alliance::kRed) ? !redInactiveFirst : redInactiveFirst; \
+    if (matchTime > 130.0_s) {                                            \
+      /* Transition shift, hub is active. */                              \
+      return true;                                                        \
+    } else if (matchTime > 105.0_s) {                                     \
+      /* Shift 1 */                                                       \
+      return shift1Active;                                                \
+    } else if (matchTime > 80.0_s) {                                      \
+      /* Shift 2 */                                                       \
+      return !shift1Active;                                               \
+    } else if (matchTime > 55.0_s) {                                      \
+      /* Shift 3 */                                                       \
+      return shift1Active;                                                \
+    } else if (matchTime > 30.0_s) {                                      \
+      /* Shift 4 */                                                       \
+      return !shift1Active;                                               \
+    } else {                                                              \
+      /* End game, hub always active.  */                                 \
+      return true;                                                        \
+    }                                                                     \
+})()
 
 #pragma region LedConstants
 namespace LedConstants
@@ -59,7 +107,7 @@ class Leds : public frc2::SubsystemBase
 
     private:
 
-        void SetLeds(frc::LEDPattern turret, std::optional<frc::LEDPattern> underglow = std::nullopt);
+        void SetLeds(frc::LEDPattern turret, Blinker::Pattern underglow);
 
         LedMode             m_ledMode       = LedMode::HvaColors;  // The LED mode
 
@@ -77,22 +125,16 @@ class Leds : public frc2::SubsystemBase
         frc::LEDPattern     m_strobe            = frc::LEDPattern::Solid(frc::Color::kWhite).Blink(LedConstants::StrobeDelay);  
 
         frc::AddressableLED m_ledTurret   {ConstantsPwmPorts::LedTurretPort};
-        // frc::AddressableLED m_ledUnderGlow{ConstantsPwmPorts::LedUnderGlowPort};
+        Blinker             m_ledUnderGlow{ConstantsPwmPorts::LedUnderGlowPort};
 
-        std::array<frc::AddressableLED::LEDData, LedConstants::Length> m_ledTurretBuffer   {};
-        std::array<frc::AddressableLED::LEDData, LedConstants::Length> m_ledUnderGlowBuffer{};
+        std::array<frc::AddressableLED::LEDData, LedConstants::Length> m_ledTurretBuffer{};
 
-        frc::LEDPattern underGlowPattern = frc::LEDPattern::Solid(frc::Color::kBlack);
-        frc::LEDPattern turretPattern   = frc::LEDPattern::Solid(frc::Color::kBlack);
+        Blinker::Pattern underGlowPattern = Blinker::Pattern::SolidColorsBlack;
+        frc::LEDPattern  turretPattern    = frc::LEDPattern::Solid(frc::Color::kBlack);
 
-        TowerMode m_towerState = TowerMode::Idle;
         bool      m_isOnTarget = false;
-        bool      m_isClimbing = false;
         bool      m_isShooting = false;
         
-        TowerMode lastTowerState = m_towerState;
         bool      lastIsShooting = m_isShooting;
-        bool      lastIsClimbing = m_isClimbing;
         bool      lastIsOnTarget = m_isOnTarget;
-         
 };

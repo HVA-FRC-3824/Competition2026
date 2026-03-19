@@ -25,9 +25,7 @@ Leds::Leds()
 
 void Leds::SetRobotState(TowerMode shootingMode, bool isClimbing, bool isShooting, bool isOnTarget)
 {
-    m_towerState = shootingMode;
     m_isOnTarget = isClimbing;
-    m_isClimbing = isShooting;
     m_isShooting = isOnTarget;
 }
 
@@ -42,13 +40,13 @@ void Leds::SetMode(LedMode ledMode)
 #pragma endregion
 
 #pragma region SetLeds
-void Leds::SetLeds(frc::LEDPattern turret, std::optional<frc::LEDPattern> underglow)
+void Leds::SetLeds(frc::LEDPattern turret, Blinker::Pattern underglow)
 {
     turret.ApplyTo(m_ledTurretBuffer);
-    underglow.value_or(turret).ApplyTo(m_ledUnderGlowBuffer);
     
     m_ledTurret.SetData(m_ledTurretBuffer);
-    // m_ledUnderGlow.SetData(m_ledUnderGlowBuffer);
+
+    m_ledUnderGlow.Set(underglow);
 }
 #pragma endregion
 
@@ -60,68 +58,48 @@ void Leds::Periodic()
     {
         case LedMode::Off:
         {
-            SetLeds(frc::LEDPattern::Solid(frc::Color::kBlack));
+            SetLeds(frc::LEDPattern::Solid(frc::Color::kBlack), Blinker::Pattern::SolidColorsBlack);
             break;
         }
         case LedMode::SolidGreen:
         {
-            SetLeds(frc::LEDPattern::Solid(frc::Color::kGreen));
+            SetLeds(frc::LEDPattern::Solid(frc::Color::kGreen), Blinker::Pattern::SolidColorsGreen);
             break;
         }
         case LedMode::SolidRed:
         {
-            SetLeds(frc::LEDPattern::Solid(frc::Color::kRed));
+            SetLeds(frc::LEDPattern::Solid(frc::Color::kRed), Blinker::Pattern::SolidColorsRed);
             break;
         }
 
         case LedMode::HvaColors:
         {
-            SetLeds(m_hvaColors);
+            SetLeds(m_hvaColors, Blinker::Pattern::SolidColorsBlue);
             break;
         }
 
         case LedMode::Strobe:
         {
-            SetLeds(m_strobe);
+            SetLeds(m_strobe, Blinker::Pattern::ColorOneBreathFast);
             break;
         }
 
         case LedMode::Rainbow:
         {
             // Run the rainbow pattern and apply it to the buffer
-            SetLeds(m_scrollingRainbow);
+            SetLeds(m_scrollingRainbow, Blinker::Pattern::FixedPaletteRainbowRainbowPalette);
             break;
         }
         
         case LedMode::MatchMode:
         {
-            if (lastTowerState != m_towerState || lastIsClimbing != m_isClimbing)
+            if (isActiveShift())
             {
-                lastTowerState = m_towerState;
-                lastIsClimbing = m_isClimbing;
-
-                switch (m_towerState)
-                {
-                    case TowerMode::Idle:
-                        underGlowPattern = frc::LEDPattern::Solid(frc::Color::kCyan);
-                        break;
-                    case TowerMode::ManualControl:
-                        underGlowPattern = frc::LEDPattern::Solid(frc::Color::kYellow);
-                        break;
-                    case TowerMode::ShootingToHub:
-                        underGlowPattern = frc::LEDPattern::Solid(frc::Color::kGreen);
-                        break;
-                    case TowerMode::PassingToAdjacentZone:
-                        underGlowPattern = frc::LEDPattern::Solid(frc::Color::kPink);
-                        break;
-                    default:
-                        underGlowPattern = m_scrollingRainbow;
-                        break;
-                }
-                if (m_isClimbing)
-                {
-                    underGlowPattern = underGlowPattern.Blink(500_ms);
-                }
+                m_ledUnderGlow.Set(Blinker::Pattern::SolidColorsGreen);
+            }
+            else
+            {
+                m_ledUnderGlow.Set(Blinker::Pattern::SolidColorsRed);
             }
 
             if (lastIsShooting != m_isShooting || lastIsOnTarget != m_isOnTarget)
@@ -137,8 +115,7 @@ void Leds::Periodic()
             }
 
             // Set the pattern based on the shooting mode and climbing status
-            SetLeds(underGlowPattern, 
-                    turretPattern);
+            SetLeds(turretPattern, underGlowPattern);
             break;
         }
     }

@@ -61,8 +61,8 @@ namespace ConstantsPwmPorts
     // PWM Ports
     constexpr auto ActuatorPort     = 1_PWM;
 
-    constexpr auto LedUnderGlowPort = 8_PWM;
-    constexpr auto LedTurretPort    = 9_PWM;
+    constexpr auto LedUnderGlowPort = 9_PWM;
+    constexpr auto LedTurretPort    = 7_PWM;
 }
 #pragma endregion
 
