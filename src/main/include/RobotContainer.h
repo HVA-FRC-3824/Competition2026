@@ -10,6 +10,7 @@
 #include <frc2/command/InstantCommand.h>
 #include <frc2/command/RunCommand.h>
 
+#include <frc/XboxController.h>
 
 #include <frc/filter/SlewRateLimiter.h>
 
@@ -49,7 +50,7 @@ class RobotContainer
 
         void                   SetUpChassis() { m_chassis.ResetGyroAngle(); m_chassis.ToggleFieldCentric(); }
 
-        void                   PollControllerInputs() { m_controller.Poll(); }
+        // void                   PollControllerInputs() { m_controller.Poll(); }
 
     private:
 
@@ -72,7 +73,7 @@ class RobotContainer
         frc::XboxController                   m_driveController   {ConstantsUsbPort::DrivePort};
         frc::XboxController                   m_operatorController{ConstantsUsbPort::OperatorPort};
 
-        Controller m_controller = Controller{2};
+        // Controller m_controller = Controller{2};
 
         // Instantiate the robot subsystems
         Chassis   m_chassis{};

@@ -32,7 +32,7 @@
 #pragma endregion
 
 #pragma region StateStructures
-enum TowerMode
+enum class TowerMode
 {
     Idle,
     ShootingToHub,

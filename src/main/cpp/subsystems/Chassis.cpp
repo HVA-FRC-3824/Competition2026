@@ -43,7 +43,7 @@ Chassis::Chassis()
 void Chassis::Drive(const frc::ChassisSpeeds &speeds)
 {
     // Call the relative drive method with the correct frame of reference
-    DriveRelative(m_isFieldRelative ? frc::ChassisSpeeds::FromFieldRelativeSpeeds(speeds, GetDriverHeading()) : speeds);
+    DriveRelative(frc::DriverStation::IsTeleop() ? frc::ChassisSpeeds::FromFieldRelativeSpeeds(speeds, GetDriverHeading()) : speeds);
 }
 #pragma endregion
 
@@ -64,11 +64,6 @@ void Chassis::DriveRelative(const frc::ChassisSpeeds &speeds)
     }
     
     m_desiredSpeeds = speeds;
-
-    if (m_isSlowMode)
-    {
-        m_desiredSpeeds = m_desiredSpeeds * (1/4);
-    }
 
     // Save the desired states for use and logging later
     m_desiredStates = m_kinematics.ToSwerveModuleStates(speeds);
@@ -192,6 +187,7 @@ void Chassis::ToggleSlowMode()
 {
     // Set whether the chassis in x mode
     m_isSlowMode = !m_isSlowMode;
+    Log("SLOWWW", m_isSlowMode);
 }
 #pragma endregion
 

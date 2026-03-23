@@ -19,3 +19,13 @@ frc2::CommandPtr ClimbRetract(Climb* climb)
     return frc2::InstantCommand{[=] { climb->SetState(ClimbState::Retracted); }}.ToPtr();
 }
 #pragma endregion
+
+#pragma region ClimbToggle
+/// @brief Command to retract the climb mechanism
+/// @param climb Pointer to the climb subsystem
+frc2::CommandPtr ClimbToggle(Climb* climb) 
+{ 
+    // Return the command to retract the climb
+    return frc2::InstantCommand{[=] { climb->SetState(ClimbState(int(!(bool(int(climb->GetState())))))); }}.ToPtr();
+}
+#pragma endregion

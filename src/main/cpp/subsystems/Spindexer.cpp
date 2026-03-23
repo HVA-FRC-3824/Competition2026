@@ -69,6 +69,14 @@ void Spindexer::SetState(SpindexerState newState)
             kickerSpeed    = SpindexerConstants::KickerWheelTurns;
             break;
         }
+
+        case SpindexerState::Backwards:
+        {
+            // Set both motors to their respective speeds
+            spindexerSpeed = -SpindexerConstants::SpinnerWheelTurns;
+            kickerSpeed    = -SpindexerConstants::KickerWheelTurns;
+            break;
+        }
     }
 
     Log("Spindexer", std::string_view{"Setting spinner speed to " + std::to_string(spindexerSpeed.value()) + " turns per second and kicker speed to " + std::to_string(kickerSpeed.value()) + " turns per second"});

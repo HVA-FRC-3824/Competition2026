@@ -54,6 +54,7 @@ void Leds::SetLeds(frc::LEDPattern turret, Blinker::Pattern underglow)
 /// @brief This method will be called once periodically.
 void Leds::Periodic()
 {
+    m_ledMode = LedMode::MatchMode;
     switch (m_ledMode)
     {
         case LedMode::Off:

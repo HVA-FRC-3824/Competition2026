@@ -7,7 +7,6 @@
 #include <ctre/phoenix6/TalonFX.hpp>
 
 #include "lib/TalonFXConfiguration.h"
-#include "lib/SparkMaxConfiguration.h"
 
 #include "lib/Logging.h"
 
@@ -15,7 +14,7 @@
 #include "ConstantsRoboRio.h"
 #pragma endregion
 
-enum ClimbState
+enum class ClimbState
 {
     Deployed,
     Retracted

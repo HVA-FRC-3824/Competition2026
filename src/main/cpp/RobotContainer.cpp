@@ -56,10 +56,16 @@ RobotContainer::RobotContainer()
 /// @brief Method to initialize the Path Planner configuration.
 void RobotContainer::InitializePathPlanner()
 {
+    auto shootBack = ChassisDrive(&m_chassis, frc::ChassisSpeeds{1_mps, 0.0_mps, 0_rad_per_s})
+    .AndThen(frc2::InstantCommand{[&]() { m_manualTowerState.turretAngle = (frc::DriverStation::GetAlliance().value_or(frc::DriverStation::Alliance::kBlue) == frc::DriverStation::Alliance::kRed) ? 0_deg : 180_deg; m_manualTowerState.flywheelSpeed = 55_tps;}}.ToPtr())
+    .AndThen(frc2::WaitCommand(3_s).ToPtr())
+    .AndThen(ChassisDrive(&m_chassis, frc::ChassisSpeeds{0_mps, 0._mps, 0_rad_per_s}))
+    .AndThen(TowerManualControl(&m_tower,&m_manualTowerState));
+
     // Register Commands
     PATHFINDER_COMMAND("Shoot All",        SpindexerSetState(&m_spindexer, SpindexerState::Spindexing));
     PATHFINDER_COMMAND("Stop Shooting",    SpindexerSetState(&m_spindexer, SpindexerState::Stopped));
-    PATHFINDER_COMMAND("SUFH",             TowerAimHub(&m_tower));
+    PATHFINDER_COMMAND("SUFH",             shootBack);
     PATHFINDER_COMMAND("Spin Up For Zone", TowerAimPassZone(&m_tower));
     PATHFINDER_COMMAND("Deploy Intake",    IntakeJogOut(&m_intake).AndThen(IntakeSetState(&m_intake, IntakeState::DeployedRollerOn)));
     PATHFINDER_COMMAND("Stow Intake",      IntakeSetState(&m_intake, IntakeState::Stowed));
@@ -126,9 +132,11 @@ void RobotContainer::InitializeDriverControls()
         {constants::controller::X,           ChassisXMode(&m_chassis), std::nullopt},
 
         // Climb controls
-        {constants::controller::Y,           ClimbRetract(&m_climb), ClimbDeploy(&m_climb)},
+        // {constants::controller::Y,           ClimbToggle(&m_climb), std::nullopt},
 
-        {constants::controller::RightBumper, IntakeToggleRollers(&m_intake), IntakeJogOut(&m_intake)},
+        {constants::controller::RightBumper, IntakeToggleRollers(&m_intake), std::nullopt},
+
+        {constants::controller::LeftStickButton, ToggleSlowMode(&m_chassis), std::nullopt},
     };
 
     // Add the bindings to the driver controller
@@ -148,11 +156,11 @@ void RobotContainer::InitializeDriverControls()
     std::tuple<int, frc2::CommandPtr, std::optional<frc2::CommandPtr>> driverPOVBindings[] =
     {
         // Manual tower controls
-        {constants::controller::Pov_0, frc2::InstantCommand{[=]() { m_intake.JogPosition(1_V plus_quite_a_bit); }, {&m_intake}}.ToPtr(), frc2::InstantCommand{[&]() { m_intake.JogPosition(0_V); }, {&m_intake}}.ToPtr()},
+        {constants::controller::Pov_0, IntakeJogOut(&m_intake), std::nullopt},
 
-        {constants::controller::Pov_180, frc2::InstantCommand{[=]() { m_intake.JogPosition(-1_V plus_quite_a_bit); }, {&m_intake}}.ToPtr(), frc2::InstantCommand{[&]() { m_intake.JogPosition(0_V); }, {&m_intake}}.ToPtr()},
+        {constants::controller::Pov_180, frc2::InstantCommand{[this]() { m_intake.JogPosition(-1_V plus_quite_a_bit); }, {&m_intake}}.ToPtr(), frc2::InstantCommand{[&]() { m_intake.JogPosition(0_V); }, {&m_intake}}.ToPtr()},
                 
-        {constants::controller::Pov_270, ToggleSlowMode(&m_chassis), std::nullopt},
+        {constants::controller::Pov_270, IntakeSetState(&m_intake, IntakeState::Backward).AlongWith(SpindexerSetState(&m_spindexer, SpindexerState::Backwards)), IntakeSetState(&m_intake, IntakeState::DeployedRollerOff).AlongWith(SpindexerSetState(&m_spindexer, SpindexerState::Stopped))}
     };
 
     for (auto &[direction, command, command2] : driverPOVBindings)
@@ -170,8 +178,8 @@ void RobotContainer::InitializeOperatorControls()
     /// *** Bindings *** ///
     // A - Aim the tower to the hub
     // B - Aim the tower to pass to our alliance zone
-    // Y - Idles the tower, double tap to make the tower automatic based on the current position of the bot
-    // X - Aims the tower based on manual parameters
+    // Y - Idles the tower
+    // X - Aims the tower based on manual parameters, double tap to reset
     
     // *** Manual Controls ***
     // Left Stick Button  - Lower the hood
@@ -185,10 +193,10 @@ void RobotContainer::InitializeOperatorControls()
     std::tuple<Button_t, frc2::CommandPtr, std::optional<frc2::CommandPtr>> operatorBindings[] =
     {   
         // Tower state
-        {constants::controller::A, TowerAimHub(&m_tower),                             frc2::InstantCommand{[&]() {m_tower.m_turretOffset = 0_deg;}, {&m_tower}}.ToPtr()},
-        {constants::controller::B, TowerAimPassZone(&m_tower),                        frc2::InstantCommand{[&]() {m_tower.m_turretOffset = 0_deg;}, {&m_tower}}.ToPtr()},
+        {constants::controller::A, TowerAimHub(&m_tower),                             frc2::InstantCommand{[&]() {m_tower.m_turretOffset = 180_deg;}, {&m_tower}}.ToPtr()},
+        {constants::controller::B, TowerAimPassZone(&m_tower),                        frc2::InstantCommand{[&]() {m_tower.m_turretOffset = 180_deg;}, {&m_tower}}.ToPtr()},
         {constants::controller::Y, TowerIdle(&m_tower),                               TowerAutomatic(&m_tower)},
-        {constants::controller::X, TowerManualControl(&m_tower, &m_manualTowerState), std::nullopt},
+        {constants::controller::X, TowerManualControl(&m_tower, &m_manualTowerState), frc2::InstantCommand{[&]() {m_manualTowerState.turretAngle = 180_deg; m_manualTowerState.flywheelSpeed = 55_tps;}, {&m_tower}}.ToPtr().AndThen(TowerManualControl(&m_tower, &m_manualTowerState))},
 
         {constants::controller::LeftStickButton,  frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorDistance -= 0.1;}, {&m_tower}}
                                                     .AndThen(TowerManualControl(&m_tower, &m_manualTowerState)), std::nullopt},
@@ -196,8 +204,8 @@ void RobotContainer::InitializeOperatorControls()
         {constants::controller::RightStickButton, frc2::InstantCommand{[&] { m_manualTowerState.hoodActuatorDistance += 0.1;}, {&m_tower}}
                                                     .AndThen(TowerManualControl(&m_tower, &m_manualTowerState)), std::nullopt},
     
-        {constants::controller::RightBumper, frc2::InstantCommand{[&]() {m_tower.m_turretOffset -= 5_deg;}, {&m_tower}}.ToPtr(), std::nullopt},
-        {constants::controller::LeftBumper,  frc2::InstantCommand{[&]() {m_tower.m_turretOffset += 5_deg;}, {&m_tower}}.ToPtr(), std::nullopt},
+        {constants::controller::RightBumper, frc2::InstantCommand{[&]() {m_tower.m_turretOffset -= 10_deg;}, {&m_tower}}.ToPtr(), std::nullopt},
+        {constants::controller::LeftBumper,  frc2::InstantCommand{[&]() {m_tower.m_turretOffset += 10_deg;}, {&m_tower}}.ToPtr(), std::nullopt},
     };
 
     // Add the bindings to the operator controller
@@ -264,9 +272,9 @@ std::function<frc::ChassisSpeeds()> RobotContainer::GetSpeeds()
     {
         // Return the chassis speeds based on joystick inputs
         return frc::ChassisSpeeds{
-            -ChassisConstants::MaximumSpeed           * frc::ApplyDeadband( m_driveController.GetRawAxis(1), constants::controller::TranslationDeadZone),
-            -ChassisConstants::MaximumSpeed           * frc::ApplyDeadband( m_driveController.GetRawAxis(0), constants::controller::TranslationDeadZone),
-             ChassisConstants::MaximumAngularVelocity * frc::ApplyDeadband(GetExponentialValue(-m_driveController.GetRawAxis(4), 2), constants::controller::RotateDeadZone)
+            -ChassisConstants::MaximumSpeed           * (m_chassis.GetIsSlowMode() ? 1/2 : 1) * frc::ApplyDeadband(GetExponentialValue(m_driveController.GetRawAxis(1), 2), constants::controller::TranslationDeadZone),
+            -ChassisConstants::MaximumSpeed           * (m_chassis.GetIsSlowMode() ? 1/2 : 1) * frc::ApplyDeadband(GetExponentialValue(m_driveController.GetRawAxis(0), 2), constants::controller::TranslationDeadZone),
+             ChassisConstants::MaximumAngularVelocity * frc::ApplyDeadband(GetExponentialValue(-m_driveController.GetRawAxis(4), 2), constants::controller::RotateDeadZone) * (m_chassis.GetIsSlowMode() ? 1/2 : 1)
         };
     };
 }

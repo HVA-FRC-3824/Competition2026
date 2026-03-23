@@ -5,9 +5,15 @@
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "Far to Field"
+            "name": "SUFH"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot All"
           }
         }
       ]

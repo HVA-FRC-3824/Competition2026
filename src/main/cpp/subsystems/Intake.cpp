@@ -16,8 +16,8 @@ Intake::Intake()
                          0.0,              // S
                          0.0,              // V
                          0.0,              // A
-                         0_tps,            // Velocity limit
-                         0_tr_per_s_sq);   // Acceleration limit
+                         60_tps,            // Velocity limit
+                         60_tr_per_s_sq);   // Acceleration limit
 
     TalonFXConfiguration(&m_intakePositionMotor,
                          20.0_A,           // Maximum Amperage
@@ -44,10 +44,6 @@ Intake::Intake()
 /// @param state Inactive or Active
 void Intake::SetState(IntakeState newState)
 {
-    // Do nothing if the state is the same as the current state
-    if (newState == m_intakeState)
-        return;
-
     // Remember the new state
     m_intakeState = newState;
     Log("Intake", std::string_view{"Setting intake state to " + std::to_string(static_cast<int>(newState))});
@@ -87,12 +83,18 @@ void Intake::SetState(IntakeState newState)
             position = IntakeConstants::IntakeDeployedAngle;
             break;
         }
+
+        case IntakeState::Backward:
+        {
+            roller = -IntakeConstants::IntakeDriveSpeed;
+            break;
+        }
     }
     
     Log("Intake", std::string_view{"Setting intake position to " + std::to_string(position.value()) + " turns and roller turns per second to " + std::to_string(roller.value()) + " turns per second"});
 
     // Set the motor controls
     m_intakePositionMotor.SetControl(ctre::phoenix6::controls::MotionMagicVoltage{position * IntakeConstants::IntakePositionGearReduction});
-    m_fuelIntakeMotor.SetControl(ctre::phoenix6::controls::VelocityVoltage{roller * IntakeConstants::IntakeRollerGearReduction});
+    m_fuelIntakeMotor.SetControl(ctre::phoenix6::controls::MotionMagicVelocityVoltage{roller});
 }
 #pragma endregion

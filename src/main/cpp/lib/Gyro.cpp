@@ -42,7 +42,7 @@ frc::Rotation2d Gyro::GetPoseHeading()
 void Gyro::DriverReset()
 {
     frc::Rotation2d currentHeading = GetRawHeading();
-    m_driverOffset = currentHeading;
+    m_driverOffset = currentHeading.Degrees() + 180_deg;
 }
 #pragma endregion
 

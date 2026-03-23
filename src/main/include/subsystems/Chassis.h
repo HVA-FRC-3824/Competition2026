@@ -45,8 +45,8 @@ namespace ChassisConstants
     constexpr units::degree_t BackLeftForwardAngle  { -0.361328 * 360.0 };
     constexpr units::degree_t BackRightForwardAngle { -0.276855 * 360.0 };
 
-    constexpr auto MaximumSpeed = 9_fps;
-    constexpr auto MaximumAngularVelocity = 1_rad_per_s * (std::numbers::pi / 2);
+    constexpr auto MaximumSpeed = 10_fps;
+    constexpr auto MaximumAngularVelocity = 1_rad_per_s * (std::numbers::pi);
 
     constexpr units::inch_t WheelBase {30.0};
     constexpr units::inch_t TrackWidth{24.0};
@@ -129,6 +129,8 @@ class Chassis : public frc2::SubsystemBase
         frc::ChassisSpeeds                       GetSpeeds();
 
         void                                     Periodic() override;
+
+        bool                                     GetIsSlowMode() { return m_isSlowMode; }
     
     private:
         

@@ -83,7 +83,7 @@ void Robot::TeleopInit()
 /// @brief Method is called periodically when the robot is in tleloperated mode.
 void Robot::TeleopPeriodic()
 {
-    m_robotContainer->PollControllerInputs();
+    // m_robotContainer->PollControllerInputs();
 }
 #pragma endregion
 
@@ -91,7 +91,7 @@ void Robot::TeleopPeriodic()
 /// @brief Method is called once each time the robot enters Disabled mode.
 void Robot::DisabledInit()
 {
-
+    frc2::CommandScheduler::GetInstance().CancelAll();
 }
 #pragma endregion
 
@@ -99,12 +99,6 @@ void Robot::DisabledInit()
 /// @brief Method is called periodically when the robot is disabled.
 void Robot::DisabledPeriodic()
 {
-    if (!m_initDone)
-    {
-        // Reset the robot gyro
-        (m_robotContainer = RobotContainer::GetInstance())->ResetGyroAngle();
-        m_initDone = true;
-    }
 }
 #pragma endregion
 

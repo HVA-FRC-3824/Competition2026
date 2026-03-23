@@ -5,12 +5,6 @@
     "data": {
       "commands": [
         {
-          "type": "named",
-          "data": {
-            "name": "Deploy Intake"
-          }
-        },
-        {
           "type": "path",
           "data": {
             "pathName": "Middle To Field"
@@ -20,24 +14,6 @@
           "type": "path",
           "data": {
             "pathName": "Middle Field Pickup"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "SUFH"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Mid Field to Zone"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot All"
           }
         }
       ]

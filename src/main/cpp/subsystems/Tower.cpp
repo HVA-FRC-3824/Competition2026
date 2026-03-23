@@ -12,9 +12,9 @@ Tower::Tower(std::function<frc::Pose2d()> chassisPoseSupplier, std::function<frc
     TalonFXConfiguration(&m_turretMotor,
                          40_A,  // Current limit
                          true,  // Inverted
-                         false, // Brake mode
+                         true, // Brake mode
                          false, // Continuous wrap
-                         1.0,  // P gain
+                         1.1,  // P gain
                          0.35,  // I gain
                          0.05,  // D gain
                          0.0,   // S (static friction feedforward)
@@ -211,55 +211,66 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d targetFi
     auto distance = futureTurretToTarget.Norm();
     Log("Measured Distance", distance.value());
 
-    // Handle single or empty vector
-    if (TowerConstants::knownDataPoints.empty()) 
-    {
-        return m_state;
-    }
-    else if (TowerConstants::knownDataPoints.size() == 1) 
-    {
-        const auto &[dist, flywheel, hood] = TowerConstants::knownDataPoints[0];
+    // // Handle single or empty vector
+    // if (TowerConstants::knownDataPoints.empty()) 
+    // {
+    //     return m_state;
+    // }
+    // else if (TowerConstants::knownDataPoints.size() == 1) 
+    // {
+    //     const auto &[dist, flywheel, hood] = TowerConstants::knownDataPoints[0];
         
-        m_state.flywheelSpeed        = flywheel;
-        m_state.hoodActuatorDistance = hood;
-    }
+    //     m_state.flywheelSpeed        = flywheel;
+    //     m_state.hoodActuatorDistance = hood;
+    // }
 
     // Handle edge cases (distance below minimum or above maximum)
-    else if (distance <= std::get<0>(TowerConstants::knownDataPoints.front())) 
+    // if (distance <= std::get<0>(TowerConstants::knownDataPoints.front())) 
+    // {
+    //     const auto& [dist, flywheel, hood] = TowerConstants::knownDataPoints.front();
+    //     m_state.flywheelSpeed = flywheel;
+    //     m_state.hoodActuatorDistance = hood;
+    // } 
+    // else if (distance >= std::get<0>(TowerConstants::knownDataPoints.back())) 
+    // {
+    //     const auto& [dist, flywheel, hood] = TowerConstants::knownDataPoints.back();
+    //     m_state.flywheelSpeed = flywheel;
+    //     m_state.hoodActuatorDistance = hood;
+    // }
+
+    // // Linearly deduce partial data of a third point by the full data of two adjacent points
+    // else
+    // {
+    //     for (int i = 0; i < TowerConstants::knownDataPoints.size() - 1; i++)
+    //     {
+    //         const auto &[lowerDist, lowerFlywheel, lowerHood]    = TowerConstants::knownDataPoints[i];
+    //         const auto &[higherDist, higherFlywheel, higherHood] = TowerConstants::knownDataPoints[i + 1];
+            
+    //         if (lowerDist <= distance && distance <= higherDist)
+    //         {
+    //             // Calculate interpolation ratio
+    //             auto ratio = (distance - lowerDist) / (higherDist - lowerDist);
+                
+    //             // Linear interpolation
+    //             m_state.flywheelSpeed        = lowerFlywheel + (ratio * (higherFlywheel - lowerFlywheel));
+    //             m_state.hoodActuatorDistance = lowerHood     + (ratio * (higherHood - lowerHood));
+                
+    //             break;
+    //         }
+    //     }
+    // }
+
+    auto inchDist = (1_in * distance).value();
+    newState.flywheelSpeed = 0.00015427742689_tps * std::pow(inchDist, 2) + 0.133316089708683_tps * std::pow(inchDist, 1) + 38.042989486793_tps;
+    
+    newState.hoodActuatorDistance = 0;
+
+    if (newState.mode == TowerMode::PassingToAdjacentZone)
     {
-        const auto& [dist, flywheel, hood] = TowerConstants::knownDataPoints.front();
-        m_state.flywheelSpeed = flywheel;
-        m_state.hoodActuatorDistance = hood;
-    } 
-    else if (distance >= std::get<0>(TowerConstants::knownDataPoints.back())) 
-    {
-        const auto& [dist, flywheel, hood] = TowerConstants::knownDataPoints.back();
-        m_state.flywheelSpeed = flywheel;
-        m_state.hoodActuatorDistance = hood;
+        newState.hoodActuatorDistance = 0.5;
+        newState.flywheelSpeed        = 80_tps;
     }
 
-    // Linearly deduce partial data of a third point by the full data of two adjacent points
-    else
-    {
-        for (int i = 0; i < TowerConstants::knownDataPoints.size() - 1; i++)
-        {
-            const auto &[lowerDist, lowerFlywheel, lowerHood]    = TowerConstants::knownDataPoints[i];
-            const auto &[higherDist, higherFlywheel, higherHood] = TowerConstants::knownDataPoints[i + 1];
-            
-            if (lowerDist <= distance && distance <= higherDist)
-            {
-                // Calculate interpolation ratio
-                auto ratio = (distance - lowerDist) / (higherDist - lowerDist);
-                
-                // Linear interpolation
-                m_state.flywheelSpeed        = lowerFlywheel + (ratio * (higherFlywheel - lowerFlywheel));
-                m_state.hoodActuatorDistance = lowerHood     + (ratio * (higherHood - lowerHood));
-                
-                break;
-            }
-        }
-    }
-    
     // Return the new calculated state
     return newState;
 }
@@ -328,7 +339,7 @@ TowerState Tower::CalculateShot(TowerMode towerMode, frc::Translation2d targetFi
 ///
 void Tower::Periodic()
 {
-    Log("Turret Mode", m_state.mode);
+    Log("Turret Mode", int(m_state.mode));
 
     // Update the chassis current pose and speed
     auto chassisPose  = m_chassisPoseSupplier();

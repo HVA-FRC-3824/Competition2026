@@ -15,10 +15,12 @@
 #pragma endregion
 
 #pragma region SpindexerState
-enum SpindexerState
+enum class SpindexerState
 {
     Stopped,
-    Spindexing
+    Spindexing,
+
+    Backwards
 };
 #pragma endregion
 

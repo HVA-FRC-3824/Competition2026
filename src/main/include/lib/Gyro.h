@@ -25,6 +25,6 @@ class Gyro
         studica::AHRS   m_gyro   {studica::AHRS::NavXComType::kMXP_SPI};
         units::degree_t m_simGyro{0_deg};
 
-        frc::Rotation2d m_driverOffset{0_deg};
+        frc::Rotation2d m_driverOffset{180_deg};
         frc::Rotation2d m_poseOffset  {0_deg};
 };

@@ -14,12 +14,13 @@
 #pragma endregion
 
 #pragma region IntakeEnums
-enum IntakeState
+enum class IntakeState
 {
     StowedOn,
     DeployedRollerOn,
     Stowed,
-    DeployedRollerOff
+    DeployedRollerOff,
+    Backward,
 };
 #pragma endregion
 
@@ -27,11 +28,12 @@ enum IntakeState
 namespace IntakeConstants
 {
     // TODO: test these
+
     constexpr auto IntakeStowedAngle   = 0.0_tr;
     constexpr auto IntakeDeployedAngle = 0.25_tr;
     constexpr auto IntakeStartingAngle = -21_deg; // This is about the initial offset of the intake at the start
 
-    constexpr auto IntakeDriveSpeed    = 10_tps;
+    constexpr auto IntakeDriveSpeed    = 60_tps;
 
     constexpr auto IntakePositionGearReduction = 25.0;
     constexpr auto IntakeRollerGearReduction   = 10.0;

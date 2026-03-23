@@ -80,7 +80,7 @@ namespace LedConstants
 #pragma endregion
 
 /// @brief modes for the LED string.
-enum LedMode
+enum class LedMode
 {
     Off,
     SolidGreen,
