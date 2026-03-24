@@ -9,7 +9,7 @@ public class RobotState {
         Automatic
     }
 
-    public enum SpindexerState
+    public enum IndexerState
     {
         Stopped,
         Spindexing,
@@ -27,15 +27,14 @@ public class RobotState {
         MatchMode
     }
 
-    enum IntakePosState
+    public enum IntakePosState
     {
         Stowed,
         Deployed,
-        Backwards,
         StartingPos
     }
 
-    enum IntakeRollerState
+    public enum IntakeRollerState
     {
         Intaking,
         Off,
@@ -43,7 +42,7 @@ public class RobotState {
     }
 
     public TowerState        m_towerState;
-    public SpindexerState    m_spindexerState;
+    public IndexerState    m_indexerState;
     public LedState          m_ledState;
     public IntakePosState    m_intakePosState;
     public IntakeRollerState m_intakeRollerState;
@@ -51,7 +50,7 @@ public class RobotState {
     public RobotState()
     {
         m_towerState = TowerState.Idle;
-        m_spindexerState = SpindexerState.Stopped;
+        m_indexerState = IndexerState.Stopped;
         m_ledState = LedState.MatchMode;
         m_intakePosState = IntakePosState.StartingPos;
         m_intakeRollerState = IntakeRollerState.Off;

@@ -2,13 +2,19 @@ package frc3824.subsystems;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import org.photonvision.EstimatedRobotPose;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
-import com.ctre.phoenix6.swerve.SwerveModule;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -20,10 +26,13 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc3824.Constants;
+
 import frc3824.Constants.ChassisConstants;
 import frc3824.subsystems.Vision;
+import frc3824.Constants;
+import frc3824.lib.SwerveModule;
 
 /// @brief Chassis subsystem for swerve drive control
 ///
@@ -51,7 +60,14 @@ public class Chassis extends SubsystemBase
         public Chassis()
         {
             // TODO: When the robot CAD is done, update the pathplanner robot settings
-            RobotConfig config = RobotConfig.fromGUISettings();
+            RobotConfig config;
+            try {
+                config = RobotConfig.fromGUISettings();
+            } catch (Exception e) {
+                // TODO make real
+                e.printStackTrace();
+                return;
+            }
 
             // Configure the AutoBuilder
             AutoBuilder.configure(
@@ -81,7 +97,7 @@ public class Chassis extends SubsystemBase
 
         public void  Drive(ChassisSpeeds speeds)
         {
-
+            DriveRelative(DriverStation.isTeleop() ? ChassisSpeeds.fromFieldRelativeSpeeds(speeds, GetHeading()) : speeds);
         }
 
         public void  DriveRelative(ChassisSpeeds speeds)
@@ -109,10 +125,10 @@ public class Chassis extends SubsystemBase
         public void SetModuleStates(SwerveModuleState[] states)
         {
             // Set the desired state for each swerve module
-            m_swerveModules[0].SetDesiredState(states[0], "Front Left " );
-            m_swerveModules[1].SetDesiredState(states[1], "Front Right ");
-            m_swerveModules[2].SetDesiredState(states[2], "Rear Left "  );
-            m_swerveModules[3].SetDesiredState(states[3], "Rear Right " );
+            m_swerveModules[0].setDesiredState(states[0], "Front Left " );
+            m_swerveModules[1].setDesiredState(states[1], "Front Right ");
+            m_swerveModules[2].setDesiredState(states[2], "Rear Left "  );
+            m_swerveModules[3].setDesiredState(states[3], "Rear Right " );
         }
 
         public void  ResetGyroAngle()
@@ -125,10 +141,10 @@ public class Chassis extends SubsystemBase
         public void  ResetWheelAnglesToZero()
         {
                 // Set the swerve wheel angles to zero
-                m_swerveModules[0].SetWheelAngleToForward(ChassisConstants::FrontLeftForwardAngle);
-                m_swerveModules[1].SetWheelAngleToForward(ChassisConstants::FrontRightForwardAngle);
-                m_swerveModules[2].SetWheelAngleToForward(ChassisConstants::BackLeftForwardAngle);
-                m_swerveModules[3].SetWheelAngleToForward(ChassisConstants::BackRightForwardAngle);
+                m_swerveModules[0].setWheelAngleToForward(ChassisConstants.FrontRightForwardDegrees);
+                m_swerveModules[1].setWheelAngleToForward(ChassisConstants.FrontRightForwardDegrees);
+                m_swerveModules[2].setWheelAngleToForward(ChassisConstants.FrontRightForwardDegrees);
+                m_swerveModules[3].setWheelAngleToForward(ChassisConstants.FrontRightForwardDegrees);
         }
 
         public void ResetPose(Pose2d pose)
@@ -138,22 +154,26 @@ public class Chassis extends SubsystemBase
 
         SwerveModuleState[] GetModuleStates()
         {
-            return (SwerveModuleState[]) {
-                m_swerveModules[0].GetState(),
-                m_swerveModules[1].GetState(),
-                m_swerveModules[2].GetState(),
-                m_swerveModules[3].GetState()
+            SwerveModuleState[] states = {
+                m_swerveModules[0].getState(),
+                m_swerveModules[1].getState(),
+                m_swerveModules[2].getState(),
+                m_swerveModules[3].getState()
             };
+
+            return states;
         }
 
         SwerveModulePosition[] GetModulePositions()
         {
-            return (SwerveModulePosition[]) {
-                m_swerveModules[0].GetPosition(),
-                m_swerveModules[1].GetPosition(),
-                m_swerveModules[2].GetPosition(),
-                m_swerveModules[3].GetPosition()
+            SwerveModulePosition[] positions = {
+                m_swerveModules[0].getPosition(),
+                m_swerveModules[1].getPosition(),
+                m_swerveModules[2].getPosition(),
+                m_swerveModules[3].getPosition()
             };
+
+            return positions;
         }
     
         public void ToggleFieldCentric()
@@ -173,23 +193,39 @@ public class Chassis extends SubsystemBase
         
         public Rotation2d GetHeading()
         {
-            return new Rotation2d();
+            return m_gyro.getRotation2d();
         }
 
         public Pose2d GetPose()
         {
-            return new Pose2d();
+            return m_poseEstimator.getEstimatedPosition();
         }
 
         public ChassisSpeeds GetSpeeds()
         {
-            return new ChassisSpeeds();
+            return ChassisConstants.kinematics.toChassisSpeeds(GetModuleStates());
         }
 
         @Override
         public void periodic()
         {
+            m_poseEstimator.update(GetHeading(), GetModulePositions());
 
+            if (Vision.getm_result1() != null)
+            {
+                Optional<EstimatedRobotPose> visionBotPose1 = Vision.getEstimatedGlobalPoseCam1(Vision.getm_result1(), GetPose());
+                if (visionBotPose1.isPresent()){
+                    m_poseEstimator.addVisionMeasurement(visionBotPose1.get().estimatedPose.toPose2d(), Timer.getMatchTime(), Vision.updateEstimationStdDevs(visionBotPose1, visionBotPose1.get().targetsUsed));
+                }
+            }
+            if (Vision.getm_result2() != null)
+            {
+                Optional<EstimatedRobotPose> visionBotPose2 = Vision.getEstimatedGlobalPoseCam2(GetPose(), Vision.getm_result2());
+                if (visionBotPose2.isPresent())
+                {
+                    m_poseEstimator.addVisionMeasurement(visionBotPose2.get().estimatedPose.toPose2d(), Timer.getTimestamp(), Vision.updateEstimationStdDevs(visionBotPose2, visionBotPose2.get().targetsUsed));
+                }
+            } 
         }
 
         public boolean GetIsSlowMode() { return m_isSlowMode; }
@@ -205,10 +241,10 @@ public class Chassis extends SubsystemBase
         //   RL +----------+ RR              |
         
         SwerveModule[] m_swerveModules = {
-            new SwerveModule{Constants.ConstantsCanIds.FrontLeftDriveId,  Constants.ConstantsCanIds.FrontLeftTurnId,  Constants.ConstantsCanIds.FrontLeftEncoderId},
-            new SwerveModule{Constants.ConstantsCanIds.FrontRightDriveId, Constants.ConstantsCanIds.FrontRightTurnId, Constants.ConstantsCanIds.FrontRightEncoderId},
-            new SwerveModule{Constants.ConstantsCanIds.BackLeftDriveId,   Constants.ConstantsCanIds.BackLeftTurnId,   Constants.ConstantsCanIds.BackLeftEncoderId},
-            new SwerveModule{Constants.ConstantsCanIds.BackRightDriveId,  Constants.ConstantsCanIds.BackRightTurnId,  Constants.ConstantsCanIds.BackRightEncoderId} 
+            new SwerveModule(Constants.ConstantsCanIds.FrontLeftDriveId,  Constants.ConstantsCanIds.FrontLeftTurnId,  Constants.ConstantsCanIds.FrontLeftEncoderId),
+            new SwerveModule(Constants.ConstantsCanIds.FrontRightDriveId, Constants.ConstantsCanIds.FrontRightTurnId, Constants.ConstantsCanIds.FrontRightEncoderId),
+            new SwerveModule(Constants.ConstantsCanIds.BackLeftDriveId,   Constants.ConstantsCanIds.BackLeftTurnId,   Constants.ConstantsCanIds.BackLeftEncoderId),
+            new SwerveModule(Constants.ConstantsCanIds.BackRightDriveId,  Constants.ConstantsCanIds.BackRightTurnId,  Constants.ConstantsCanIds.BackRightEncoderId) 
         };
         
         private SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(

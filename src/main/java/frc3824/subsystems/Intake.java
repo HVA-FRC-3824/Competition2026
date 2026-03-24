@@ -11,6 +11,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc3824.Constants;
+import frc3824.lib.TalonFXConfig;
 
 import static edu.wpi.first.units.Units.*;
 
@@ -34,7 +35,7 @@ public class Intake extends SubsystemBase {
         m_intakePositionMotor = new TalonFX(0); // ID 40
 
         
-        configureTalonFX(
+        TalonFXConfig.configure(
             m_fuelIntakeMotor,
             40.0,
             false,
@@ -50,7 +51,7 @@ public class Intake extends SubsystemBase {
             0.0
         );
 
-        configureTalonFX(
+        TalonFXConfig.configure(
             m_intakePositionMotor,
             20.0,
             true,
@@ -69,44 +70,6 @@ public class Intake extends SubsystemBase {
         m_fuelIntakeMotor.setPosition(0.0);
 
         m_intakePositionMotor.setPosition(Constants.IntakeConstants.IntakeStartingDegrees / 360.0);
-    }
-
-    private void configureTalonFX(
-        TalonFX motor,
-        double maxAmperage,
-        boolean inverted,
-        boolean brakeMode,
-        boolean continuousWrap,
-        double kP, double kI, double kD,
-        double kS, double kV, double kA,
-        double velocityLimit,
-        double accelerationLimit)
-    {
-        TalonFXConfiguration config = new TalonFXConfiguration();
-
-        config.CurrentLimits.StatorCurrentLimit = maxAmperage;
-        config.CurrentLimits.StatorCurrentLimitEnable = true;
-
-        config.MotorOutput.Inverted = inverted
-            ? InvertedValue.Clockwise_Positive
-            : InvertedValue.CounterClockwise_Positive;
-        config.MotorOutput.NeutralMode = brakeMode
-            ? NeutralModeValue.Brake
-            : NeutralModeValue.Coast;
-        
-        config.ClosedLoopGeneral.ContinuousWrap = continuousWrap;
-
-        config.Slot0.kP = kP;
-        config.Slot0.kI = kI;
-        config.Slot0.kD = kD;
-        config.Slot0.kS = kS;
-        config.Slot0.kV = kV;
-        config.Slot0.kA = kA;
-
-        config.MotionMagic.MotionMagicCruiseVelocity = velocityLimit;
-        config.MotionMagic.MotionMagicAcceleration = accelerationLimit;
-
-        motor.getConfigurator().apply(config);
     }
 
     public void setState(IntakeState newState) {
