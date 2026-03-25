@@ -10,6 +10,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -28,8 +29,33 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public final class Constants 
 {
+    public static final class Field
+    {
+        /// *** Field Dimensions *** ///
+        public static final double FieldLengthMeters  = Units.inchesToMeters(652.11); // 16.56 meters
+        public static final double FieldWidthMeters   = Units.inchesToMeters(317.69); //  8.07 meters
+
+        public static final double AllianceWallToAllianceZoneMeters = Units.inchesToMeters(182.11);
+
+        public static final double HubHeightMeters = Units.inchesToMeters(72.0);
+
+        /// *** Field Locations *** ///
+
+        public static final Pose3d BlueHub = new Pose3d(AllianceWallToAllianceZoneMeters,                     FieldWidthMeters / 2, HubHeightMeters, new Rotation3d());
+        public static final Pose3d RedHub  = new Pose3d(FieldLengthMeters - AllianceWallToAllianceZoneMeters, FieldWidthMeters / 2, HubHeightMeters, new Rotation3d());
+
+        // For passing we want to aim towards the inside of our alliance zone or towards the neutral zone whichever is closer
+        // Either way we want the balls to be going as close to our alliance zone as possible, so aim for that
+        // - "Aim for the stars and maybe you'll reach the neutral zone" or something like that...
+
+        public static final Pose2d BlueAllianceZoneClose = new Pose2d(AllianceWallToAllianceZoneMeters, FieldWidthMeters / 4, new Rotation2d());
+        public static final Pose2d BlueAllianceZoneFar   = new Pose2d(AllianceWallToAllianceZoneMeters, FieldWidthMeters - (FieldWidthMeters / 4), new Rotation2d());
+
+        public static final Pose2d RedAllianceZoneClose = new Pose2d(FieldLengthMeters - AllianceWallToAllianceZoneMeters, FieldWidthMeters / 4, new Rotation2d());
+        public static final Pose2d RedAllianceZoneFar   = new Pose2d(FieldLengthMeters - AllianceWallToAllianceZoneMeters, FieldWidthMeters - (FieldWidthMeters / 4), new Rotation2d());
+    }
     
-    public static final class VisionConstants
+    public static final class Vision
     {
         public static final String kCameraName1 = "LeftCam";
         public static final String kCameraName2 = "RightCam";
@@ -49,7 +75,7 @@ public final class Constants
         public static final Matrix<N3, N1> kMultiTagStdDevs  = VecBuilder.fill(0.05, 0.05, 0.1);
     }
 
-    public static final class IntakeConstants
+    public static final class Intake
     {
         public static final double IntakeStowedDegrees    = 0.0;
         public static final double IntakeDeployedDegrees  = 90;
@@ -61,13 +87,20 @@ public final class Constants
         public static final double IntakeRollerGearReduction   = 10.0;
     }
 
-    public static final class SpindexerConstants
+    public static final class Indexer
     {
-        public static final double SpinnerWheelTurnsPerSec = 130;
+        public static final double BeltTurnsPerSec = 130;
         public static final double KickerWheelTurnsPerSec  = 120;
     }
 
-    public static final class ChassisConstants
+    public static final class Tower
+    {
+        public static final double CloseSpeed  = 21.0;
+        public static final double MiddleSpeed = 25.0;
+        public static final double LongSpeed   = 31.0;
+    }
+
+    public static final class Chassis
     {
         // NOTE: The absolute encoder range is 0.5 to -0.5
         // These are the absolute encoder values that correspond to the wheels facing "forward"
@@ -96,19 +129,43 @@ public final class Constants
         };
 
         public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
-            new Translation2d( Constants.ChassisConstants.WheelBaseMeters / 2,  Constants.ChassisConstants.TrackWidthMeters / 2), // Front Left
-            new Translation2d( Constants.ChassisConstants.WheelBaseMeters / 2, -Constants.ChassisConstants.TrackWidthMeters / 2), // Front Right
-            new Translation2d(-Constants.ChassisConstants.WheelBaseMeters / 2,  Constants.ChassisConstants.TrackWidthMeters / 2), // Back Left
-            new Translation2d(-Constants.ChassisConstants.WheelBaseMeters / 2, -Constants.ChassisConstants.TrackWidthMeters / 2)  // Back Right
+            new Translation2d( Constants.Chassis.WheelBaseMeters / 2,  Constants.Chassis.TrackWidthMeters / 2), // Front Left
+            new Translation2d( Constants.Chassis.WheelBaseMeters / 2, -Constants.Chassis.TrackWidthMeters / 2), // Front Right
+            new Translation2d(-Constants.Chassis.WheelBaseMeters / 2,  Constants.Chassis.TrackWidthMeters / 2), // Back Left
+            new Translation2d(-Constants.Chassis.WheelBaseMeters / 2, -Constants.Chassis.TrackWidthMeters / 2)  // Back Right
         );
 
-        public static final PathConstraints constraints = new PathConstraints(Constants.ChassisConstants.MaximumSpeedMetersPerSec, 
-                                                                              Constants.ChassisConstants.MaximumSpeedMetersPerSec, 
-                                                                              Constants.ChassisConstants.MaximumAngularVelocity, 
-                                                                              Constants.ChassisConstants.MaximumAngularVelocity);
+        public static final PathConstraints constraints = new PathConstraints(Constants.Chassis.MaximumSpeedMetersPerSec, 
+                                                                              Constants.Chassis.MaximumSpeedMetersPerSec, 
+                                                                              Constants.Chassis.MaximumAngularVelocity, 
+                                                                              Constants.Chassis.MaximumAngularVelocity);
     }
 
-    public static final class ConstantsCanIds
+    public static final class Controller
+    {
+                // Buttons
+        public static final int A                   =   1;
+        public static final int B                   =   2;
+        public static final int X                   =   3;
+        public static final int Y                   =   4;
+        public static final int LeftBumper          =   5;
+        public static final int RightBumper         =   6;
+        public static final int Back                =   7;
+        public static final int Start               =   8;
+        public static final int LeftStickButton     =   9;
+        public static final int RightStickButton    =  10;
+
+        public static final int Pov_0               =   0;
+        public static final int Pov_45              =  45;
+        public static final int Pov_90              =  90;
+        public static final int Pov_135             = 135;
+        public static final int Pov_180             = 180;
+        public static final int Pov_225             = 225;
+        public static final int Pov_270             = 270;
+        public static final int Pov_315             = 315;
+    }
+
+    public static final class CanIds
     {
         public static final int FrontLeftDriveId        = 01; // Kraken X60
         public static final int FrontLeftTurnId         = 02; // Kraken X44
@@ -126,20 +183,21 @@ public final class Constants
         public static final int BackRightTurnId         = 32; // Kraken X44
         public static final int BackRightEncoderId      = 33; // CANCoder
 
-        public static final int IntakePositionMotorId   = 40; // Kraken X60
-        public static final int FuelIntakeMotorId       = 41; // Kraken X60
+        public static final int IntakePositionFollowerMotorId = 42; // Kraken X44
+        public static final int IntakePositionLeaderMotorId   = 41; // Kraken X44
+        public static final int FuelIntakeMotorId       = 40; // Kraken X60
 
-        public static final int SpinnerMotorId          = 50; // Kraken X60
+        public static final int BeltsMotorId            = 50; // Kraken X60
         public static final int KickerMotorId           = 51; // Kraken X44
         public static final int KickerFollowerMotorId   = 52; // Kraken X44
-        public static final int TurretMotorId           = 53; // Kraken X44
-        public static final int FlywheelMotorId         = 54; // Kraken X60
-        public static final int FlywheelFollowerMotorId = 55; // Kraken X60
+
+        public static final int FlywheelMotorId         = 53; // Kraken X60
+        public static final int FlywheelFollowerMotorId = 54; // Kraken X60
 
         public static final int ClimbMotorId            = 60; // Kraken X60
     }
 
-    public static final class ConstantsPwmPorts
+    public static final class Pwm
     {
         // PWM Ports
         public static final int ActuatorPort     = 1;
@@ -148,7 +206,7 @@ public final class Constants
         public static final int LedTurretPort    = 7;
     }
 
-    public static final class ConstantsUsbPort
+    public static final class Usb
     {
         
         // Drive Input Configurations

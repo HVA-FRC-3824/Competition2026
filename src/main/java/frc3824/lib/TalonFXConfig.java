@@ -12,8 +12,12 @@ public class TalonFXConfig {
         boolean inverted,
         boolean brakeMode,
         boolean continuousWrap,
-        double kP, double kI, double kD,
-        double kS, double kV, double kA,
+        double kP,
+        double kI, 
+        double kD,
+        double kS,
+        double kV,
+        double kA,
         double velocityLimit,
         double accelerationLimit)
     {

@@ -1,7 +1,6 @@
 package frc3824.subsystems;
 // Graciously professionally stolen from 3966
 
-import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -16,7 +15,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc3824.Constants.VisionConstants;
+import frc3824.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,16 +23,16 @@ import java.util.Optional;
 
 
 public class Vision extends SubsystemBase {
-    private static final PhotonCamera m_camera1 = new PhotonCamera(VisionConstants.kCameraName1);
-    private static final PhotonCamera m_camera2 = new PhotonCamera(VisionConstants.kCameraName2);
+    private static final PhotonCamera m_camera1 = new PhotonCamera(Constants.Vision.kCameraName1);
+    private static final PhotonCamera m_camera2 = new PhotonCamera(Constants.Vision.kCameraName2);
 
     private static PhotonPipelineResult m_result1 = null;
     private static PhotonPipelineResult m_result2 = null;
 
     private static final PhotonPoseEstimator m_poseEstimator1 = new PhotonPoseEstimator(
-        VisionConstants.kTagLayout, VisionConstants.RobotToCam1);
+        Constants.Vision.kTagLayout, Constants.Vision.RobotToCam1);
     private static final PhotonPoseEstimator m_poseEstimator2 = new PhotonPoseEstimator(
-        VisionConstants.kTagLayout, VisionConstants.kRobotToCam2);
+        Constants.Vision.kTagLayout, Constants.Vision.kRobotToCam2);
 
     @Override
     public void periodic() {
@@ -47,19 +46,19 @@ public class Vision extends SubsystemBase {
         }
     }
 
-    public static PhotonPipelineResult getm_result1() {
+    public static PhotonPipelineResult getResult1() {
         return m_result1;
     }
 
-    public static PhotonPipelineResult getm_result2() {
+    public static PhotonPipelineResult getResult2() {
         return m_result2;
     }
 
-    public static PhotonCamera getm_camera1() {
+    public static PhotonCamera getCamera1() {
         return m_camera1;
     }
 
-    public static PhotonCamera getm_camera2() {
+    public static PhotonCamera getCamera2() {
         return m_camera2;
     }
     
@@ -104,10 +103,8 @@ public class Vision extends SubsystemBase {
 
         Pose3d[] usedTags = new Pose3d[result.targets.size()];
         for (int i = 0; i < result.targets.size(); i++){
-          usedTags[i] = (VisionConstants.kTagLayout.getTagPose(result.targets.get(i).fiducialId).get());
+          usedTags[i] = (Constants.Vision.kTagLayout.getTagPose(result.targets.get(i).fiducialId).get());
         }
-
-        Logger.recordOutput("PoseEst/Camera 1 Tags Used", usedTags);
 
         Optional<EstimatedRobotPose> update = m_poseEstimator1.estimateClosestToReferencePose(result, new Pose3d(referencePose));
             
@@ -117,19 +114,19 @@ public class Vision extends SubsystemBase {
 
     public static Matrix<N3, N1> updateEstimationStdDevs(Optional<EstimatedRobotPose> estimatedPose, List<PhotonTrackedTarget> targets) {
 
-        Matrix<N3, N1> curStdDevs = VisionConstants.kSingleTagStdDevs;
+        Matrix<N3, N1> curStdDevs = Constants.Vision.kSingleTagStdDevs;
         if (estimatedPose.isEmpty()) {
             // No pose input. Default to single-tag std devs
-            curStdDevs = VisionConstants.kSingleTagStdDevs;
+            curStdDevs = Constants.Vision.kSingleTagStdDevs;
         } else {
             // Pose present. Start running Heuristic
-            var estStdDevs = VisionConstants.kSingleTagStdDevs;
+            var estStdDevs = Constants.Vision.kSingleTagStdDevs;
             int numTags = 0;
             double avgDist = 0;
 
             // Precalculation - see how many tags we found, and calculate an average-distance metric
             for (var tgt : targets) {
-                var tagPose = VisionConstants.kTagLayout.getTagPose(tgt.getFiducialId());
+                var tagPose = Constants.Vision.kTagLayout.getTagPose(tgt.getFiducialId());
                 if (tagPose.isEmpty()) continue;
                 numTags++;
                 avgDist +=
@@ -147,7 +144,7 @@ public class Vision extends SubsystemBase {
                 // One or more tags visible, run the full heuristic.
                 avgDist /= numTags;
                 // Decrease std devs if multiple targets are visible
-                if (numTags > 1) estStdDevs = VisionConstants.kMultiTagStdDevs;
+                if (numTags > 1) estStdDevs = Constants.Vision.kMultiTagStdDevs;
                 // Increase std devs based on (average) distance
                 if (numTags == 1 && avgDist > 2)
                     estStdDevs = VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
@@ -170,12 +167,9 @@ public class Vision extends SubsystemBase {
 
         Pose3d[] usedTags = new Pose3d[result.targets.size()];
         for (int i = 0; i < result.targets.size(); i++){
-          usedTags[i] = (VisionConstants.kTagLayout.getTagPose(result.targets.get(i).fiducialId).get());
+          usedTags[i] = (Constants.Vision.kTagLayout.getTagPose(result.targets.get(i).fiducialId).get());
         }
 
-        Logger.recordOutput("PoseEst/Camera 2 Tags Used", usedTags);
-
-        
         update = m_poseEstimator2.estimateClosestToCameraHeightPose(result);
         
         return update;

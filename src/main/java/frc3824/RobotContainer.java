@@ -5,17 +5,24 @@ package frc3824;
 
 
 
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
 public class RobotContainer {
-  public RobotContainer() {
+
+  
+  private final XboxController m_driver   = new XboxController(0);
+  private final XboxController m_operator = new XboxController(1);
+
+  public RobotContainer() 
+  {
     configureBindings();
   }
 
   private void configureBindings() 
   {
-    sda dsa
+    
   }
 
   public Command getAutonomousCommand() {
