@@ -95,9 +95,11 @@ public final class Constants
 
     public static final class Tower
     {
-        public static final double CloseSpeed  = 21.0;
-        public static final double MiddleSpeed = 25.0;
-        public static final double LongSpeed   = 31.0;
+        public static final double CloseSpeed      = 21.0;
+        public static final double MiddleSpeed     = 25.0;
+        public static final double LongSpeed       = 31.0;
+
+        public static final double SpunUpTolerance = 2.0;
     }
 
     public static final class Chassis

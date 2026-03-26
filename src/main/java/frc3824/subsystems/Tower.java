@@ -1,5 +1,7 @@
 package frc3824.subsystems;
 
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -51,5 +53,12 @@ public class Tower extends SubsystemBase
         {
            m_leaderFlywheel.setControl(new VelocityVoltage(speed));
         }
+    }
+
+    public boolean isSpunUp()
+    {
+        return m_leaderFlywheel.getVelocity().isNear(
+            m_leaderFlywheel.getClosedLoopReference().getValue(), 
+            Constants.Tower.SpunUpTolerance);
     }
 }

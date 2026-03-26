@@ -213,7 +213,9 @@ public class Chassis extends SubsystemBase
             } 
         }
 
-        public boolean GetIsSlowMode() { return m_isSlowMode; }
+        public boolean GetIsSlowMode()      { return m_isSlowMode; }
+        public boolean GetIsXMode()         { return m_isXMode; }
+        public boolean GetIsFieldRelative() { return m_isFieldRelative; }
     
         // Swerve module order for kinematics calculations
         //

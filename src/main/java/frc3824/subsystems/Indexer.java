@@ -10,9 +10,11 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc3824.Constants.CanIds;
 import frc3824.lib.TalonFXConfig;
 
-public class Indexer extends SubsystemBase{
+public class Indexer extends SubsystemBase
+{
 
-    public enum SpindexerState {
+    public enum SpindexerState 
+    {
         Stopped,
         Spindexing,
         Backwards
