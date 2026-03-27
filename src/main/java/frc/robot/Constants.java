@@ -1,4 +1,5 @@
-package frc3824;
+package frc.robot;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -187,16 +188,15 @@ public final class Constants
 
         public static final int IntakePositionFollowerMotorId = 42; // Kraken X44
         public static final int IntakePositionLeaderMotorId   = 41; // Kraken X44
-        public static final int FuelIntakeMotorId       = 40; // Kraken X60
+        public static final int FuelIntakeMotorId             = 40; // Kraken X60
 
         public static final int BeltsMotorId            = 50; // Kraken X60
         public static final int KickerMotorId           = 51; // Kraken X44
-        public static final int KickerFollowerMotorId   = 52; // Kraken X44
 
-        public static final int FlywheelMotorId         = 53; // Kraken X60
-        public static final int FlywheelFollowerMotorId = 54; // Kraken X60
+        public static final int FlywheelMotorId         = 52; // Kraken X60
+        public static final int FlywheelFollowerMotorId = 53; // Kraken X60
 
-        public static final int ClimbMotorId            = 60; // Kraken X60
+        public static final int PDHId                   = 60; // PDH
     }
 
     public static final class Pwm

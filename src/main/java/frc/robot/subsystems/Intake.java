@@ -1,4 +1,4 @@
-package frc3824.subsystems;
+package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
@@ -13,8 +13,8 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc3824.Constants;
-import frc3824.lib.TalonFXConfig;
+import frc.robot.Constants;
+import frc.robot.lib.TalonFXConfig;
 
 import static edu.wpi.first.units.Units.*;
 
@@ -33,8 +33,8 @@ public class Intake extends SubsystemBase {
     private final TalonFX m_intakePositionFollowerMotor = new TalonFX(Constants.CanIds.IntakePositionFollowerMotorId);
     private IntakeState m_IntakeState = IntakeState.Stowed;
 
-    public Intake() {
-        
+    public Intake() 
+    {    
         TalonFXConfig.configure(
             m_fuelIntakeMotor,
             40.0,
@@ -57,7 +57,7 @@ public class Intake extends SubsystemBase {
             true,
             false,
             false,
-            0.0,
+            0.2,
             0.0,
             0.0,
             0.0,
@@ -76,7 +76,8 @@ public class Intake extends SubsystemBase {
     }
 
     // pos is in turns
-    public void setPos(double pos) {
+    public void setPos(double pos) 
+    {
         m_intakePositionLeaderMotor.setControl(new MotionMagicVoltage(pos));
     }
 

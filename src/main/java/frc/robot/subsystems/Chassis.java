@@ -1,4 +1,4 @@
-package frc3824.subsystems;
+package frc.robot.subsystems;
 
 import java.util.Optional;
 
@@ -20,9 +20,9 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc3824.subsystems.Vision;
-import frc3824.Constants;
-import frc3824.lib.SwerveModule;
+import frc.robot.subsystems.Vision;
+import frc.robot.Constants;
+import frc.robot.lib.SwerveModule;
 
 /// @brief Chassis subsystem for swerve drive control
 ///
@@ -137,7 +137,7 @@ public class Chassis extends SubsystemBase
             m_poseEstimator.resetPose(pose);
         }
 
-        SwerveModuleState[] GetModuleStates()
+        public SwerveModuleState[] GetModuleStates()
         {
             SwerveModuleState[] states = {
                 m_swerveModules[0].getState(),
@@ -149,7 +149,7 @@ public class Chassis extends SubsystemBase
             return states;
         }
 
-        SwerveModulePosition[] GetModulePositions()
+        public SwerveModulePosition[] GetModulePositions()
         {
             SwerveModulePosition[] positions = {
                 m_swerveModules[0].getPosition(),

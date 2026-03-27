@@ -1,4 +1,4 @@
-package frc3824.subsystems;
+package frc.robot.subsystems;
 
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -7,12 +7,11 @@ import com.ctre.phoenix6.controls.StrictFollower;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc3824.Constants.CanIds;
-import frc3824.lib.TalonFXConfig;
+import frc.robot.Constants.CanIds;
+import frc.robot.lib.TalonFXConfig;
 
 public class Indexer extends SubsystemBase
 {
-
     public enum SpindexerState 
     {
         Stopped,
@@ -22,7 +21,6 @@ public class Indexer extends SubsystemBase
 
     private final TalonFX m_beltMotor           = new TalonFX(CanIds.BeltsMotorId);
     private final TalonFX m_kickerMotor         = new TalonFX(CanIds.KickerMotorId);
-    private final TalonFX m_kickerFollowerMotor = new TalonFX(CanIds.KickerFollowerMotorId);
 
     private SpindexerState m_state = SpindexerState.Stopped;
 

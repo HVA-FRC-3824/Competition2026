@@ -1,5 +1,6 @@
-package frc3824.lib.BT;
+package frc.robot.lib.BT;
 
+import edu.wpi.first.wpilibj.XboxController;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,11 +13,11 @@ public class SelectorNode extends Node
     }
     
     @Override
-    public NodeStatus update()
+    public NodeStatus update(XboxController controller)
     {
         for (Node node : m_nodes) 
         {
-            if (node.update() == NodeStatus.Success)
+            if (node.update(controller) == NodeStatus.Success)
                 return NodeStatus.Success;
         }
         return NodeStatus.Failure;

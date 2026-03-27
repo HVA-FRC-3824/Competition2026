@@ -1,5 +1,6 @@
-package frc3824.lib.BT;
+package frc.robot.lib.BT;
 
+import edu.wpi.first.wpilibj.XboxController;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,11 +13,11 @@ public class RootNode extends Node
     }   
     
     @Override
-    public NodeStatus update()
+    public NodeStatus update(XboxController controller)
     {
         for (Node node : m_nodes)
         {
-            node.update();
+            node.update(controller);
         }
         return NodeStatus.Success;
     }

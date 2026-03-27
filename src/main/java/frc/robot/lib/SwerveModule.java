@@ -1,4 +1,4 @@
-package frc3824.lib;
+package frc.robot.lib;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Degrees;
@@ -13,7 +13,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc3824.Constants.Chassis;
+import frc.robot.Constants.Chassis;
 
 public class SwerveModule {
 

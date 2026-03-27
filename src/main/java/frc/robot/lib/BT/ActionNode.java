@@ -1,9 +1,10 @@
-package frc3824.lib.BT;
+package frc.robot.lib.BT;
 
 import java.util.Optional;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj.XboxController;
 
 public class ActionNode extends Node
 {
@@ -18,7 +19,7 @@ public class ActionNode extends Node
     }
 
     @Override
-    public NodeStatus update()
+    public NodeStatus update(XboxController controller)
     {
         if (m_runner.isPresent())
             m_runner.get().run();

@@ -1,4 +1,4 @@
-package frc3824.subsystems;
+package frc.robot.subsystems;
 // Graciously professionally stolen from 3966
 
 import org.photonvision.EstimatedRobotPose;
@@ -15,14 +15,15 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc3824.Constants;
+import frc.robot.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 
-public class Vision extends SubsystemBase {
+public class Vision extends SubsystemBase 
+{
     private static final PhotonCamera m_camera1 = new PhotonCamera(Constants.Vision.kCameraName1);
     private static final PhotonCamera m_camera2 = new PhotonCamera(Constants.Vision.kCameraName2);
 
@@ -33,6 +34,11 @@ public class Vision extends SubsystemBase {
         Constants.Vision.kTagLayout, Constants.Vision.RobotToCam1);
     private static final PhotonPoseEstimator m_poseEstimator2 = new PhotonPoseEstimator(
         Constants.Vision.kTagLayout, Constants.Vision.kRobotToCam2);
+
+    public Vision()
+    {
+        
+    }
 
     @Override
     public void periodic() {
@@ -86,23 +92,29 @@ public class Vision extends SubsystemBase {
         return allTargets;
     }
 
-    public static int getBestTag() {
-        if (m_result1 != null && m_result1.hasTargets()) {
+    public static int getBestTag()
+    {
+        if (m_result1 != null && m_result1.hasTargets())
+        {
             return m_result1.getBestTarget().getFiducialId();
         }
-        if (m_result2 != null && m_result2.hasTargets()) {
+        if (m_result2 != null && m_result2.hasTargets())
+        {
             return m_result2.getBestTarget().getFiducialId();
         }
         return 0;
     }
 
-    public static Optional<EstimatedRobotPose> getEstimatedGlobalPoseCam1(PhotonPipelineResult result, Pose2d referencePose) {
-        if (result == null || !result.hasTargets()){
+    public static Optional<EstimatedRobotPose> getEstimatedGlobalPoseCam1(PhotonPipelineResult result, Pose2d referencePose)
+    {
+        if (result == null || !result.hasTargets())
+        {
             return Optional.empty();
         }
 
         Pose3d[] usedTags = new Pose3d[result.targets.size()];
-        for (int i = 0; i < result.targets.size(); i++){
+        for (int i = 0; i < result.targets.size(); i++)
+        {
           usedTags[i] = (Constants.Vision.kTagLayout.getTagPose(result.targets.get(i).fiducialId).get());
         }
 
@@ -112,7 +124,9 @@ public class Vision extends SubsystemBase {
         return update;
     }
 
-    public static Matrix<N3, N1> updateEstimationStdDevs(Optional<EstimatedRobotPose> estimatedPose, List<PhotonTrackedTarget> targets) {
+    public static Matrix<N3, N1> updateEstimationStdDevs(Optional<EstimatedRobotPose> estimatedPose,
+                                                         List<PhotonTrackedTarget> targets) 
+    {
 
         Matrix<N3, N1> curStdDevs = Constants.Vision.kSingleTagStdDevs;
         if (estimatedPose.isEmpty()) {
@@ -184,18 +198,24 @@ public class Vision extends SubsystemBase {
         return 0;
     }
 
-    public static Transform3d targetTransform(int targetNumber) {
-        for (PhotonTrackedTarget target : getAllTargets()) {
-            if (target.getFiducialId() == targetNumber) {
+    public static Transform3d targetTransform(int targetNumber)
+    {
+        for (PhotonTrackedTarget target : getAllTargets()) 
+        {
+            if (target.getFiducialId() == targetNumber) 
+            {
                 return target.getBestCameraToTarget();
             }
         }
         return new Transform3d();
     }
 
-    public static PhotonTrackedTarget returnTag(int targetNumber) {
-        for (PhotonTrackedTarget target : getAllTargets()) {
-            if (target.getFiducialId() == targetNumber) {
+    public static PhotonTrackedTarget returnTag(int targetNumber)
+    {
+        for (PhotonTrackedTarget target : getAllTargets())
+        {
+            if (target.getFiducialId() == targetNumber)
+            {
                 return target;
             }
         }
