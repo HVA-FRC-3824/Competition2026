@@ -69,8 +69,6 @@ public class Intake extends SubsystemBase {
 
         m_fuelIntakeMotor.setPosition(0.0);
 
-        m_intakePositionLeaderMotor.setPosition(Constants.Intake.IntakeStartingDegrees / 360.0);
-
         m_intakePositionFollowerMotor.setControl(
             new Follower(Constants.CanIds.IntakePositionLeaderMotorId, MotorAlignmentValue.Opposed));
     }

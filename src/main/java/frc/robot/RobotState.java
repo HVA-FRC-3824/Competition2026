@@ -126,7 +126,7 @@ public class RobotState
 
     // Chassis
     public final Runnable autoAimCommand   = () -> { m_chassisState = ChassisState.AimHub; };
-    public final Runnable driveModeCommand = () -> { m_chassisState = ChassisState.AimHub; };
+    public final Runnable driveModeCommand = () -> { m_chassisState = ChassisState.Driving; };
 
     public final Runnable xModeCommand    = () -> { m_chassis.ToggleXMode(); };
     public final Runnable xModeOnCommand  = () -> { if (!m_chassis.GetIsXMode()) m_chassis.ToggleXMode(); };
@@ -139,6 +139,23 @@ public class RobotState
     public final Runnable fieldRelativeCommand    = () -> { m_chassis.ToggleXMode(); };
     public final Runnable fieldRelativeOnCommand  = () -> { if (!m_chassis.GetIsFieldRelative()) m_chassis.ToggleFieldCentric(); };
     public final Runnable fieldRelativeOffCommand = () -> { if (m_chassis.GetIsFieldRelative()) m_chassis.ToggleFieldCentric(); };
+
+    public final Runnable chassisTrackAndShootHub = () -> {
+        Transform2d relativeDistance = GetHubPose().minus(GetPose());
+
+        Rotation2d angleToHubFromPos = new Rotation2d(Math.atan2(relativeDistance.getY(), relativeDistance.getX()));
+
+        m_speeds.omegaRadiansPerSecond = m_aimController.calculate(GetHeading().getRadians(), angleToHubFromPos.getRadians());
+
+        Logger.recordOutput("Testing/Chassis To Hub Speed", Units.radiansToDegrees(m_speeds.omegaRadiansPerSecond));
+
+        if (m_aimController.atSetpoint())
+            xModeOnCommand.run();
+        else
+            xModeOffCommand.run();
+
+        m_chassis.Drive(m_speeds);
+    };
 
     class PathplannerSubsystem extends SubsystemBase
     {
@@ -256,13 +273,13 @@ public class RobotState
         switch (m_intakePosState)
         {
             case Stowed:
-                m_intake.setPos(Constants.Intake.IntakeStowedDegrees);
+                m_intake.setPos(Constants.Intake.IntakeStowedTurns);
                 break;
             case Deployed:
-                m_intake.setPos(Constants.Intake.IntakeDeployedDegrees);
+                m_intake.setPos(Constants.Intake.IntakeDeployedTurns);
                 break;
             case StartingPos:
-                SmartDashboard.putString("Why ", "are you going to the starting pos");
+                Logger.recordOutput("Why ", "are you going to the starting pos");
                 break;
         }
 
@@ -279,28 +296,14 @@ public class RobotState
                 break;
         }
 
-        if (DriverStation.isTeleop())
+        switch (m_chassisState)
         {
-            switch (m_chassisState)
-            {
-                case Driving:
-                    m_chassis.Drive(m_speeds);
-                    break;
-                case AimHub:
-                    Transform2d relativeDistance = GetHubPose().minus(GetPose());
-
-                    Rotation2d angleToHubFromPos = new Rotation2d(Math.atan2(relativeDistance.getY(), relativeDistance.getX()));
-
-                    m_speeds.omegaRadiansPerSecond = m_aimController.calculate(GetHeading().getDegrees(), angleToHubFromPos.getDegrees());
-
-                    if (m_aimController.atSetpoint())
-                        xModeOnCommand.run();
-                    else
-                        xModeOffCommand.run();
-
-                    m_chassis.Drive(m_speeds);
-                    break;
-            }
+            case Driving:
+                m_chassis.Drive(m_speeds);
+                break;
+            case AimHub:
+                chassisTrackAndShootHub.run();
+                break;
         }
     }
 

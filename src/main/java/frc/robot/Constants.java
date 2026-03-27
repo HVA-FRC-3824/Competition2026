@@ -78,9 +78,8 @@ public final class Constants
 
     public static final class Intake
     {
-        public static final double IntakeStowedDegrees    = 0.0;
-        public static final double IntakeDeployedDegrees  = 90;
-        public static final double IntakeStartingDegrees  = -21; // This is about the initial offset of the intake at the start
+        public static final double IntakeStowedTurns    = 6.0;
+        public static final double IntakeDeployedTurns  = 15.0;
 
         public static final double IntakeDriveTurnsPerSec = 60;
 

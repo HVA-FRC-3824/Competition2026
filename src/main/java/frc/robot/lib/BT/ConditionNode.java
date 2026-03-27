@@ -15,10 +15,10 @@ public class ConditionNode extends Node
     {
         boolean checked = m_conditionChecker.get(); 
 
-        if (m_toggleCheck)
-            checked = false;
+        // if (m_toggleCheck)
+        //     checked = false;
 
-        m_toggleCheck = checked;
+        // m_toggleCheck = checked;
         
         return checked ? NodeStatus.Success : NodeStatus.Failure;
     }

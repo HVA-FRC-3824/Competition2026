@@ -100,12 +100,13 @@ public class Robot extends LoggedRobot
   {
     if (m_autonomousCommand != null)
       m_autonomousCommand.cancel();
-
-    m_robotContainer.tick();
   }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() 
+  {
+    m_robotContainer.tick();
+  }
 
   @Override
   public void teleopExit() {}

@@ -73,20 +73,20 @@ public class RobotContainer
       );
 
     Node driveNode =
-      (Node) new SequenceNode(
-        (Node) new ActionNode(() -> m_stateController.setDrive(m_driver.getLeftY(), m_driver.getLeftX(), m_driver.getRightX())),
+      (Node) new RootNode(
+        (Node) new ActionNode(() -> m_stateController.setDrive(-m_driver.getLeftY(), -m_driver.getLeftX(), -m_driver.getRightX())),
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.LeftStickButton),
-          (Node) new ActionNode(m_stateController.xModeCommand)
+          (Node) new ActionNode(m_stateController.slowModeOffCommand)
         ),
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.RightStickButton),
-          (Node) new ActionNode(m_stateController.slowModeCommand)
+          (Node) new ActionNode(m_stateController.slowModeOnCommand)
         )
       );
 
     Node indexNode = 
-      (Node) new SelectorNode( // Indexing
+      (Node) new RootNode( // Indexing
         (Node) new SequenceNode(
           (Node) new ConditionNode(() -> m_stateController.GetIsReady()),
           (Node) new ActionNode(m_stateController.indexingCommand)
