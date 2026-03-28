@@ -97,14 +97,14 @@ public final class Constants
     {
         // NOTE: The absolute encoder range is 0.5 to -0.5
         // These are the absolute encoder values that correspond to the wheels facing "forward"
-        public static final double FrontLeftForwardDegrees  = -0.023438 * 360.0;
-        public static final double FrontRightForwardDegrees = -0.362793 * 360.0;
-        public static final double BackLeftForwardDegrees   = -0.361328 * 360.0;
-        public static final double BackRightForwardDegrees  = -0.276855 * 360.0;
+        public static final double BackRightForwardDegrees  = -0.023438 * 360.0;
+        public static final double BackLeftForwardDegrees   = -0.362793 * 360.0;
+        public static final double FrontRightForwardDegrees = -0.361328 * 360.0;
+        public static final double FrontLeftForwardDegrees  = -0.276855 * 360.0;
 
         public static final double MaximumSpeedMetersPerSec  = Units.feetToMeters(10.0);
-        public static final double TranslateExponentialPower = 3.0;
         public static final double MaximumAngularVelocity    = 1 * Math.PI;
+        public static final double TranslateExponentialPower = 3.0;
         public static final double AngularExponentialPower   = 2.0;
 
         public static final double WheelBaseMeters  = Units.inchesToMeters(30.0);
