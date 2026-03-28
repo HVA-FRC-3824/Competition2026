@@ -1,32 +1,23 @@
 package frc.robot;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public final class Constants 
 {
@@ -112,6 +103,7 @@ public final class Constants
         public static final double BackRightForwardDegrees  = -0.276855 * 360.0;
 
         public static final double MaximumSpeedMetersPerSec = Units.feetToMeters(10.0);
+        public static final double TranslateExponentialPower = 3.0;
         public static final double MaximumAngularVelocity   = 1 * Math.PI;
 
         public static final double WheelBaseMeters  = Units.inchesToMeters(30.0);
@@ -154,8 +146,8 @@ public final class Constants
         public static final int RightBumper         =   6;
         public static final int Back                =   7;
         public static final int Start               =   8;
-        public static final int LeftStickButton     =   9;
-        public static final int RightStickButton    =  10;
+        public static final int LeftPaddle          =   9;
+        public static final int RightPaddle         =  10;
 
         public static final int Pov_0               =   0;
         public static final int Pov_45              =  45;

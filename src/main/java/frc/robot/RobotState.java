@@ -1,32 +1,21 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import static edu.wpi.first.units.Units.Meters;
 
-import org.dyn4j.geometry.Vector2;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import frc.robot.Constants;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Tower;
@@ -334,8 +323,8 @@ public class RobotState
 
     public void setDrive(double leftY, double leftX, double rightX)
     {
-        m_speeds = new ChassisSpeeds(leftY  * Constants.Chassis.MaximumSpeedMetersPerSec, 
-                                     leftX  * Constants.Chassis.MaximumSpeedMetersPerSec,
+        m_speeds = new ChassisSpeeds(Math.pow(Math.abs(leftY), Constants.Chassis.TranslateExponentialPower) * leftY  * Constants.Chassis.MaximumSpeedMetersPerSec,
+                                     Math.pow(Math.abs(leftX), Constants.Chassis.TranslateExponentialPower) * leftX  * Constants.Chassis.MaximumSpeedMetersPerSec, 
                                      rightX * Constants.Chassis.MaximumAngularVelocity);
     }
 }

@@ -10,10 +10,8 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.lib.BT.Node;
 import frc.robot.lib.BT.RootNode;
-import frc.robot.Constants.Controller;
 import frc.robot.lib.BT.ActionNode;
 import frc.robot.lib.BT.SequenceNode;
 import frc.robot.lib.BT.SelectorNode;
@@ -84,7 +82,7 @@ public class RobotContainer
     Node driveNode =
       (Node) new SelectorNode(
         (Node) new SequenceNode(
-          (Node) new ControllerNode(Constants.Controller.RightStickButton),
+          (Node) new ControllerNode(Constants.Controller.RightPaddle),
           (Node) new ActionNode(() -> m_stateController.setDrive(-m_driver.getLeftY() / 2, -m_driver.getLeftX() / 2, -m_driver.getRightX() / 2))
         ),
         (Node) new ActionNode(() -> m_stateController.setDrive(-m_driver.getLeftY(), -m_driver.getLeftX(), -m_driver.getRightX()))
@@ -97,7 +95,7 @@ public class RobotContainer
           (Node) new ActionNode(m_stateController.indexingCommand)
         ),
         (Node) new SequenceNode(
-          (Node) new ControllerNode(Constants.Controller.LeftStickButton),
+          (Node) new ControllerNode(Constants.Controller.LeftPaddle),
           (Node) new ActionNode(m_stateController.indexingCommand)
         ),
         // Default
