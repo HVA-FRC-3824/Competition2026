@@ -10,8 +10,8 @@ import frc.robot.lib.TalonFXConfig;
 
 public class Indexer extends SubsystemBase
 {
-    private final TalonFX m_beltMotor           = new TalonFX(CanIds.BeltsMotorId);
-    private final TalonFX m_kickerMotor         = new TalonFX(CanIds.KickerMotorId);
+    private final TalonFX m_beltMotor   = new TalonFX(CanIds.BeltsMotorId);
+    private final TalonFX m_kickerMotor = new TalonFX(CanIds.KickerMotorId);
 
     public Indexer() {
         TalonFXConfig.configure(

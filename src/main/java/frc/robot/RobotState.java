@@ -26,12 +26,17 @@ public class RobotState
 {
     public enum TowerState
     {
-        Idle,
         Low,
         Middle,
         Long,
         Auto,
         ManualControl
+    }
+
+    public enum TowerRunningState
+    {
+        Off,
+        On
     }
 
     public enum IndexerState
@@ -72,7 +77,8 @@ public class RobotState
         AimHub
     }
 
-    private static TowerState        m_towerState = TowerState.Idle;
+    private static TowerState        m_towerState = TowerState.Middle;
+    private static TowerRunningState m_towerRunningState = TowerRunningState.Off;
     private static IndexerState      m_indexerState = IndexerState.Stopped;
     private static LedState          m_ledState = LedState.MatchMode;
     private static IntakePosState    m_intakePosState = IntakePosState.StartingPos;
@@ -102,7 +108,9 @@ public class RobotState
     public final Runnable spitOutIntakeCommand = () -> { m_intakeRollerState = IntakeRollerState.Backwards; };
 
     // Tower
-    public final Runnable spinDownTowerCommand  = () -> { m_towerState = TowerState.Idle; };
+    public final Runnable spinDownTowerCommand = () -> { m_towerRunningState = TowerRunningState.Off; };
+    public final Runnable spinUpTowerCommand   = () -> { m_towerRunningState = TowerRunningState.On; };
+
     public final Runnable lowShootTowerCommand  = () -> { m_towerState = TowerState.Low; };
     public final Runnable midShootTowerCommand  = () -> { m_towerState = TowerState.Middle; };
     public final Runnable longShootTowerCommand = () -> { m_towerState = TowerState.Long; };
