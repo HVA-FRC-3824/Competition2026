@@ -51,7 +51,7 @@ public class Robot extends LoggedRobot
 
     Logger.start(); // Start logging! No more data receivers, replay sources, or metadata values may be added.
     
-    LoggedPowerDistribution.getInstance(50, ModuleType.kRev); // Example: PDH on CAN ID 50
+    LoggedPowerDistribution.getInstance(Constants.CanIds.PdhId, ModuleType.kRev); // Example: PDH on CAN ID 50
 
     // PATHPLANNER
 

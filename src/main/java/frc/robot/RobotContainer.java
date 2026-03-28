@@ -72,27 +72,32 @@ public class RobotContainer
         )
       );
 
-    Node driveNode =
-      (Node) new RootNode(
-        (Node) new ActionNode(() -> m_stateController.setDrive(-m_driver.getLeftY(), -m_driver.getLeftX(), -m_driver.getRightX())),
+    Node intakeNode = new SelectorNode(
         (Node) new SequenceNode(
-          (Node) new ControllerNode(Constants.Controller.LeftStickButton),
-          (Node) new ActionNode(m_stateController.slowModeOffCommand)
+          (Node) new ControllerNode(Constants.Controller.LeftBumper),
+          (Node) new ActionNode(m_stateController.deployIntakeCommand),
+          (Node) new ActionNode(m_stateController.startIntakeCommand)
         ),
+        (Node) new ActionNode(m_stateController.stopIntakeCommand)
+      );
+
+    Node driveNode =
+      (Node) new SelectorNode(
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.RightStickButton),
-          (Node) new ActionNode(m_stateController.slowModeOnCommand)
-        )
+          (Node) new ActionNode(() -> m_stateController.setDrive(-m_driver.getLeftY() / 2, -m_driver.getLeftX() / 2, -m_driver.getRightX() / 2))
+        ),
+        (Node) new ActionNode(() -> m_stateController.setDrive(-m_driver.getLeftY(), -m_driver.getLeftX(), -m_driver.getRightX()))
       );
 
     Node indexNode = 
-      (Node) new RootNode( // Indexing
+      (Node) new SelectorNode( // Indexing
         (Node) new SequenceNode(
           (Node) new ConditionNode(() -> m_stateController.GetIsReady()),
           (Node) new ActionNode(m_stateController.indexingCommand)
         ),
         (Node) new SequenceNode(
-          (Node) new ControllerNode(Constants.Controller.LeftBumper),
+          (Node) new ControllerNode(Constants.Controller.LeftStickButton),
           (Node) new ActionNode(m_stateController.indexingCommand)
         ),
         // Default
@@ -103,12 +108,16 @@ public class RobotContainer
       // Driving
       driveNode,
       shootingNode,
-      indexNode
+      indexNode,
+      intakeNode
     );
   }
 
   public void tick()
   {
+    // Mid match swap
+    // m_driverBT.update((Timer.getMatchTime() - ((2 * 60) + 30) / 2 > 0) ? m_driver : m_operator);
+
     m_driverBT.update(m_driver);
   }
 

@@ -169,21 +169,23 @@ public final class Constants
 
     public static final class CanIds
     {
-        public static final int FrontLeftDriveId        = 01; // Kraken X60
-        public static final int FrontLeftTurnId         = 02; // Kraken X44
-        public static final int FrontLeftEncoderId      = 03; // CANCoder
+        public static final int FrontLeftDriveId        = 31; // Kraken X60
+        public static final int FrontLeftTurnId         = 32; // Kraken X44
+        public static final int FrontLeftEncoderId      = 33; // CANCoder
 
-        public static final int FrontRightDriveId       = 11; // Kraken X60
-        public static final int FrontRightTurnId        = 12; // Kraken X44
-        public static final int FrontRightEncoderId     = 13; // CANCoder
+        public static final int FrontRightDriveId       = 21; // Kraken X60
+        public static final int FrontRightTurnId        = 22; // Kraken X44
+        public static final int FrontRightEncoderId     = 23; // CANCoder
 
-        public static final int BackLeftDriveId         = 21; // Kraken X60
-        public static final int BackLeftTurnId          = 22; // Kraken X44
-        public static final int BackLeftEncoderId       = 23; // CANCoder
+        public static final int BackLeftDriveId         = 11; // Kraken X60
+        public static final int BackLeftTurnId          = 12; // Kraken X44
+        public static final int BackLeftEncoderId       = 13; // CANCoder
         
-        public static final int BackRightDriveId        = 31; // Kraken X60
-        public static final int BackRightTurnId         = 32; // Kraken X44
-        public static final int BackRightEncoderId      = 33; // CANCoder
+        public static final int BackRightDriveId        = 04; // Kraken X60
+        public static final int BackRightTurnId         = 02; // Kraken X44
+        public static final int BackRightEncoderId      = 03; // CANCoder
+
+        public static final int PigeonGyroId = 5; // CTR Pigeon 2.0
 
         public static final int IntakePositionFollowerMotorId = 42; // Kraken X44
         public static final int IntakePositionLeaderMotorId   = 41; // Kraken X44
@@ -195,7 +197,7 @@ public final class Constants
         public static final int FlywheelMotorId         = 52; // Kraken X60
         public static final int FlywheelFollowerMotorId = 53; // Kraken X60
 
-        public static final int PDHId                   = 60; // PDH
+        public static final int PdhId                   = 60; // PDH
     }
 
     public static final class Pwm
@@ -210,7 +212,7 @@ public final class Constants
     public static final class Usb
     {
         
-        // Drive Input Configurations
+        // drive Input Configurations
         public static final int DrivePort    = 0;
         public static final int OperatorPort = 1;
     }

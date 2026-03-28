@@ -12,17 +12,8 @@ import frc.robot.lib.TalonFXConfig;
 
 public class Indexer extends SubsystemBase
 {
-    public enum SpindexerState 
-    {
-        Stopped,
-        Spindexing,
-        Backwards
-    }
-
     private final TalonFX m_beltMotor           = new TalonFX(CanIds.BeltsMotorId);
     private final TalonFX m_kickerMotor         = new TalonFX(CanIds.KickerMotorId);
-
-    private SpindexerState m_state = SpindexerState.Stopped;
 
     public Indexer() {
         TalonFXConfig.configure(
@@ -37,8 +28,8 @@ public class Indexer extends SubsystemBase
             0.0, 
             0.0, 
             0.0, 
-            0.0, 
-            0.0);
+            120.0, 
+            30.0);
         
         TalonFXConfig.configure(
             m_kickerMotor,  
@@ -52,11 +43,11 @@ public class Indexer extends SubsystemBase
             0.0, 
             0.0, 
             0.0, 
-            0.0, 
-            0.0);    
+            120.0, 
+            50.0);    
     }
 
-    public void SetSpeeds(double beltsSpeed, double kickerSpeed) 
+    public void setSpeeds(double beltsSpeed, double kickerSpeed) 
     {
         if (Math.abs(beltsSpeed) <= 0.10 || Math.abs(kickerSpeed) <= 0.10)
         {

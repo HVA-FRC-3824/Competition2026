@@ -33,7 +33,7 @@ public class SwerveModule {
 
         // Configure motors (you’ll need your own config helper or inline config)
         TalonFXConfig.configure(
-            driveMotor,    // Drive motor configuration
+            driveMotor,    // drive motor configuration
             85,              // Maximum Amperage
             false,           // Inverted
             true,            // Brake mode enabled

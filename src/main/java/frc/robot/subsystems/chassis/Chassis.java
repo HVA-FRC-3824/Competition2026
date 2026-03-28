@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot.subsystems.chassis;
 
 import java.util.Optional;
 
@@ -49,6 +49,9 @@ public class Chassis extends SubsystemBase
 {
         public Chassis()
         {
+            resetGyroAngle();
+            resetWheelAnglesToZero();
+
             // TODO: When the robot CAD is done, update the pathplanner robot settings
             RobotConfig config;
             try {
@@ -61,10 +64,10 @@ public class Chassis extends SubsystemBase
 
             // Configure the AutoBuilder
             AutoBuilder.configure(
-                this::GetPose,                                       // Robot pose supplier
-                this::ResetPose,                     // Method to reset odometry (will be called if your auto has a starting pose)
-                this::GetSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-                (speeds, feedforwards) -> { DriveRelative(speeds); }, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+                this::getPose,                                       // Robot pose supplier
+                this::resetPose,                     // Method to reset odometry (will be called if your auto has a starting pose)
+                this::getSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+                (speeds, feedforwards) -> { driveRelative(speeds); }, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
                 new PPHolonomicDriveController(          // PPHolonomicController is the built in path following controller for holonomic drive trains
                     // TODO: magic numbers, test these
                     new PIDConstants(1.0, 0.0, 0.0),                       // Translation PID constants
@@ -85,18 +88,18 @@ public class Chassis extends SubsystemBase
             );
         }
 
-        public void  Drive(ChassisSpeeds speeds)
+        public void  drive(ChassisSpeeds speeds)
         {
-            DriveRelative(DriverStation.isTeleop() ? ChassisSpeeds.fromFieldRelativeSpeeds(speeds, GetHeading()) : speeds);
+            driveRelative(DriverStation.isTeleop() ? ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading()) : speeds);
         }
 
-        public void  DriveRelative(ChassisSpeeds speeds)
+        public void  driveRelative(ChassisSpeeds speeds)
         {
             // If the chassis is in x mode, than stay in x mode, ignoring the desired speeds
             if (m_isXMode)
             {
                 // Set the module states to x mode
-                SetModuleStates((SwerveModuleState[]) Constants.Chassis.xStates);
+                setModuleStates((SwerveModuleState[]) Constants.Chassis.xStates);
 
                 // Save the desired speeds for logging later
                 return;
@@ -106,10 +109,10 @@ public class Chassis extends SubsystemBase
             SwerveModuleState[] desiredStates = Constants.Chassis.kinematics.toSwerveModuleStates(speeds);
 
             // Set the desired state for each swerve module
-            SetModuleStates(desiredStates);
+            setModuleStates(desiredStates);
         }
 
-        public void SetModuleStates(SwerveModuleState[] states)
+        public void setModuleStates(SwerveModuleState[] states)
         {
             // Set the desired state for each swerve module
             m_swerveModules[0].setDesiredState(states[0], "Front Left " );
@@ -118,12 +121,12 @@ public class Chassis extends SubsystemBase
             m_swerveModules[3].setDesiredState(states[3], "Rear Right " );
         }
 
-        public void  ResetGyroAngle()
+        public void resetGyroAngle()
         {
             m_gyro.reset();
         }
 
-        public void  ResetWheelAnglesToZero()
+        public void resetWheelAnglesToZero()
         {
                 // Set the swerve wheel angles to zero
                 m_swerveModules[0].setWheelAngleToForward(Constants.Chassis.FrontRightForwardDegrees);
@@ -132,12 +135,12 @@ public class Chassis extends SubsystemBase
                 m_swerveModules[3].setWheelAngleToForward(Constants.Chassis.FrontRightForwardDegrees);
         }
 
-        public void ResetPose(Pose2d pose)
+        public void resetPose(Pose2d pose)
         {
             m_poseEstimator.resetPose(pose);
         }
 
-        public SwerveModuleState[] GetModuleStates()
+        public SwerveModuleState[] getModuleStates()
         {
             SwerveModuleState[] states = {
                 m_swerveModules[0].getState(),
@@ -149,7 +152,7 @@ public class Chassis extends SubsystemBase
             return states;
         }
 
-        public SwerveModulePosition[] GetModulePositions()
+        public SwerveModulePosition[] getModulePositions()
         {
             SwerveModulePosition[] positions = {
                 m_swerveModules[0].getPosition(),
@@ -161,51 +164,46 @@ public class Chassis extends SubsystemBase
             return positions;
         }
     
-        public void ToggleFieldCentric()
+        public void toggleFieldCentric()
         {
             m_isFieldRelative = !m_isFieldRelative;
         }
 
-        public void ToggleXMode()
+        public void toggleXMode()
         {
             m_isXMode = !m_isXMode;
         }
-
-        public void ToggleSlowMode()
-        {
-            m_isSlowMode = !m_isSlowMode;
-        }
         
-        public Rotation2d GetHeading()
+        public Rotation2d getHeading()
         {
             return m_gyro.getRotation2d();
         }
 
-        public Pose2d GetPose()
+        public Pose2d getPose()
         {
             return m_poseEstimator.getEstimatedPosition();
         }
 
-        public ChassisSpeeds GetSpeeds()
+        public ChassisSpeeds getSpeeds()
         {
-            return Constants.Chassis.kinematics.toChassisSpeeds(GetModuleStates());
+            return Constants.Chassis.kinematics.toChassisSpeeds(getModuleStates());
         }
 
         @Override
         public void periodic()
         {
-            m_poseEstimator.update(GetHeading(), GetModulePositions());
+            m_poseEstimator.update(getHeading(), getModulePositions());
 
             if (Vision.getResult1() != null)
             {
-                Optional<EstimatedRobotPose> visionBotPose1 = Vision.getEstimatedGlobalPoseCam1(Vision.getResult1(), GetPose());
+                Optional<EstimatedRobotPose> visionBotPose1 = Vision.getEstimatedGlobalPoseCam1(Vision.getResult1(), getPose());
                 if (visionBotPose1.isPresent()){
                     m_poseEstimator.addVisionMeasurement(visionBotPose1.get().estimatedPose.toPose2d(), Timer.getMatchTime(), Vision.updateEstimationStdDevs(visionBotPose1, visionBotPose1.get().targetsUsed));
                 }
             }
             if (Vision.getResult2() != null)
             {
-                Optional<EstimatedRobotPose> visionBotPose2 = Vision.getEstimatedGlobalPoseCam2(GetPose(), Vision.getResult2());
+                Optional<EstimatedRobotPose> visionBotPose2 = Vision.getEstimatedGlobalPoseCam2(getPose(), Vision.getResult2());
                 if (visionBotPose2.isPresent())
                 {
                     m_poseEstimator.addVisionMeasurement(visionBotPose2.get().estimatedPose.toPose2d(), Timer.getTimestamp(), Vision.updateEstimationStdDevs(visionBotPose2, visionBotPose2.get().targetsUsed));
@@ -213,9 +211,8 @@ public class Chassis extends SubsystemBase
             } 
         }
 
-        public boolean GetIsSlowMode()      { return m_isSlowMode; }
-        public boolean GetIsXMode()         { return m_isXMode; }
-        public boolean GetIsFieldRelative() { return m_isFieldRelative; }
+        public boolean getIsXMode()         { return m_isXMode; }
+        public boolean getIsFieldRelative() { return m_isFieldRelative; }
     
         // Swerve module order for kinematics calculations
         //
@@ -237,7 +234,7 @@ public class Chassis extends SubsystemBase
         private SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(
             Constants.Chassis.kinematics,         // Kinematics object
             new Rotation2d(0),  // Initial gyro angle
-            GetModulePositions(),     // Initial module positions
+            getModulePositions(),     // Initial module positions
             new Pose2d()              // Initial pose, will be overriden by vision
         );
 
@@ -246,10 +243,8 @@ public class Chassis extends SubsystemBase
         boolean       m_isFieldRelative = false;
 
         boolean       m_isXMode = false;
-
-        boolean       m_isSlowMode = false;
     
-        Pigeon2       m_gyro = new Pigeon2(1);
+        Pigeon2       m_gyro = new Pigeon2(Constants.CanIds.PigeonGyroId);
 
         Vision        m_vision;
 };

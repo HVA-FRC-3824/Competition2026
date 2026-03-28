@@ -27,11 +27,11 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants;
-import frc.robot.subsystems.Chassis;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Tower;
 import frc.robot.subsystems.Vision;
+import frc.robot.subsystems.chassis.Chassis;
 
 public class RobotState 
 {
@@ -128,24 +128,20 @@ public class RobotState
     public final Runnable autoAimCommand   = () -> { m_chassisState = ChassisState.AimHub; };
     public final Runnable driveModeCommand = () -> { m_chassisState = ChassisState.Driving; };
 
-    public final Runnable xModeCommand    = () -> { m_chassis.ToggleXMode(); };
-    public final Runnable xModeOnCommand  = () -> { if (!m_chassis.GetIsXMode()) m_chassis.ToggleXMode(); };
-    public final Runnable xModeOffCommand = () -> { if (m_chassis.GetIsXMode()) m_chassis.ToggleXMode(); };
-    
-    public final Runnable slowModeCommand    = () -> { m_chassis.ToggleSlowMode(); };
-    public final Runnable slowModeOnCommand  = () -> { if (!m_chassis.GetIsSlowMode()) m_chassis.ToggleSlowMode(); };
-    public final Runnable slowModeOffCommand = () -> { if (m_chassis.GetIsSlowMode()) m_chassis.ToggleSlowMode(); };
-    
-    public final Runnable fieldRelativeCommand    = () -> { m_chassis.ToggleXMode(); };
-    public final Runnable fieldRelativeOnCommand  = () -> { if (!m_chassis.GetIsFieldRelative()) m_chassis.ToggleFieldCentric(); };
-    public final Runnable fieldRelativeOffCommand = () -> { if (m_chassis.GetIsFieldRelative()) m_chassis.ToggleFieldCentric(); };
+    public final Runnable xModeCommand    = () -> { m_chassis.toggleXMode(); };
+    public final Runnable xModeOnCommand  = () -> { if (!m_chassis.getIsXMode()) m_chassis.toggleXMode(); };
+    public final Runnable xModeOffCommand = () -> { if (m_chassis.getIsXMode()) m_chassis.toggleXMode(); };
+        
+    public final Runnable fieldRelativeCommand    = () -> { m_chassis.toggleXMode(); };
+    public final Runnable fieldRelativeOnCommand  = () -> { if (!m_chassis.getIsFieldRelative()) m_chassis.toggleFieldCentric(); };
+    public final Runnable fieldRelativeOffCommand = () -> { if (m_chassis.getIsFieldRelative()) m_chassis.toggleFieldCentric(); };
 
     public final Runnable chassisTrackAndShootHub = () -> {
-        Transform2d relativeDistance = GetHubPose().minus(GetPose());
+        Transform2d relativeDistance = GetHubPose().minus(getPose());
 
         Rotation2d angleToHubFromPos = new Rotation2d(Math.atan2(relativeDistance.getY(), relativeDistance.getX()));
 
-        m_speeds.omegaRadiansPerSecond = m_aimController.calculate(GetHeading().getRadians(), angleToHubFromPos.getRadians());
+        m_speeds.omegaRadiansPerSecond = m_aimController.calculate(getHeading().getRadians(), angleToHubFromPos.getRadians());
 
         Logger.recordOutput("Testing/Chassis To Hub Speed", Units.radiansToDegrees(m_speeds.omegaRadiansPerSecond));
 
@@ -154,7 +150,7 @@ public class RobotState
         else
             xModeOffCommand.run();
 
-        m_chassis.Drive(m_speeds);
+        m_chassis.drive(m_speeds);
     };
 
     class PathplannerSubsystem extends SubsystemBase
@@ -197,12 +193,12 @@ public class RobotState
     {
         // What it is
 
-        Logger.recordOutput("Measured/Chassis/Speeds",   m_chassis.GetSpeeds());
-        Logger.recordOutput("Measured/Chassis/States",   m_chassis.GetModuleStates());
+        Logger.recordOutput("Measured/Chassis/Speeds",   m_chassis.getSpeeds());
+        Logger.recordOutput("Measured/Chassis/States",   m_chassis.getModuleStates());
         Logger.recordOutput("Measured/Chassis/Is Aimed", m_aimController.atSetpoint());
 
-        Logger.recordOutput("Measured/Pose",         m_chassis.GetPose());
-        Logger.recordOutput("Measured/Heading",      m_chassis.GetHeading());
+        Logger.recordOutput("Measured/Pose",         m_chassis.getPose());
+        Logger.recordOutput("Measured/Heading",      m_chassis.getHeading());
         Logger.recordOutput("Measured/Cam 1 Result", Vision.getResult1());
         Logger.recordOutput("Measured/Cam 2 Result", Vision.getResult2());
 
@@ -212,8 +208,7 @@ public class RobotState
         // What we want
 
         Logger.recordOutput("Desired/Chassis/Speeds",    m_speeds);
-        Logger.recordOutput("Desired/Chassis/XMode",     m_chassis.GetIsXMode());
-        Logger.recordOutput("Desired/Chassis/Slow Mode", m_chassis.GetIsSlowMode());
+        Logger.recordOutput("Desired/Chassis/XMode",     m_chassis.getIsXMode());
 
         Logger.recordOutput("Desired/Tower/TPS",        m_tower.getDesiredFlywheelTPS());
         Logger.recordOutput("Desired/Tower/Manual TPS", m_manualFlywheelSpeed);
@@ -260,13 +255,13 @@ public class RobotState
         switch (m_indexerState)
         {
             case Stopped:
-                m_indexer.SetSpeeds(0.0, 0.0);
+                m_indexer.setSpeeds(0.0, 0.0);
                 break;
             case Spindexing:
-                m_indexer.SetSpeeds(Constants.Indexer.BeltTurnsPerSec, Constants.Indexer.KickerWheelTurnsPerSec);
+                m_indexer.setSpeeds(Constants.Indexer.BeltTurnsPerSec, Constants.Indexer.KickerWheelTurnsPerSec);
                 break;
             case Backwards:
-                m_indexer.SetSpeeds(-Constants.Indexer.BeltTurnsPerSec, -Constants.Indexer.KickerWheelTurnsPerSec);
+                m_indexer.setSpeeds(-Constants.Indexer.BeltTurnsPerSec, -Constants.Indexer.KickerWheelTurnsPerSec);
                 break;
         }
     
@@ -299,7 +294,7 @@ public class RobotState
         switch (m_chassisState)
         {
             case Driving:
-                m_chassis.Drive(m_speeds);
+                m_chassis.drive(m_speeds);
                 break;
             case AimHub:
                 chassisTrackAndShootHub.run();
@@ -319,20 +314,22 @@ public class RobotState
                         Constants.Field.RedHub.toPose2d() : Constants.Field.BlueHub.toPose2d();
     }
 
-    public Pose2d GetPose()
+    public Pose2d getPose()
     {
-        return m_chassis.GetPose();
+        return m_chassis.getPose();
     }
 
-    public Rotation2d GetHeading()
+    public Rotation2d getHeading()
     {
-        return m_chassis.GetHeading();
+        return m_chassis.getHeading();
     }
 
     public Boolean GetIsReady()
     {
         // If the flywheel is spun up and we're aiming at the target, shoot
-        return m_tower.isSpunUp() && m_aimController.atSetpoint();
+        return m_tower.isSpunUp() && 
+               m_aimController.atSetpoint() && 
+               m_chassisState == ChassisState.AimHub;
     }
 
     public void setDrive(double leftY, double leftX, double rightX)
