@@ -372,6 +372,16 @@ public class RobotState
 
     public void setDrive(double leftY, double leftX, double rightX)
     {
+        double magnitude = Math.sqrt(leftY * leftY + leftX * leftX);
+        double angle = Math.atan2(leftY, leftX);
+
+        magnitude = Math.pow(Math.abs(magnitude), Constants.Chassis.TranslateExponentialPower);
+
+        leftY = magnitude * Math.sin(angle);
+        leftX = magnitude * Math.cos(angle);
+
+        rightX = Math.pow(Math.abs(rightX), Constants.Chassis.AngularExponentialPower) * rightX;
+
         m_speeds = new ChassisSpeeds(
             leftY  * Constants.Chassis.MaximumSpeedMetersPerSec,
             leftX  * Constants.Chassis.MaximumSpeedMetersPerSec, 
