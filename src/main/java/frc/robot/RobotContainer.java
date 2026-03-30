@@ -54,9 +54,11 @@ public class RobotContainer
           (Node) new ActionNode(m_stateController.midShootTowerCommand),
           (Node) new ActionNode(m_stateController.driveModeCommand)
         ),
-        // Default/Spin Down
-        (Node) new ActionNode(m_stateController.spinDownTowerCommand),
-        (Node) new ActionNode(m_stateController.driveModeCommand)
+        (Node) new SequenceNode( // Default/Spin Down
+          (Node) new ActionNode(m_stateController.spinDownTowerCommand),
+          (Node) new ActionNode(m_stateController.driveModeCommand),
+          (Node) new ActionNode(m_stateController.xModeOffCommand)
+        )
       );
 
     Node intakeNode = new SelectorNode(

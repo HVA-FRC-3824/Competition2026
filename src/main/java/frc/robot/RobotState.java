@@ -103,7 +103,7 @@ public class RobotState
     private static Intake      m_intake;
     private static ChassisIO   m_chassis;
 
-    private static final PIDController m_aimController = new PIDController(0.5, 0.05, 0.0);
+    private static final PIDController m_aimController = new PIDController(0.59, 0.05, 0.0);
 
     // Indexer
     public final Runnable indexingCommand          = () -> m_indexerState = IndexerState.Spindexing;
@@ -184,7 +184,7 @@ public class RobotState
         m_chassis.setDefaultCommand(m_chassis.runOnce(()->{}));
 
         // Config PID to be tolerant within 5 degrees
-        m_aimController.setTolerance(Units.degreesToRadians(1.0));
+        m_aimController.setTolerance(Units.degreesToRadians(2.0));
 
         PathplannerSubsystem pathplannerSubsystem = new PathplannerSubsystem();        
 
