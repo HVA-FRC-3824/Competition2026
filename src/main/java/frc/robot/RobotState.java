@@ -14,13 +14,17 @@ import edu.wpi.first.wpilibj.Timer;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Tower;
 import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.chassis.Chassis;
+import frc.robot.subsystems.chassis.ChassisIO;
+import frc.robot.subsystems.chassis.SimChassis;
 import frc.robot.subsystems.intake.Intake;
 
 public class RobotState 
@@ -78,7 +82,7 @@ public class RobotState
         AimHub
     }
 
-    private static TowerState        m_towerState = TowerState.Middle;
+    public  static TowerState        m_towerState = TowerState.Middle;
     private static TowerRunningState m_towerRunningState = TowerRunningState.Off;
     private static IndexerState      m_indexerState = IndexerState.Stopped;
     private static LedState          m_ledState = LedState.MatchMode;
@@ -91,9 +95,9 @@ public class RobotState
     private static Tower       m_tower;
     private static Indexer     m_indexer;
     private static Intake      m_intake;
-    private static Chassis     m_chassis;
+    private static ChassisIO   m_chassis;
 
-    private static final PIDController m_aimController = new PIDController(0.5, 0.0, 0.0);
+    private static final PIDController m_aimController = new PIDController(1.0, 0.0, 0.0);
 
     // Indexer
     public final Runnable indexingCommand          = () -> m_indexerState = IndexerState.Spindexing;
@@ -136,10 +140,6 @@ public class RobotState
     public final Runnable xModeOnCommand  = () -> {if (!m_chassis.getIsXMode()) m_chassis.toggleXMode();};
     public final Runnable xModeOffCommand = () -> {if (m_chassis.getIsXMode()) m_chassis.toggleXMode();};
         
-    public final Runnable fieldRelativeCommand    = () -> m_chassis.toggleXMode();
-    public final Runnable fieldRelativeOnCommand  = () -> {if (!m_chassis.getIsFieldRelative()) m_chassis.toggleFieldCentric();};
-    public final Runnable fieldRelativeOffCommand = () -> {if (m_chassis.getIsFieldRelative()) m_chassis.toggleFieldCentric();};
-
     public final Runnable chassisTrackAndShootHub = () -> {
         Transform2d relativeDistance = GetHubPose().minus(getPose());
 
@@ -156,7 +156,7 @@ public class RobotState
         else
             xModeOffCommand.run();
 
-        m_chassis.drive(m_speeds);
+        m_chassis.driveFieldRelative(m_speeds);
     };
 
     class PathplannerSubsystem extends SubsystemBase
@@ -172,10 +172,15 @@ public class RobotState
         m_tower   = new Tower();
         m_indexer = new Indexer();
         m_intake  = new Intake();
-        m_chassis = new Chassis();
+        m_chassis = (RobotBase.isSimulation()) ? new SimChassis() : new Chassis();
+
+        m_tower.setDefaultCommand(m_tower.runOnce(()->{}));
+        m_indexer.setDefaultCommand(m_indexer.runOnce(()->{}));
+        m_intake.setDefaultCommand(m_intake.runOnce(()->{}));
+        m_chassis.setDefaultCommand(m_chassis.runOnce(()->{}));
 
         // Config PID to be tolerant within 5 degrees
-        m_aimController.setTolerance(Units.degreesToRadians(5.0));
+        m_aimController.setTolerance(Units.degreesToRadians(3.0));
 
         PathplannerSubsystem pathplannerSubsystem = new PathplannerSubsystem();        
 
@@ -188,6 +193,9 @@ public class RobotState
         NamedCommands.registerCommand("midShoot",  pathplannerSubsystem.runOnce(midShootTowerCommand));
         NamedCommands.registerCommand("longShoot", pathplannerSubsystem.runOnce(longShootTowerCommand));
 
+        NamedCommands.registerCommand("spinDownTower", pathplannerSubsystem.runOnce(spinDownTowerCommand));
+        NamedCommands.registerCommand("spinUpTower",   pathplannerSubsystem.runOnce(spinUpTowerCommand));
+
         NamedCommands.registerCommand("xModeOn",  pathplannerSubsystem.runOnce(xModeOnCommand));
         NamedCommands.registerCommand("xModeOff", pathplannerSubsystem.runOnce(xModeOffCommand));
 
@@ -199,7 +207,7 @@ public class RobotState
     {
         // What it is
 
-        Logger.recordOutput("Measured/Chassis/Speeds",   m_chassis.getSpeeds());
+        Logger.recordOutput("Measured/Chassis/Speeds",   m_chassis.getMeasuredSpeeds());
         Logger.recordOutput("Measured/Chassis/States",   m_chassis.getModuleStates());
         Logger.recordOutput("Measured/Chassis/Is Aimed", m_aimController.atSetpoint());
 
@@ -304,7 +312,7 @@ public class RobotState
         
         {
             case Driving:
-                m_chassis.drive(m_speeds);
+                m_chassis.driveFieldRelative(m_speeds);
                 break;
             case AimHub:
                 chassisTrackAndShootHub.run();
@@ -334,7 +342,7 @@ public class RobotState
         return m_chassis.getHeading();
     }
 
-    public Boolean GetIsReady()
+    public boolean GetIsReady()
     {
         // If the flywheel is spun up and we're aiming at the target, shoot
         return m_tower.isSpunUp() && 
@@ -344,8 +352,9 @@ public class RobotState
 
     public void setDrive(double leftY, double leftX, double rightX)
     {
-        m_speeds = new ChassisSpeeds(Math.pow(Math.abs(leftY), Constants.Chassis.TranslateExponentialPower) * leftY  * Constants.Chassis.MaximumSpeedMetersPerSec,
-                                     Math.pow(Math.abs(leftX), Constants.Chassis.TranslateExponentialPower) * leftX  * Constants.Chassis.MaximumSpeedMetersPerSec, 
-                                     Math.pow(Math.abs(rightX), Constants.Chassis.AngularExponentialPower) * rightX * Constants.Chassis.MaximumAngularVelocity);
+        m_speeds = new ChassisSpeeds(
+            Math.pow(Math.abs(leftY), Constants.Chassis.TranslateExponentialPower) * leftY  * Constants.Chassis.MaximumSpeedMetersPerSec,
+            Math.pow(Math.abs(leftX), Constants.Chassis.TranslateExponentialPower) * leftX  * Constants.Chassis.MaximumSpeedMetersPerSec, 
+            Math.pow(Math.abs(rightX), Constants.Chassis.AngularExponentialPower) * rightX * Constants.Chassis.MaximumAngularVelocity);
     }
 }

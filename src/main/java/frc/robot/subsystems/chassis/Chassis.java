@@ -1,12 +1,8 @@
 package frc.robot.subsystems.chassis;
 
-import static edu.wpi.first.units.Units.Inches;
-
 import java.util.List;
 import java.util.Optional;
 
-import org.ironmaple.simulation.SimulatedArena;
-import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.photonvision.EstimatedRobotPose;
@@ -22,9 +18,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -32,7 +26,6 @@ import frc.robot.subsystems.Vision;
 import frc.robot.Constants;
 import frc.robot.subsystems.gyro.Gyro;
 import frc.robot.subsystems.gyro.GyroIO;
-import frc.robot.subsystems.gyro.GyroIOSim;
 
 /// @brief Chassis subsystem for swerve drive control
 ///
@@ -55,7 +48,7 @@ import frc.robot.subsystems.gyro.GyroIOSim;
 ///   ---  +-------------------------------------------------------------------+
 ///        |<----------------------------- 16.56 m --------------------------->|
 ///                                       Top View
-public class Chassis extends SubsystemBase
+public class Chassis implements ChassisIO
 {
     // Swerve module order for kinematics calculations
     //
@@ -67,7 +60,7 @@ public class Chassis extends SubsystemBase
     //      | 2      3 |                 |
     //   RL +----------+ RR              |
     
-    private SwerveModuleIO[] m_swerveModules;
+    private SwerveModule[] m_swerveModules;
     
     private SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(
         Constants.Chassis.kinematics,         // Kinematics object
@@ -82,8 +75,6 @@ public class Chassis extends SubsystemBase
 
     ChassisSpeeds m_desiredSpeeds = new ChassisSpeeds(0,0,0);
 
-    boolean       m_isFieldRelative = false;
-
     boolean       m_isXMode = false;
 
     GyroIO        m_gyro = new Gyro(Constants.CanIds.PigeonGyroId);
@@ -97,10 +88,10 @@ public class Chassis extends SubsystemBase
             new SwerveModule(Constants.CanIds.FrontRightDriveId, Constants.CanIds.FrontRightTurnId, Constants.CanIds.FrontRightEncoderId),
             new SwerveModule(Constants.CanIds.BackRightDriveId,  Constants.CanIds.BackRightTurnId,  Constants.CanIds.BackRightEncoderId),
             new SwerveModule(Constants.CanIds.BackLeftDriveId,   Constants.CanIds.BackLeftTurnId,   Constants.CanIds.BackLeftEncoderId)
-        ).toArray(new SwerveModuleIO[0]);
+        ).toArray(new SwerveModule[0]);
 
         m_gyro = new Gyro(Constants.CanIds.PigeonGyroId);
-        
+
         RobotConfig config;
         try {
             config = RobotConfig.fromGUISettings();
@@ -113,8 +104,8 @@ public class Chassis extends SubsystemBase
         AutoBuilder.configure(
             this::getPose,                                       // Robot pose supplier
             this::resetPose,                     // Method to reset odometry (will be called if your auto has a starting pose)
-            this::getSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-            (speeds, feedforwards) -> { driveRelative(speeds); }, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+            this::getMeasuredSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            (speeds, feedforwards) -> { driveRobotRelative(speeds); }, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
             new PPHolonomicDriveController(          // PPHolonomicController is the built in path following controller for holonomic drive trains
                 // TODO: magic numbers, test these
                 new PIDConstants(1.0, 0.0, 0.0),                       // Translation PID constants
@@ -130,14 +121,8 @@ public class Chassis extends SubsystemBase
         resetWheelAnglesToZero();
     }
 
-    public void  drive(ChassisSpeeds speeds)
-    {
-        driveRelative(DriverStation.isTeleop() ? 
-            ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading().plus((DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)) ? Rotation2d.kPi : new Rotation2d(0))) :
-            speeds);
-    }
-
-    public void  driveRelative(ChassisSpeeds speeds)
+    @Override
+    public void  driveRobotRelative(ChassisSpeeds speeds)
     {
         // If the chassis is in x mode, than stay in x mode, ignoring the desired speeds
         if (m_isXMode)
@@ -156,6 +141,7 @@ public class Chassis extends SubsystemBase
         setModuleStates(desiredStates);
     }
 
+    @Override
     public void setModuleStates(SwerveModuleState[] states)
     {
         // Set the desired state for each swerve module
@@ -165,6 +151,7 @@ public class Chassis extends SubsystemBase
         m_swerveModules[3].setDesiredState(states[3], "Rear Left " );
     }
 
+    @Override
     public void resetGyroAngle()
     {
         m_gyro.resetGyroAngle();
@@ -179,11 +166,13 @@ public class Chassis extends SubsystemBase
             m_swerveModules[3].setWheelAngleToForward(Constants.Chassis.BackLeftForwardDegrees);
     }
 
+    @Override
     public void resetPose(Pose2d pose)
     {
         m_poseEstimator.resetPose(pose);
     }
 
+    @Override
     public SwerveModuleState[] getModuleStates()
     {
         SwerveModuleState[] states = {
@@ -196,6 +185,7 @@ public class Chassis extends SubsystemBase
         return states;
     }
 
+    @Override
     public SwerveModulePosition[] getModulePositions()
     {
         SwerveModulePosition[] positions = {
@@ -208,29 +198,22 @@ public class Chassis extends SubsystemBase
         return positions;
     }
 
-    public void toggleFieldCentric()
-    {
-        m_isFieldRelative = !m_isFieldRelative;
-    }
-
+    @Override
     public void toggleXMode()
     {
         m_isXMode = !m_isXMode;
     }
     
+    @Override
     public Rotation2d getHeading()
     {
         return m_gyro.getGyroRotation();
     }
 
+    @Override
     public Pose2d getPose()
     {
         return m_poseEstimator.getEstimatedPosition();
-    }
-
-    public ChassisSpeeds getSpeeds()
-    {
-        return Constants.Chassis.kinematics.toChassisSpeeds(getModuleStates());
     }
 
     @Override
@@ -255,6 +238,6 @@ public class Chassis extends SubsystemBase
         } 
     }
 
-    public boolean getIsXMode()         { return m_isXMode; }
-    public boolean getIsFieldRelative() { return m_isFieldRelative; }
+    @Override
+    public boolean getIsXMode() { return m_isXMode; }
 };

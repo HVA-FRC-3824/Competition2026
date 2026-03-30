@@ -16,7 +16,7 @@ import frc.robot.Constants;
 import frc.robot.Constants.Chassis;
 import frc.robot.lib.TalonFXConfig;
 
-public class SwerveModule implements SwerveModuleIO
+public class SwerveModule
 {
     private final TalonFX         m_drivingMotor;
 
@@ -69,7 +69,6 @@ public class SwerveModule implements SwerveModuleIO
         m_drivingMotor.setPosition(0);
     }
 
-    @Override
     public void setDesiredState(SwerveModuleState desiredState, String description) 
     {
         // Optimize state
@@ -86,7 +85,6 @@ public class SwerveModule implements SwerveModuleIO
         m_drivingMotor.setControl(new VelocityVoltage(velocity));
     }
 
-    @Override
     public SwerveModuleState getState() {
 
         double velocity = m_drivingMotor.getVelocity().getValue().in(DegreesPerSecond)
@@ -100,7 +98,6 @@ public class SwerveModule implements SwerveModuleIO
         );
     }
 
-    @Override
     public SwerveModulePosition getPosition() {
 
         double distance = m_drivingMotor.getPosition().getValue().in(Rotations)
@@ -113,13 +110,11 @@ public class SwerveModule implements SwerveModuleIO
                 Rotation2d.fromDegrees(angleDeg)
         );
     }
-
-    @Override
+    
     public void resetEncoders() {
         m_drivingMotor.setPosition(0);
     }
 
-    @Override
     public void setWheelAngleToForward(double forwardAngleDeg) 
     {
         m_drivingMotor.setPosition(0);
@@ -130,9 +125,6 @@ public class SwerveModule implements SwerveModuleIO
         m_angleMotor.setPosition(moveDegrees);
         m_angleMotor.setControl(new PositionDutyCycle(0));
     }
-
-    @Override
-    public void simulationPeriodic() {}
 
     private double getAbsoluteEncoderAngle() 
     {

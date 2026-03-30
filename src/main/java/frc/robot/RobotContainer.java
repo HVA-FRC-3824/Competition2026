@@ -49,12 +49,12 @@ public class RobotContainer
         (Node) new SequenceNode( // Warm Up
           (Node) new ControllerNode(Constants.Controller.X),
           (Node) new ActionNode(m_stateController.spinUpTowerCommand),
-          (Node) new ActionNode(m_stateController.midShootTowerCommand)
-        ),
-        (Node) new SequenceNode( // Default/Spin Down
-          (Node) new ActionNode(m_stateController.spinDownTowerCommand),
+          (Node) new ActionNode(m_stateController.midShootTowerCommand),
           (Node) new ActionNode(m_stateController.driveModeCommand)
-        )
+        ),
+        // Default/Spin Down
+        (Node) new ActionNode(m_stateController.spinDownTowerCommand),
+        (Node) new ActionNode(m_stateController.driveModeCommand)
       );
 
     Node intakeNode = new SelectorNode(
@@ -129,12 +129,20 @@ public class RobotContainer
         (Node) new SequenceNode( // insure its only on press
           (Node) new ConditionNode(()->m_operator.getRawButtonPressed(Constants.Controller.LeftBumper)),
           (Node) new ActionNode(m_stateController.decreaseManualTowerCommand)
+        ),
+        (Node) new SelectorNode(
+          (Node) new ConditionNode(() -> m_stateController.m_towerState != RobotState.TowerState.ManualControl),
+          (Node) new SequenceNode(
+            (Node) new ConditionNode(() -> m_driver.getRightTriggerAxis() >= 0.5),
+            (Node) new ActionNode(m_stateController.spinUpTowerCommand)
+          ),
+          (Node) new ActionNode(m_stateController.spinDownTowerCommand)
         )
       );
 
     Node intakeJoggingNode =
       (Node) new SequenceNode(
-        (Node) new ConditionNode(() -> m_operator.getRightTriggerAxis() >= 0.5),
+        (Node) new ConditionNode(() -> m_operator.getLeftTriggerAxis() >= 0.5),
         (Node) new ActionNode(m_stateController.jiggleIntakeCommand)
       );
 
