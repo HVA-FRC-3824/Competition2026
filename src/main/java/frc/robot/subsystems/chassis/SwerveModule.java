@@ -1,4 +1,4 @@
-package frc.robot.lib;
+package frc.robot.subsystems.chassis;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Degrees;
@@ -12,27 +12,31 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frc.robot.Constants;
 import frc.robot.Constants.Chassis;
+import frc.robot.lib.TalonFXConfig;
 
-public class SwerveModule {
+public class SwerveModule implements SwerveModuleIO
+{
+    private final TalonFX         m_drivingMotor;
 
-    private final TalonFX driveMotor;
-    private final TalonFX angleMotor;
+    private final TalonFX         m_angleMotor;
+
     private final CANcoder angleAbsoluteEncoder;
 
     public SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEncoderCanId) {
 
-        driveMotor = new TalonFX(driveMotorCanId);
-        angleMotor = new TalonFX(angleMotorCanId);
+        m_drivingMotor = new TalonFX(driveMotorCanId);
+        m_angleMotor = new TalonFX(angleMotorCanId);
         angleAbsoluteEncoder = new CANcoder(angleEncoderCanId);
 
         // Reset encoders
-        driveMotor.setPosition(0);
-        angleMotor.setPosition(0);
+        m_drivingMotor.setPosition(0);
+        m_angleMotor.setPosition(0);
 
         // Configure motors (you’ll need your own config helper or inline config)
         TalonFXConfig.configure(
-            driveMotor,    // drive motor configuration
+            m_drivingMotor,    // drive motor configuration
             85,              // Maximum Amperage
             false,           // Inverted
             true,            // Brake mode enabled
@@ -47,7 +51,7 @@ public class SwerveModule {
             0.0);  // Acceleration limit
 
         TalonFXConfig.configure(
-            angleMotor,    // Angle motor configuration
+            m_angleMotor,    // Angle motor configuration
             20.0,            // Maximum Amperage
             true,            // Inverted
             true,            // Brake mode enabled
@@ -61,30 +65,34 @@ public class SwerveModule {
             0.0,           // Velocity limit
             0.0,   // Acceleration limit
             150.0 / 7.0);    // Sensor to mechanism ratio
+        
+        m_drivingMotor.setPosition(0);
     }
 
-    public void setDesiredState(SwerveModuleState desiredState, String description) {
-
+    @Override
+    public void setDesiredState(SwerveModuleState desiredState, String description) 
+    {
         // Optimize state
         desiredState.optimize(getPosition().angle);
 
         // Set angle (degrees → rotations)
         double angleRotations = desiredState.angle.getDegrees() / 360.0;
-        angleMotor.setControl(new PositionDutyCycle(angleRotations));
+        m_angleMotor.setControl(new PositionDutyCycle(angleRotations));
 
         // Set velocity
         double velocity = desiredState.speedMetersPerSecond
-                / Chassis.DriveMotorConversion;
+                / Constants.Chassis.DriveMotorConversion;
 
-        driveMotor.setControl(new VelocityVoltage(velocity));
+        m_drivingMotor.setControl(new VelocityVoltage(velocity));
     }
 
+    @Override
     public SwerveModuleState getState() {
 
-        double velocity = driveMotor.getVelocity().getValue().in(DegreesPerSecond)
-                * Chassis.DriveMotorConversion;
+        double velocity = m_drivingMotor.getVelocity().getValue().in(DegreesPerSecond)
+                * Constants.Chassis.DriveMotorConversion;
 
-        double angleDeg = angleMotor.getPosition().getValue().in(Degrees);
+        double angleDeg = m_angleMotor.getPosition().getValue().in(Degrees);
 
         return new SwerveModuleState(
                 velocity,
@@ -92,12 +100,13 @@ public class SwerveModule {
         );
     }
 
+    @Override
     public SwerveModulePosition getPosition() {
 
-        double distance = driveMotor.getPosition().getValue().in(Rotations)
+        double distance = m_drivingMotor.getPosition().getValue().in(Rotations)
                 * Chassis.DriveMotorConversion;
 
-        double angleDeg = angleMotor.getPosition().getValue().in(Degrees);
+        double angleDeg = m_angleMotor.getPosition().getValue().in(Degrees);
 
         return new SwerveModulePosition(
                 distance,
@@ -105,29 +114,28 @@ public class SwerveModule {
         );
     }
 
+    @Override
     public void resetEncoders() {
-        driveMotor.setPosition(0);
-        angleMotor.setPosition(0);
+        m_drivingMotor.setPosition(0);
     }
 
-    public void setWheelAngleToForward(double forwardAngleDeg) {
+    @Override
+    public void setWheelAngleToForward(double forwardAngleDeg) 
+    {
+        m_drivingMotor.setPosition(0);
+        m_angleMotor.setPosition(0);
 
-        driveMotor.setPosition(0);
-        angleMotor.setPosition(0);
+        double moveDegrees = -1 * (forwardAngleDeg - (getAbsoluteEncoderAngle() / 360));
 
-        double moveDegrees = -1 * (forwardAngleDeg - getAbsoluteEncoderAngle());
-
-        // Wrap between -180 and 180
-        while (moveDegrees > 180) moveDegrees -= 360;
-        while (moveDegrees < -180) moveDegrees += 360;
-
-        double turns = moveDegrees / 360.0;
-
-        angleMotor.setPosition(turns);
-        angleMotor.setControl(new PositionDutyCycle(0));
+        m_angleMotor.setPosition(moveDegrees);
+        m_angleMotor.setControl(new PositionDutyCycle(0));
     }
 
-    private double getAbsoluteEncoderAngle() {
+    @Override
+    public void simulationPeriodic() {}
+
+    private double getAbsoluteEncoderAngle() 
+    {
         return angleAbsoluteEncoder.getAbsolutePosition().getValue().in(Degrees);
     }
 

@@ -1,5 +1,6 @@
 package frc.robot;
 
+import org.ironmaple.simulation.SimulatedArena;
 import org.littletonrobotics.junction.LoggedPowerDistribution;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -10,6 +11,7 @@ import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.pathfinding.LocalADStar;
 
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 
 // Copyright (c) FIRST and other WPILib contributors.
@@ -106,6 +108,19 @@ public class Robot extends LoggedRobot
 
   @Override
   public void teleopExit() {}
+
+  // simulation period method in your Robot.java
+  @Override
+  public void simulationPeriodic() {
+      SimulatedArena.getInstance().simulationPeriodic();
+      
+      // Get the positions of the fuel (both on the field and in the air)
+      Pose3d[] fuelPoses = SimulatedArena.getInstance()
+            .getGamePiecesArrayByType("Fuel");
+      // Publish to telemetry using AdvantageKit
+      Logger.recordOutput("FieldSimulation/FuelPositions", fuelPoses);
+      
+  }
 
   @Override
   public void testInit() 

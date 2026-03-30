@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot.subsystems.intake;
 
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
@@ -12,19 +12,11 @@ import frc.robot.lib.TalonFXConfig;
 
 
 
-public class Intake extends SubsystemBase {
-
-    public enum IntakeState {
-        DeployedRollerOn,
-        StowedOn,
-        Stowed,
-        DeployedRollerOff
-    }
-
+public class Intake extends SubsystemBase
+{
     private final TalonFX m_fuelIntakeMotor             = new TalonFX(Constants.CanIds.FuelIntakeMotorId);
     private final TalonFX m_intakePositionLeaderMotor   = new TalonFX(Constants.CanIds.IntakePositionLeaderMotorId);
     private final TalonFX m_intakePositionFollowerMotor = new TalonFX(Constants.CanIds.IntakePositionFollowerMotorId);
-    private IntakeState m_IntakeState = IntakeState.Stowed;
 
     public Intake() 
     {    
@@ -69,7 +61,7 @@ public class Intake extends SubsystemBase {
     // pos is in turns
     public void setPos(double pos) 
     {
-        m_intakePositionLeaderMotor.setControl(new MotionMagicVoltage(pos));
+        // m_intakePositionLeaderMotor.setControl(new MotionMagicVoltage(pos));
     }
 
     // turns per second

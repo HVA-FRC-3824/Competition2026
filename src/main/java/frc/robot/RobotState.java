@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import static edu.wpi.first.units.Units.Meters;
+import edu.wpi.first.wpilibj.Timer;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -17,10 +18,10 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Indexer;
-import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Tower;
 import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.chassis.Chassis;
+import frc.robot.subsystems.intake.Intake;
 
 public class RobotState 
 {
@@ -95,52 +96,60 @@ public class RobotState
     private static final PIDController m_aimController = new PIDController(0.5, 0.0, 0.0);
 
     // Indexer
-    public final Runnable indexingCommand          = () -> { m_indexerState = IndexerState.Spindexing; };
-    public final Runnable notIndexingCommand       = () -> { m_indexerState = IndexerState.Stopped; };
-    public final Runnable backwardsIndexingCommand = () -> { m_indexerState = IndexerState.Backwards; };
+    public final Runnable indexingCommand          = () -> m_indexerState = IndexerState.Spindexing;
+    public final Runnable notIndexingCommand       = () -> m_indexerState = IndexerState.Stopped;
+    public final Runnable backwardsIndexingCommand = () -> m_indexerState = IndexerState.Backwards;
 
     // Intake
-    public final Runnable deployIntakeCommand  = () -> { m_intakePosState = IntakePosState.Deployed; };
-    public final Runnable retractIntakeCommand = () -> { m_intakePosState = IntakePosState.Stowed; };
+    public final Runnable deployIntakeCommand  = () -> m_intakePosState = IntakePosState.Deployed;
+    public final Runnable retractIntakeCommand = () -> m_intakePosState = IntakePosState.Stowed;
+    public final Runnable jiggleIntakeCommand  = () -> { 
+        if (((int)Timer.getMatchTime()) % 2 == 0)
+            m_intakePosState = IntakePosState.Stowed;
+        else
+            m_intakePosState = IntakePosState.Deployed;
+    };
 
-    public final Runnable startIntakeCommand   = () -> { m_intakeRollerState = IntakeRollerState.Intaking; };
-    public final Runnable stopIntakeCommand    = () -> { m_intakeRollerState = IntakeRollerState.Off; };
-    public final Runnable spitOutIntakeCommand = () -> { m_intakeRollerState = IntakeRollerState.Backwards; };
+    public final Runnable startIntakeCommand   = () -> m_intakeRollerState = IntakeRollerState.Intaking;
+    public final Runnable stopIntakeCommand    = () -> m_intakeRollerState = IntakeRollerState.Off;
+    public final Runnable spitOutIntakeCommand = () -> m_intakeRollerState = IntakeRollerState.Backwards;
 
     // Tower
-    public final Runnable spinDownTowerCommand = () -> { m_towerRunningState = TowerRunningState.Off; };
-    public final Runnable spinUpTowerCommand   = () -> { m_towerRunningState = TowerRunningState.On; };
+    public final Runnable spinDownTowerCommand = () -> m_towerRunningState = TowerRunningState.Off;
+    public final Runnable spinUpTowerCommand   = () -> m_towerRunningState = TowerRunningState.On;
 
-    public final Runnable lowShootTowerCommand  = () -> { m_towerState = TowerState.Low; };
-    public final Runnable midShootTowerCommand  = () -> { m_towerState = TowerState.Middle; };
-    public final Runnable longShootTowerCommand = () -> { m_towerState = TowerState.Long; };
-    public final Runnable autoTowerCommand      = () -> { m_towerState = TowerState.Auto; };
-    public final Runnable manualTowerCommand    = () -> { m_towerState = TowerState.ManualControl; };
+    public final Runnable lowShootTowerCommand  = () -> m_towerState = TowerState.Low;
+    public final Runnable midShootTowerCommand  = () -> m_towerState = TowerState.Middle;
+    public final Runnable longShootTowerCommand = () -> m_towerState = TowerState.Long;
+    public final Runnable autoTowerCommand      = () -> m_towerState = TowerState.Auto;
+    public final Runnable manualTowerCommand    = () -> m_towerState = TowerState.ManualControl;
 
-    public final Runnable increaseManualTowerCommand = () -> { m_manualFlywheelSpeed += 1.0; };
-    public final Runnable decreaseManualTowerCommand = () -> { m_manualFlywheelSpeed -= 1.0; };
-    public final Runnable resetManualTowerCommand    = () -> { m_manualFlywheelSpeed  = 30.0; };
+    public final Runnable increaseManualTowerCommand = () -> m_manualFlywheelSpeed += 1.0;
+    public final Runnable decreaseManualTowerCommand = () -> m_manualFlywheelSpeed -= 1.0;
+    public final Runnable resetManualTowerCommand    = () -> m_manualFlywheelSpeed  = 30.0;
 
     // Chassis
-    public final Runnable autoAimCommand   = () -> { m_chassisState = ChassisState.AimHub; };
-    public final Runnable driveModeCommand = () -> { m_chassisState = ChassisState.Driving; };
+    public final Runnable autoAimCommand   = () -> m_chassisState = ChassisState.AimHub;
+    public final Runnable driveModeCommand = () -> m_chassisState = ChassisState.Driving;
 
-    public final Runnable xModeCommand    = () -> { m_chassis.toggleXMode(); };
-    public final Runnable xModeOnCommand  = () -> { if (!m_chassis.getIsXMode()) m_chassis.toggleXMode(); };
-    public final Runnable xModeOffCommand = () -> { if (m_chassis.getIsXMode()) m_chassis.toggleXMode(); };
+    public final Runnable xModeCommand    = () -> m_chassis.toggleXMode();
+    public final Runnable xModeOnCommand  = () -> {if (!m_chassis.getIsXMode()) m_chassis.toggleXMode();};
+    public final Runnable xModeOffCommand = () -> {if (m_chassis.getIsXMode()) m_chassis.toggleXMode();};
         
-    public final Runnable fieldRelativeCommand    = () -> { m_chassis.toggleXMode(); };
-    public final Runnable fieldRelativeOnCommand  = () -> { if (!m_chassis.getIsFieldRelative()) m_chassis.toggleFieldCentric(); };
-    public final Runnable fieldRelativeOffCommand = () -> { if (m_chassis.getIsFieldRelative()) m_chassis.toggleFieldCentric(); };
+    public final Runnable fieldRelativeCommand    = () -> m_chassis.toggleXMode();
+    public final Runnable fieldRelativeOnCommand  = () -> {if (!m_chassis.getIsFieldRelative()) m_chassis.toggleFieldCentric();};
+    public final Runnable fieldRelativeOffCommand = () -> {if (m_chassis.getIsFieldRelative()) m_chassis.toggleFieldCentric();};
 
     public final Runnable chassisTrackAndShootHub = () -> {
         Transform2d relativeDistance = GetHubPose().minus(getPose());
 
         Rotation2d angleToHubFromPos = new Rotation2d(Math.atan2(relativeDistance.getY(), relativeDistance.getX()));
 
-        m_speeds.omegaRadiansPerSecond = m_aimController.calculate(getHeading().getRadians(), angleToHubFromPos.getRadians());
+        Rotation2d shooterAngleToHubFromPos = angleToHubFromPos.plus(Rotation2d.k180deg);
 
-        Logger.recordOutput("Testing/Chassis To Hub Speed", Units.radiansToDegrees(m_speeds.omegaRadiansPerSecond));
+        m_speeds.omegaRadiansPerSecond = m_aimController.calculate(getHeading().getRadians(), shooterAngleToHubFromPos.getRadians());
+
+        Logger.recordOutput("Measured/Chassis To Hub Speed", Units.radiansToDegrees(m_speeds.omegaRadiansPerSecond));
 
         if (m_aimController.atSetpoint())
             xModeOnCommand.run();
@@ -195,7 +204,7 @@ public class RobotState
         Logger.recordOutput("Measured/Chassis/Is Aimed", m_aimController.atSetpoint());
 
         Logger.recordOutput("Measured/Pose",         m_chassis.getPose());
-        Logger.recordOutput("Measured/Heading",      m_chassis.getHeading());
+        Logger.recordOutput("Measured/Heading",      m_chassis.getHeading().getDegrees());
         Logger.recordOutput("Measured/Cam 1 Result", Vision.getResult1());
         Logger.recordOutput("Measured/Cam 2 Result", Vision.getResult2());
 
@@ -224,12 +233,14 @@ public class RobotState
 
         m_manualFlywheelSpeed = SmartDashboard.getNumber("Manual flywheel speed", m_manualFlywheelSpeed);
         // SmartDashboard.putData(manualTowerCommand);
-
+        if (m_towerRunningState == TowerRunningState.Off)
+        {
+            m_tower.setSpeed(0.0);
+        }
+        else
+        {
         switch (m_towerState)
         {
-            case Idle:
-                m_tower.setSpeed(0.0);
-                break;
             case Low:
                 m_tower.setSpeed(Constants.Tower.CloseSpeed);
                 break;
@@ -247,6 +258,7 @@ public class RobotState
             case ManualControl:
                 m_tower.setSpeed(m_manualFlywheelSpeed);
                 break;
+            }
         }
 
         switch (m_indexerState)
@@ -289,6 +301,7 @@ public class RobotState
         }
 
         switch (m_chassisState)
+        
         {
             case Driving:
                 m_chassis.drive(m_speeds);

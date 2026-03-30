@@ -23,13 +23,13 @@ public class Tower extends SubsystemBase
     {
         TalonFXConfig.configure(m_leaderFlywheel,
                         85,            // Current limit
-                        true,            // Inverted
+                        false,            // Inverted
                         false,           // Brake mode
                         false,           // Continuous wrap
                         0.45,            // P gain
                         0.0,             // I gain
                         0.0,             // D gain
-                        0.0,             // S (static friction feedforward)
+                        0.49,             // S (static friction feedforward)
                         0.19,            // V (velocity feedforward)
                         1.32,            // A (acceleration feedforward)
                         0.0,           // Velocity limit

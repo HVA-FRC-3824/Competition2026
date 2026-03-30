@@ -28,6 +28,7 @@ public class RobotContainer
   private final SendableChooser<Command> m_autoChooser;
 
   private RootNode m_driverBT;
+  private RootNode m_operatorBT;
 
   public RobotContainer() 
   {
@@ -40,28 +41,14 @@ public class RobotContainer
   {
     Node shootingNode =
       (Node) new SelectorNode(
-        (Node) new SequenceNode( // Low
-          (Node) new ControllerNode(Constants.Controller.A),
-          (Node) new ActionNode(m_stateController.lowShootTowerCommand),
-          (Node) new ActionNode(m_stateController.autoAimCommand)
-        ),
-        (Node) new SequenceNode( // Mid
-          (Node) new ControllerNode(Constants.Controller.B),
-          (Node) new ActionNode(m_stateController.midShootTowerCommand),
-          (Node) new ActionNode(m_stateController.autoAimCommand)
-        ),
-        (Node) new SequenceNode( // Long
-          (Node) new ControllerNode(Constants.Controller.Y),
-          (Node) new ActionNode(m_stateController.longShootTowerCommand),
-          (Node) new ActionNode(m_stateController.autoAimCommand)
-        ),
         (Node) new SequenceNode( // Auto
-          new ConditionNode(() -> m_driver.getRightTriggerAxis() >= 0.5),
-          (Node) new ActionNode(m_stateController.autoTowerCommand),
+          (Node) new ConditionNode(() -> m_driver.getRightTriggerAxis() >= 0.5),
+          (Node) new ActionNode(m_stateController.spinUpTowerCommand),
           (Node) new ActionNode(m_stateController.autoAimCommand)
         ),
         (Node) new SequenceNode( // Warm Up
           (Node) new ControllerNode(Constants.Controller.X),
+          (Node) new ActionNode(m_stateController.spinUpTowerCommand),
           (Node) new ActionNode(m_stateController.midShootTowerCommand)
         ),
         (Node) new SequenceNode( // Default/Spin Down
@@ -103,12 +90,61 @@ public class RobotContainer
       );
 
     m_driverBT = new RootNode(
-      // Driving
       driveNode,
       shootingNode,
       indexNode,
       intakeNode
     );
+
+    Node shootingModeNodes = 
+      (Node) new SelectorNode(
+        (Node) new SequenceNode(
+          (Node) new ControllerNode(Constants.Controller.A),
+          (Node) new ActionNode(m_stateController.lowShootTowerCommand)
+        ),        
+        (Node) new SequenceNode(
+          (Node) new ControllerNode(Constants.Controller.B),
+          (Node) new ActionNode(m_stateController.midShootTowerCommand)
+        ),
+        (Node) new SequenceNode(
+          (Node) new ControllerNode(Constants.Controller.Y),
+          (Node) new ActionNode(m_stateController.longShootTowerCommand)
+        ),
+        (Node) new SequenceNode(
+          (Node) new ControllerNode(Constants.Controller.LeftPaddle),
+          (Node) new ActionNode(m_stateController.autoTowerCommand)
+        )
+      );
+
+    Node manualModeNodes = 
+      (Node) new SelectorNode(
+        (Node) new SequenceNode(
+          (Node) new ControllerNode(Constants.Controller.RightPaddle),
+          (Node) new ActionNode(m_stateController.manualTowerCommand)
+        ),
+        (Node) new SequenceNode( // insure its only on press
+          (Node) new ConditionNode(()->m_operator.getRawButtonPressed(Constants.Controller.RightBumper)),
+          (Node) new ActionNode(m_stateController.increaseManualTowerCommand)
+        ),
+        (Node) new SequenceNode( // insure its only on press
+          (Node) new ConditionNode(()->m_operator.getRawButtonPressed(Constants.Controller.LeftBumper)),
+          (Node) new ActionNode(m_stateController.decreaseManualTowerCommand)
+        )
+      );
+
+    Node intakeJoggingNode =
+      (Node) new SequenceNode(
+        (Node) new ConditionNode(() -> m_operator.getRightTriggerAxis() >= 0.5),
+        (Node) new ActionNode(m_stateController.jiggleIntakeCommand)
+      );
+
+    m_operatorBT = new RootNode(
+        (Node) new SelectorNode(
+          manualModeNodes,
+          shootingModeNodes,
+          intakeJoggingNode
+        )
+      );
   }
 
   public void tick()
@@ -117,6 +153,7 @@ public class RobotContainer
     // m_driverBT.update((Timer.getMatchTime() - ((2 * 60) + 30) / 2 > 0) ? m_driver : m_operator);
 
     m_driverBT.update(m_driver);
+    m_operatorBT.update(m_operator);
   }
 
   public void log()
