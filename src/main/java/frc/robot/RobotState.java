@@ -252,6 +252,8 @@ public class RobotState
     {
         Logging();
 
+        m_aimController.calculate(getHeading().getRadians());
+
         m_manualFlywheelSpeed = SmartDashboard.getNumber("Manual flywheel speed", m_manualFlywheelSpeed);
         // SmartDashboard.putData(manualTowerCommand);
         if (m_towerRunningState == TowerRunningState.Off)
