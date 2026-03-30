@@ -9,6 +9,10 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import static edu.wpi.first.units.Units.Meters;
+
+import java.util.Arrays;
+import java.util.Optional;
+
 import edu.wpi.first.wpilibj.Timer;
 
 import org.littletonrobotics.junction.Logger;
@@ -78,6 +82,7 @@ public class RobotState
 
     public enum ChassisState
     {
+        Pathplanning,
         Driving,
         AimHub
     }
@@ -97,7 +102,7 @@ public class RobotState
     private static Intake      m_intake;
     private static ChassisIO   m_chassis;
 
-    private static final PIDController m_aimController = new PIDController(1.0, 0.0, 0.0);
+    private static final PIDController m_aimController = new PIDController(0.6, 0.0, 0.0);
 
     // Indexer
     public final Runnable indexingCommand          = () -> m_indexerState = IndexerState.Spindexing;
@@ -133,38 +138,36 @@ public class RobotState
     public final Runnable resetManualTowerCommand    = () -> m_manualFlywheelSpeed  = 30.0;
 
     // Chassis
-    public final Runnable autoAimCommand   = () -> m_chassisState = ChassisState.AimHub;
-    public final Runnable driveModeCommand = () -> m_chassisState = ChassisState.Driving;
+    public final Runnable autoAimCommand      = () -> m_chassisState = ChassisState.AimHub;
+    public final Runnable driveModeCommand    = () -> m_chassisState = ChassisState.Driving;
+    public final Runnable pathplanningCommand = () -> m_chassisState = ChassisState.Pathplanning;
 
     public final Runnable xModeCommand    = () -> m_chassis.toggleXMode();
-    public final Runnable xModeOnCommand  = () -> {if (!m_chassis.getIsXMode()) m_chassis.toggleXMode();};
-    public final Runnable xModeOffCommand = () -> {if (m_chassis.getIsXMode()) m_chassis.toggleXMode();};
+    public final Runnable xModeOnCommand  = () -> { if (!m_chassis.getIsXMode()) m_chassis.toggleXMode(); };
+    public final Runnable xModeOffCommand = () -> { if (m_chassis.getIsXMode()) m_chassis.toggleXMode(); };
         
     public final Runnable chassisTrackAndShootHub = () -> {
-        Transform2d relativeDistance = GetHubPose().minus(getPose());
+        Transform2d relativeDistance = getTargetPose().minus(getPose());
 
         Rotation2d angleToHubFromPos = new Rotation2d(Math.atan2(relativeDistance.getY(), relativeDistance.getX()));
 
-        Rotation2d shooterAngleToHubFromPos = angleToHubFromPos.plus(Rotation2d.k180deg);
-
-        m_speeds.omegaRadiansPerSecond = m_aimController.calculate(getHeading().getRadians(), shooterAngleToHubFromPos.getRadians());
-
-        Logger.recordOutput("Measured/Chassis To Hub Speed", Units.radiansToDegrees(m_speeds.omegaRadiansPerSecond));
+        m_speeds.omegaRadiansPerSecond = m_aimController.calculate(getHeading().getRadians() * -1, angleToHubFromPos.getRadians());
 
         if (m_aimController.atSetpoint())
+        {
             xModeOnCommand.run();
+        }
         else
+        {
             xModeOffCommand.run();
+        }
 
         m_chassis.driveFieldRelative(m_speeds);
     };
 
     class PathplannerSubsystem extends SubsystemBase
     {
-        public PathplannerSubsystem()
-        {
-
-        }
+        public PathplannerSubsystem() {}
     }
 
     public RobotState()
@@ -180,7 +183,7 @@ public class RobotState
         m_chassis.setDefaultCommand(m_chassis.runOnce(()->{}));
 
         // Config PID to be tolerant within 5 degrees
-        m_aimController.setTolerance(Units.degreesToRadians(3.0));
+        m_aimController.setTolerance(Units.degreesToRadians(1.0));
 
         PathplannerSubsystem pathplannerSubsystem = new PathplannerSubsystem();        
 
@@ -188,7 +191,7 @@ public class RobotState
         NamedCommands.registerCommand("index", pathplannerSubsystem.runOnce(indexingCommand));
         NamedCommands.registerCommand("stopIndexing", pathplannerSubsystem.runOnce(notIndexingCommand));
 
-        NamedCommands.registerCommand("stopShoot", pathplannerSubsystem.runOnce(spinDownTowerCommand));
+        NamedCommands.registerCommand("autoShoot", pathplannerSubsystem.runOnce(autoTowerCommand));
         NamedCommands.registerCommand("lowShoot",  pathplannerSubsystem.runOnce(lowShootTowerCommand));
         NamedCommands.registerCommand("midShoot",  pathplannerSubsystem.runOnce(midShootTowerCommand));
         NamedCommands.registerCommand("longShoot", pathplannerSubsystem.runOnce(longShootTowerCommand));
@@ -201,10 +204,18 @@ public class RobotState
 
         NamedCommands.registerCommand("aimMode",   pathplannerSubsystem.runOnce(autoAimCommand));
         NamedCommands.registerCommand("driveMode", pathplannerSubsystem.runOnce(driveModeCommand));
+        NamedCommands.registerCommand("pathplanningMode", pathplannerSubsystem.runOnce(pathplanningCommand));
+
+        NamedCommands.registerCommand("deployIntake", pathplannerSubsystem.runOnce(deployIntakeCommand));
+        NamedCommands.registerCommand("retractIntake", pathplannerSubsystem.runOnce(retractIntakeCommand));
+        NamedCommands.registerCommand("jiggleIntake", pathplannerSubsystem.runOnce(jiggleIntakeCommand));
     }
 
     public void Logging()
     {
+        Logger.recordOutput("Is Hub Active", isHubActive());
+        Logger.recordOutput("Game State", DriverStation.isAutonomous() ? "Autonomous" : DriverStation.isTeleop() && DriverStation.getMatchTime() < 30 ? "EndGame" : "Teleop");
+
         // What it is
 
         Logger.recordOutput("Measured/Chassis/Speeds",   m_chassis.getMeasuredSpeeds());
@@ -215,24 +226,105 @@ public class RobotState
         Logger.recordOutput("Measured/Heading",      m_chassis.getHeading().getDegrees());
         Logger.recordOutput("Measured/Cam 1 Result", Vision.getResult1());
         Logger.recordOutput("Measured/Cam 2 Result", Vision.getResult2());
+        
+        Logger.recordOutput("Measured/Chassis To Hub Speed", Units.radiansToDegrees(m_aimController.getError()));
 
         Logger.recordOutput("Measured/Tower/Is Spun Up", m_tower.isSpunUp());
         Logger.recordOutput("Measured/Tower/TPS",        m_tower.getFlywheelTPS());
 
         // What we want
 
-        Logger.recordOutput("Desired/Chassis/Speeds",    m_speeds);
-        Logger.recordOutput("Desired/Chassis/XMode",     m_chassis.getIsXMode());
+        Logger.recordOutput("Desired/Chassis/Speeds", m_speeds);
+        Logger.recordOutput("Desired/Chassis/XMode",  m_chassis.getIsXMode());
 
         Logger.recordOutput("Desired/Tower/TPS",        m_tower.getDesiredFlywheelTPS());
         Logger.recordOutput("Desired/Tower/Manual TPS", m_manualFlywheelSpeed);
 
-        Logger.recordOutput("Desired/Tower/State",   m_towerState.toString());
+        Logger.recordOutput("Desired/Tower/State",   m_towerState.toString() + " " + m_towerRunningState.toString());
         Logger.recordOutput("Desired/Chassis/State", m_chassisState.toString());
         Logger.recordOutput("Desired/Indexer/State", m_indexerState.toString());
         Logger.recordOutput("Desired/Intake/State",  m_intakePosState.toString() + " " + m_intakeRollerState.toString());
         Logger.recordOutput("Desired/Led/State", "No Tyler, there's no LEDs");
-        
+    }
+
+    public boolean isHubActive()
+    {
+        Optional<Alliance> alliance = DriverStation.getAlliance();
+        // If we have no alliance, we cannot be enabled, therefore no hub.
+        if (alliance.isEmpty())
+        {
+            return false;
+        }
+        // Hub is always enabled in autonomous.
+        if (DriverStation.isAutonomousEnabled())
+        {
+            return true;
+        }
+        // At this point, if we're not teleop enabled, there is no hub.
+        if (!DriverStation.isTeleopEnabled())
+        {
+            return false;
+        }
+
+        // We're teleop enabled, compute.
+        double matchTime = DriverStation.getMatchTime() + 3; // Add 3 seconds of lead time so that we have a competitive edge
+        String gameData = DriverStation.getGameSpecificMessage();
+
+        // If we have no game data, we cannot compute, assume hub is active, as its likely early in teleop.
+        if (gameData.isEmpty()) 
+        {
+            return true;
+        }
+
+        boolean redInactiveFirst = false;
+        switch (gameData.charAt(0)) 
+        {
+            case 'R' -> redInactiveFirst = true;
+            case 'B' -> redInactiveFirst = false;
+            default -> {
+                // If we have invalid game data, assume hub is active.
+                return true;
+            }
+        }
+
+        // Shift was is active for blue if red won auto, or red if blue won auto.
+        boolean shift1Active = 
+            switch (alliance.get()) 
+            {
+                case Red -> !redInactiveFirst;
+                case Blue -> redInactiveFirst;
+            };
+
+        if (matchTime > 130) 
+        {
+            // Transition shift, hub is active.
+            return true;
+        } 
+        else if (matchTime > 105) 
+        {
+            // Shift 1
+            return shift1Active;
+        } 
+        else if (matchTime > 80) 
+        {
+            // Shift 2
+            return !shift1Active;
+        } 
+        else if (matchTime > 55) 
+        {
+            // Shift 3
+            return shift1Active;
+        }
+        else if (matchTime > 30) 
+        {
+            // Shift 4
+            return !shift1Active;
+        } 
+        else 
+        {
+            // End game, hub always active.
+            return true;
+        }
     }
 
     public void Periodic()
@@ -247,25 +339,25 @@ public class RobotState
         }
         else
         {
-        switch (m_towerState)
-        {
-            case Low:
-                m_tower.setSpeed(Constants.Tower.CloseSpeed);
-                break;
-            case Middle:
-                m_tower.setSpeed(Constants.Tower.MiddleSpeed);
-                break;
-            case Long:
-                m_tower.setSpeed(Constants.Tower.LongSpeed);
-                break;
-            case Auto:
-                double dist = GetHubDistMeters();
-                // TODO:
-                m_tower.setSpeed(0.0);
-                break;
-            case ManualControl:
-                m_tower.setSpeed(m_manualFlywheelSpeed);
-                break;
+            switch (m_towerState)
+            {
+                case Low:
+                    m_tower.setSpeed(Constants.Tower.CloseSpeed);
+                    break;
+                case Middle:
+                    m_tower.setSpeed(Constants.Tower.MiddleSpeed);
+                    break;
+                case Long:
+                    m_tower.setSpeed(Constants.Tower.LongSpeed);
+                    break;
+                case Auto:
+                    double dist = getTargetDistMeters();
+                    // TODO:
+                    m_tower.setSpeed(0.0);
+                    break;
+                case ManualControl:
+                    m_tower.setSpeed(m_manualFlywheelSpeed);
+                    break;
             }
         }
 
@@ -291,7 +383,6 @@ public class RobotState
                 m_intake.setPos(Constants.Intake.IntakeDeployedTurns);
                 break;
             case StartingPos:
-                Logger.recordOutput("Why ", "are you going to the starting pos");
                 break;
         }
 
@@ -309,8 +400,9 @@ public class RobotState
         }
 
         switch (m_chassisState)
-        
         {
+            case Pathplanning:
+                break;
             case Driving:
                 m_chassis.driveFieldRelative(m_speeds);
                 break;
@@ -320,16 +412,22 @@ public class RobotState
         }
     }
 
-    public double GetHubDistMeters()
+    public double getTargetDistMeters()
     {
-        return Math.sqrt(Math.pow(GetHubPose().getMeasureX().in(Meters) - GetHubPose().getMeasureX().in(Meters), 2) + 
-                         Math.pow(GetHubPose().getMeasureY().in(Meters) - GetHubPose().getMeasureY().in(Meters), 2));
+        return Math.sqrt(Math.pow(getTargetPose().getMeasureX().in(Meters) - getTargetPose().getMeasureX().in(Meters), 2) + 
+                         Math.pow(getTargetPose().getMeasureY().in(Meters) - getTargetPose().getMeasureY().in(Meters), 2));
     }
 
-    public Pose2d GetHubPose()
+    public Pose2d getTargetPose()
     {
-        return DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red ? 
-                        Constants.Field.RedHub.toPose2d() : Constants.Field.BlueHub.toPose2d();
+        return isHubActive() ?
+            ((DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red) ? 
+                Constants.Field.RedHub.toPose2d() : 
+                Constants.Field.BlueHub.toPose2d()) 
+            :
+            getPose().nearest(Arrays.asList(
+                (DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red) ? Constants.Field.RedAllianceZoneClose : Constants.Field.BlueAllianceZoneClose, 
+                (DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red) ? Constants.Field.RedAllianceZoneFar   : Constants.Field.BlueAllianceZoneFar));
     }
 
     public Pose2d getPose()

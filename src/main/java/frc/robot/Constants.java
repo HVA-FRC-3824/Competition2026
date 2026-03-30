@@ -69,8 +69,8 @@ public final class Constants
 
     public static final class Intake
     {
-        public static final double IntakeStowedTurns    = 6.0;
-        public static final double IntakeDeployedTurns  = 15.0;
+        public static final double IntakeStowedTurns    = 3.0;
+        public static final double IntakeDeployedTurns  = 6.0;
 
         public static final double IntakeDriveTurnsPerSec = 60;
 

@@ -31,6 +31,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.subsystems.Vision;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 public class SimChassis implements ChassisIO 
 {
@@ -67,33 +68,35 @@ public class SimChassis implements ChassisIO
         field2d = new Field2d();
 
         RobotConfig config;
-        try {
+        try 
+        {
             config = RobotConfig.fromGUISettings();
-        } catch (Exception e) {
+        } 
+        catch (Exception e) 
+        {
             e.printStackTrace();
             return;
         }
 
         // Configure the AutoBuilder
         AutoBuilder.configure(
-            this::getPose,                                       // Robot pose supplier
-            this::resetPose,                     // Method to reset odometry (will be called if your auto has a starting pose)
-            this::getMeasuredSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-            (speeds, feedforwards) -> { driveRobotRelative(speeds); }, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
-            new PPHolonomicDriveController(          // PPHolonomicController is the built in path following controller for holonomic drive trains
-                // TODO: magic numbers, test these
-                new PIDConstants(1.0, 0.0, 0.0),                       // Translation PID constants
-                new PIDConstants(1.0, 0.0, 0.0)                        // Rotation PID constants
+            this::getPose,
+            this::resetPose,
+            this::getMeasuredSpeeds,
+            this::driveRobotRelative,
+            new PPHolonomicDriveController(
+                new PIDConstants(5.0, 0.0, 0.0),
+                new PIDConstants(5.0, 0.0, 0.0)
             ),
-            config, // The robot configuration
-                // Path Flipping: Determines if the path should be flipped based on the robot's alliance color
-                () -> DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red),
-            this // Reference to this subsystem to set requirements
-        );
+            config,
+            // Path Flipping: Determines if the path should be flipped based on the robot's alliance color
+            () -> DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red),
+            this);
     }
 
     @Override
     public void driveRobotRelative(ChassisSpeeds chassisSpeeds) {
+        Logger.recordOutput("Simulation/Desired Speeds", chassisSpeeds);
         if (m_xMode) {
             setModuleStates(new SwerveModuleState[] {
                 new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
@@ -173,7 +176,5 @@ public class SimChassis implements ChassisIO
         field2d.getObject("odometry").setPose(getPose());
         Logger.recordOutput("Simulation/Actual Pose", simulatedDrive.getActualPoseInSimulationWorld());
         Logger.recordOutput("Simulation/Measured Pose", getPose());
-
-        SmartDashboard.putString("HELP", "MEEEEEEE sim chassis is running :D");
     }
 }

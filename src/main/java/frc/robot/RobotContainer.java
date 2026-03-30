@@ -9,6 +9,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.lib.BT.Node;
 import frc.robot.lib.BT.RootNode;
@@ -33,6 +34,7 @@ public class RobotContainer
   public RobotContainer() 
   {
     m_autoChooser = AutoBuilder.buildAutoChooser();
+    SmartDashboard.putData("Auto Chooser", m_autoChooser);
 
     configureBindings();
   }
@@ -131,9 +133,9 @@ public class RobotContainer
           (Node) new ActionNode(m_stateController.decreaseManualTowerCommand)
         ),
         (Node) new SelectorNode(
-          (Node) new ConditionNode(() -> m_stateController.m_towerState != RobotState.TowerState.ManualControl),
+          (Node) new ConditionNode(() -> RobotState.m_towerState != RobotState.TowerState.ManualControl),
           (Node) new SequenceNode(
-            (Node) new ConditionNode(() -> m_driver.getRightTriggerAxis() >= 0.5),
+            (Node) new ConditionNode(() -> m_operator.getRightTriggerAxis() >= 0.5),
             (Node) new ActionNode(m_stateController.spinUpTowerCommand)
           ),
           (Node) new ActionNode(m_stateController.spinDownTowerCommand)
@@ -147,11 +149,9 @@ public class RobotContainer
       );
 
     m_operatorBT = new RootNode(
-        (Node) new SelectorNode(
-          manualModeNodes,
-          shootingModeNodes,
-          intakeJoggingNode
-        )
+        manualModeNodes,
+        shootingModeNodes,
+        intakeJoggingNode
       );
   }
 
