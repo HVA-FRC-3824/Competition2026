@@ -451,8 +451,8 @@ public class RobotState
     public void setDrive(double leftY, double leftX, double rightX)
     {
         m_speeds = new ChassisSpeeds(
-            Math.pow(Math.abs(leftY), Constants.Chassis.TranslateExponentialPower) * leftY  * Constants.Chassis.MaximumSpeedMetersPerSec,
-            Math.pow(Math.abs(leftX), Constants.Chassis.TranslateExponentialPower) * leftX  * Constants.Chassis.MaximumSpeedMetersPerSec, 
-            Math.pow(Math.abs(rightX), Constants.Chassis.AngularExponentialPower) * rightX * Constants.Chassis.MaximumAngularVelocity);
+            leftY  * Constants.Chassis.MaximumSpeedMetersPerSec,
+            leftX  * Constants.Chassis.MaximumSpeedMetersPerSec, 
+            rightX * Constants.Chassis.MaximumAngularVelocity);
     }
 }
