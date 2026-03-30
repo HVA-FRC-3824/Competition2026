@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.lib.HubActivePeriod;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Tower;
 import frc.robot.subsystems.Vision;
@@ -102,7 +103,7 @@ public class RobotState
     private static Intake      m_intake;
     private static ChassisIO   m_chassis;
 
-    private static final PIDController m_aimController = new PIDController(0.6, 0.0, 0.0);
+    private static final PIDController m_aimController = new PIDController(0.5, 0.05, 0.0);
 
     // Indexer
     public final Runnable indexingCommand          = () -> m_indexerState = IndexerState.Spindexing;
@@ -145,13 +146,13 @@ public class RobotState
     public final Runnable xModeCommand    = () -> m_chassis.toggleXMode();
     public final Runnable xModeOnCommand  = () -> { if (!m_chassis.getIsXMode()) m_chassis.toggleXMode(); };
     public final Runnable xModeOffCommand = () -> { if (m_chassis.getIsXMode()) m_chassis.toggleXMode(); };
-        
+    
     public final Runnable chassisTrackAndShootHub = () -> {
-        Transform2d relativeDistance = getTargetPose().minus(getPose());
+        Transform2d relativeDistance = getPose().minus(getTargetPose());
 
         Rotation2d angleToHubFromPos = new Rotation2d(Math.atan2(relativeDistance.getY(), relativeDistance.getX()));
 
-        m_speeds.omegaRadiansPerSecond = m_aimController.calculate(getHeading().getRadians() * -1, angleToHubFromPos.getRadians());
+        m_speeds.omegaRadiansPerSecond = m_aimController.calculate(getHeading().getRadians(), angleToHubFromPos.getRadians());
 
         if (m_aimController.atSetpoint())
         {
@@ -213,7 +214,7 @@ public class RobotState
 
     public void Logging()
     {
-        Logger.recordOutput("Is Hub Active", isHubActive());
+        Logger.recordOutput("Is Hub Active", HubActivePeriod.isHubActive());
         Logger.recordOutput("Game State", DriverStation.isAutonomous() ? "Autonomous" : DriverStation.isTeleop() && DriverStation.getMatchTime() < 30 ? "EndGame" : "Teleop");
 
         // What it is
@@ -245,86 +246,6 @@ public class RobotState
         Logger.recordOutput("Desired/Indexer/State", m_indexerState.toString());
         Logger.recordOutput("Desired/Intake/State",  m_intakePosState.toString() + " " + m_intakeRollerState.toString());
         Logger.recordOutput("Desired/Led/State", "No Tyler, there's no LEDs");
-    }
-
-    public boolean isHubActive()
-    {
-        Optional<Alliance> alliance = DriverStation.getAlliance();
-        // If we have no alliance, we cannot be enabled, therefore no hub.
-        if (alliance.isEmpty())
-        {
-            return false;
-        }
-        // Hub is always enabled in autonomous.
-        if (DriverStation.isAutonomousEnabled())
-        {
-            return true;
-        }
-        // At this point, if we're not teleop enabled, there is no hub.
-        if (!DriverStation.isTeleopEnabled())
-        {
-            return false;
-        }
-
-        // We're teleop enabled, compute.
-        double matchTime = DriverStation.getMatchTime() + 3; // Add 3 seconds of lead time so that we have a competitive edge
-        String gameData = DriverStation.getGameSpecificMessage();
-
-        // If we have no game data, we cannot compute, assume hub is active, as its likely early in teleop.
-        if (gameData.isEmpty()) 
-        {
-            return true;
-        }
-
-        boolean redInactiveFirst = false;
-        switch (gameData.charAt(0)) 
-        {
-            case 'R' -> redInactiveFirst = true;
-            case 'B' -> redInactiveFirst = false;
-            default -> {
-                // If we have invalid game data, assume hub is active.
-                return true;
-            }
-        }
-
-        // Shift was is active for blue if red won auto, or red if blue won auto.
-        boolean shift1Active = 
-            switch (alliance.get()) 
-            {
-                case Red -> !redInactiveFirst;
-                case Blue -> redInactiveFirst;
-            };
-
-        if (matchTime > 130) 
-        {
-            // Transition shift, hub is active.
-            return true;
-        } 
-        else if (matchTime > 105) 
-        {
-            // Shift 1
-            return shift1Active;
-        } 
-        else if (matchTime > 80) 
-        {
-            // Shift 2
-            return !shift1Active;
-        } 
-        else if (matchTime > 55) 
-        {
-            // Shift 3
-            return shift1Active;
-        }
-        else if (matchTime > 30) 
-        {
-            // Shift 4
-            return !shift1Active;
-        } 
-        else 
-        {
-            // End game, hub always active.
-            return true;
-        }
     }
 
     public void Periodic()
@@ -405,6 +326,7 @@ public class RobotState
                 break;
             case Driving:
                 m_chassis.driveFieldRelative(m_speeds);
+                xModeOffCommand.run();
                 break;
             case AimHub:
                 chassisTrackAndShootHub.run();
@@ -420,7 +342,7 @@ public class RobotState
 
     public Pose2d getTargetPose()
     {
-        return isHubActive() ?
+        return HubActivePeriod.isHubActive() ?
             ((DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red) ? 
                 Constants.Field.RedHub.toPose2d() : 
                 Constants.Field.BlueHub.toPose2d()) 

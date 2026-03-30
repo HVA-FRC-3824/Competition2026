@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.lib.HubActivePeriod;
 
 public class Robot extends LoggedRobot
 {
@@ -96,6 +97,8 @@ public class Robot extends LoggedRobot
   @Override
   public void teleopInit() 
   {
+    HubActivePeriod.initialize();
+
     if (m_autonomousCommand != null)
       m_autonomousCommand.cancel();
   }
