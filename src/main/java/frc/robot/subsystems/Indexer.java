@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix6.controls.VoltageOut;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -16,7 +15,7 @@ public class Indexer extends SubsystemBase
     public Indexer() {
         TalonFXConfig.configure(
             m_beltMotor,  
-            20.0, 
+            60.0, 
             true,  
             false, 
             false, 
@@ -31,7 +30,7 @@ public class Indexer extends SubsystemBase
         
         TalonFXConfig.configure(
             m_kickerMotor,  
-            20.0, 
+            120.0, 
             false,  
             false, 
             false, 
@@ -47,15 +46,7 @@ public class Indexer extends SubsystemBase
 
     public void setSpeeds(double beltsSpeed, double kickerSpeed) 
     {
-        if (Math.abs(beltsSpeed) <= 0.10 || Math.abs(kickerSpeed) <= 0.10)
-        {
-            m_beltMotor.setControl(new VoltageOut(0.0));
-            m_kickerMotor.setControl(new VoltageOut(0.0));
-        } 
-        else
-        {
-            m_beltMotor.setControl(new MotionMagicVoltage(beltsSpeed));
-            m_kickerMotor.setControl(new MotionMagicVoltage(kickerSpeed));
-        }
+        m_beltMotor.setControl(new VelocityVoltage(beltsSpeed));
+        m_kickerMotor.setControl(new VelocityVoltage(kickerSpeed));
     }
 }

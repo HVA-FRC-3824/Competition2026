@@ -4,10 +4,13 @@ import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Rotations;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -30,6 +33,12 @@ public class SwerveModule
         m_angleMotor = new TalonFX(angleMotorCanId);
         angleAbsoluteEncoder = new CANcoder(angleEncoderCanId);
 
+        CANcoderConfiguration c = new CANcoderConfiguration();
+        MagnetSensorConfigs magnetSensorConfigs = new MagnetSensorConfigs();
+        magnetSensorConfigs.withMagnetOffset(0.0).withSensorDirection(SensorDirectionValue.CounterClockwise_Positive);
+
+        angleAbsoluteEncoder.getConfigurator().apply(c.withMagnetSensor(magnetSensorConfigs));
+
         // Reset encoders
         m_drivingMotor.setPosition(0);
         m_angleMotor.setPosition(0);
@@ -37,7 +46,7 @@ public class SwerveModule
         // Configure motors (you’ll need your own config helper or inline config)
         TalonFXConfig.configure(
             m_drivingMotor,    // drive motor configuration
-            85,              // Maximum Amperage
+            120,              // Maximum Amperage
             false,           // Inverted
             true,            // Brake mode enabled
             false,           // Continuous wrap
@@ -45,18 +54,18 @@ public class SwerveModule
             1.5,             // I gain
             0.0,             // D gain
             0.0,             // S gain
-            0.12877,             // V gain
+            0.12877,         // V gain
             0.0,             // A gain
             0.0,           // Velocity limit
             0.0);  // Acceleration limit
 
         TalonFXConfig.configure(
             m_angleMotor,    // Angle motor configuration
-            20.0,            // Maximum Amperage
+            70.0,            // Maximum Amperage
             true,            // Inverted
             true,            // Brake mode enabled
             true,            // Continuous wrap
-            10.0,            // P gain   TODO: Try a higher gain when the robot is on the ground
+            12.0,            // P gain   TODO: Try a higher gain when the robot is on the ground
             0.0,             // I gain
             0.2,             // D gain
             0.0,             // V gain

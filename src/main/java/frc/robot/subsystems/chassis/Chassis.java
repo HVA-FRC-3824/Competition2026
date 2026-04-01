@@ -1,26 +1,23 @@
 package frc.robot.subsystems.chassis;
 
-import java.util.List;
-import java.util.Optional;
-
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
-import org.photonvision.EstimatedRobotPose;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Vision;
 import frc.robot.Constants;
@@ -48,7 +45,7 @@ import frc.robot.subsystems.gyro.GyroIO;
 ///   ---  +-------------------------------------------------------------------+
 ///        |<----------------------------- 16.56 m --------------------------->|
 ///                                       Top View
-public class Chassis implements ChassisIO
+public class Chassis extends SubsystemBase implements ChassisIO
 {
     // Swerve module order for kinematics calculations
     //
@@ -58,10 +55,13 @@ public class Chassis implements ChassisIO
     //      |          |            Y    |
     //      |          |          <------+-------
     //      | 2      3 |                 |
-    //   RL +----------+ RR              |
+    //   BL +----------+ BR              |
     
-    private SwerveModule[] m_swerveModules;
-    
+    private SwerveModule m_frSwerveModules = new SwerveModule(Constants.CanIds.FrontRightDriveId, Constants.CanIds.FrontRightTurnId, Constants.CanIds.FrontRightEncoderId);
+    private SwerveModule m_flSwerveModules = new SwerveModule(Constants.CanIds.FrontLeftDriveId,  Constants.CanIds.FrontLeftTurnId,  Constants.CanIds.FrontLeftEncoderId);
+    private SwerveModule m_brSwerveModules = new SwerveModule(Constants.CanIds.BackRightDriveId,  Constants.CanIds.BackRightTurnId,  Constants.CanIds.BackRightEncoderId);
+    private SwerveModule m_blSwerveModules = new SwerveModule(Constants.CanIds.BackLeftDriveId,   Constants.CanIds.BackLeftTurnId,   Constants.CanIds.BackLeftEncoderId);
+
     private SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(
         Constants.Chassis.kinematics,         // Kinematics object
         new Rotation2d(0),  // Initial gyro angle
@@ -79,19 +79,10 @@ public class Chassis implements ChassisIO
 
     GyroIO        m_gyro = new Gyro(Constants.CanIds.PigeonGyroId);
 
-    Vision        m_vision;
+    Vision         m_vision = new Vision(this::addVisionMeasurement);
 
     public Chassis()
     {
-        m_swerveModules = List.of(
-            new SwerveModule(Constants.CanIds.FrontLeftDriveId,  Constants.CanIds.FrontLeftTurnId,  Constants.CanIds.FrontLeftEncoderId),
-            new SwerveModule(Constants.CanIds.FrontRightDriveId, Constants.CanIds.FrontRightTurnId, Constants.CanIds.FrontRightEncoderId),
-            new SwerveModule(Constants.CanIds.BackRightDriveId,  Constants.CanIds.BackRightTurnId,  Constants.CanIds.BackRightEncoderId),
-            new SwerveModule(Constants.CanIds.BackLeftDriveId,   Constants.CanIds.BackLeftTurnId,   Constants.CanIds.BackLeftEncoderId)
-        ).toArray(new SwerveModule[0]);
-
-        m_gyro = new Gyro(Constants.CanIds.PigeonGyroId);
-
         RobotConfig config;
         try {
             config = RobotConfig.fromGUISettings();
@@ -145,10 +136,10 @@ public class Chassis implements ChassisIO
     public void setModuleStates(SwerveModuleState[] states)
     {
         // Set the desired state for each swerve module
-        m_swerveModules[0].setDesiredState(states[0], "Front Left " );
-        m_swerveModules[1].setDesiredState(states[1], "Front Right ");
-        m_swerveModules[2].setDesiredState(states[2], "Rear Right "  );
-        m_swerveModules[3].setDesiredState(states[3], "Rear Left " );
+        m_flSwerveModules.setDesiredState(states[0], "Front Left " );
+        m_frSwerveModules.setDesiredState(states[1], "Front Right ");
+        m_blSwerveModules.setDesiredState(states[2], "Rear Right "  );
+        m_brSwerveModules.setDesiredState(states[3], "Rear Left " );
     }
 
     @Override
@@ -159,11 +150,11 @@ public class Chassis implements ChassisIO
 
     public void resetWheelAnglesToZero()
     {
-            // Set the swerve wheel angles to zero
-            m_swerveModules[0].setWheelAngleToForward(Constants.Chassis.FrontLeftForwardDegrees);
-            m_swerveModules[1].setWheelAngleToForward(Constants.Chassis.FrontRightForwardDegrees);
-            m_swerveModules[2].setWheelAngleToForward(Constants.Chassis.BackRightForwardDegrees);
-            m_swerveModules[3].setWheelAngleToForward(Constants.Chassis.BackLeftForwardDegrees);
+        // Set the swerve wheel angles to zero
+        m_flSwerveModules.setWheelAngleToForward(Constants.Chassis.FrontLeftForwardDegrees);
+        m_frSwerveModules.setWheelAngleToForward(Constants.Chassis.FrontRightForwardDegrees);
+        m_blSwerveModules.setWheelAngleToForward(Constants.Chassis.BackLeftForwardDegrees);
+        m_brSwerveModules.setWheelAngleToForward(Constants.Chassis.BackRightForwardDegrees);
     }
 
     @Override
@@ -176,10 +167,10 @@ public class Chassis implements ChassisIO
     public SwerveModuleState[] getModuleStates()
     {
         SwerveModuleState[] states = {
-            m_swerveModules[0].getState(),
-            m_swerveModules[1].getState(),
-            m_swerveModules[2].getState(),
-            m_swerveModules[3].getState()
+            m_flSwerveModules.getState(),
+            m_frSwerveModules.getState(),
+            m_blSwerveModules.getState(),
+            m_brSwerveModules.getState()
         };
 
         return states;
@@ -189,10 +180,10 @@ public class Chassis implements ChassisIO
     public SwerveModulePosition[] getModulePositions()
     {
         SwerveModulePosition[] positions = {
-            m_swerveModules[0].getPosition(),
-            m_swerveModules[1].getPosition(),
-            m_swerveModules[2].getPosition(),
-            m_swerveModules[3].getPosition()
+            m_flSwerveModules.getPosition(),
+            m_frSwerveModules.getPosition(),
+            m_blSwerveModules.getPosition(),
+            m_brSwerveModules.getPosition()
         };
 
         return positions;
@@ -221,21 +212,12 @@ public class Chassis implements ChassisIO
     {
         m_poseEstimator.update(getHeading(), getModulePositions());
 
-        if (Vision.getResult1() != null)
-        {
-            Optional<EstimatedRobotPose> visionBotPose1 = Vision.getEstimatedGlobalPoseCam1(Vision.getResult1(), getPose());
-            if (visionBotPose1.isPresent()){
-                m_poseEstimator.addVisionMeasurement(visionBotPose1.get().estimatedPose.toPose2d(), Timer.getMatchTime(), Vision.updateEstimationStdDevs(visionBotPose1, visionBotPose1.get().targetsUsed));
-            }
-        }
-        if (Vision.getResult2() != null)
-        {
-            Optional<EstimatedRobotPose> visionBotPose2 = Vision.getEstimatedGlobalPoseCam2(getPose(), Vision.getResult2());
-            if (visionBotPose2.isPresent())
-            {
-                m_poseEstimator.addVisionMeasurement(visionBotPose2.get().estimatedPose.toPose2d(), Timer.getTimestamp(), Vision.updateEstimationStdDevs(visionBotPose2, visionBotPose2.get().targetsUsed));
-            }
-        } 
+        m_vision.periodic();
+    }
+
+    public void addVisionMeasurement(Pose2d visionMeasurement, double timestampSeconds, Matrix<N3, N1> stdDevs) 
+    {
+        m_poseEstimator.addVisionMeasurement(visionMeasurement, timestampSeconds, stdDevs);
     }
 
     @Override

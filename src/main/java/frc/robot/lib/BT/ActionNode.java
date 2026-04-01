@@ -25,7 +25,15 @@ public class ActionNode extends Node
             m_runner.get().run();
         else
             CommandScheduler.getInstance().schedule(m_runnerCommand.get());
+
         return NodeStatus.Success;
+    }
+
+    // DECORATORS
+
+    public Node and(Node next)
+    {
+        return new SequenceNode(this, next);
     }
     
     private Optional<Runnable> m_runner;

@@ -5,15 +5,14 @@ import edu.wpi.first.wpilibj.XboxController;
 // ControllerNode behaves like a ConditionNode but implements its own
 // update so we can treat POV presses the same as button presses
 // (i.e. trigger once on press, not while held).
-public class ControllerNode extends Node
+public class ControllerNode extends ConditionNode
 {
     private final int m_button;
 
-    // Store previous raw POV value for edge detection (-1 means no POV)
-    private int m_prevPov = -1;
-
     public ControllerNode(int button)
     {
+        // Not used
+        super(() -> false);
         m_button = button;
     }
 
@@ -35,8 +34,6 @@ public class ControllerNode extends Node
         }
         boolean povPressed = (currentPov == m_button);// && (m_prevPov != m_button);
 
-        m_prevPov = currentPov;
-
-        return povPressed ? NodeStatus.Success : NodeStatus.Failure;
+        return (m_inversed ? !povPressed : povPressed) ? NodeStatus.Success : NodeStatus.Failure;
     }
 }

@@ -2,7 +2,7 @@ package frc.robot.subsystems.intake;
 
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 
@@ -12,7 +12,7 @@ import frc.robot.lib.TalonFXConfig;
 
 
 
-public class Intake extends SubsystemBase
+public class Intake implements IntakeIO
 {
     private final TalonFX m_fuelIntakeMotor             = new TalonFX(Constants.CanIds.FuelIntakeMotorId);
     private final TalonFX m_intakePositionLeaderMotor   = new TalonFX(Constants.CanIds.IntakePositionLeaderMotorId);
@@ -22,7 +22,7 @@ public class Intake extends SubsystemBase
     {    
         TalonFXConfig.configure(
             m_fuelIntakeMotor,
-            40.0,
+            120.0,
             false,
             true,
             false,
@@ -38,18 +38,34 @@ public class Intake extends SubsystemBase
 
         TalonFXConfig.configure(
             m_intakePositionLeaderMotor,
-            20.0,
+            50.0,
             true,
             false,
             false,
-            0.2,
+            0.5,
             0.0,
             0.0,
             0.0,
             0.0,
             0.0,
-            20.0,
-            40.0
+            5.0,
+            5.0
+        );
+
+        TalonFXConfig.configure(
+            m_intakePositionFollowerMotor,
+            50.0,
+            false,
+            false,
+            false,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            5.0,
+            5.0
         );
 
         m_fuelIntakeMotor.setPosition(0.0);
@@ -61,19 +77,12 @@ public class Intake extends SubsystemBase
     // pos is in turns
     public void setPos(double pos) 
     {
-        // m_intakePositionLeaderMotor.setControl(new MotionMagicVoltage(pos));
+        m_intakePositionLeaderMotor.setControl(new MotionMagicVoltage(pos));
     }
 
     // turns per second
     public void setRollers(double speed)
     {
-        if (Math.abs(speed) <= 0.10)
-        {
-            m_fuelIntakeMotor.setControl(new VoltageOut(0.0));
-        } 
-        else
-        {
-            m_fuelIntakeMotor.setControl(new MotionMagicVoltage(speed));
-        }
+        m_fuelIntakeMotor.setControl(new VelocityVoltage(speed));
     }
 }

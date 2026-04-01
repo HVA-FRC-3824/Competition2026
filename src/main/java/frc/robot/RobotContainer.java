@@ -1,9 +1,4 @@
 package frc.robot;
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
-
 
 import com.pathplanner.lib.auto.AutoBuilder;
 
@@ -20,9 +15,7 @@ import frc.robot.lib.BT.ConditionNode;
 import frc.robot.lib.BT.ControllerNode;
 
 public class RobotContainer 
-{
-  RobotState m_stateController = new RobotState();
-  
+{  
   private final XboxController m_driver   = new XboxController(0);
   private final XboxController m_operator = new XboxController(1);
 
@@ -33,6 +26,8 @@ public class RobotContainer
 
   public RobotContainer() 
   {
+    new RobotState();
+
     m_autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Chooser", m_autoChooser);
 
@@ -45,78 +40,84 @@ public class RobotContainer
       (Node) new SelectorNode(
         (Node) new SequenceNode( // Auto
           (Node) new ConditionNode(() -> m_driver.getRightTriggerAxis() >= 0.5),
-          (Node) new ActionNode(m_stateController.spinUpTowerCommand),
-          (Node) new ActionNode(m_stateController.autoAimCommand)
+          (Node) new ActionNode(RobotState.spinUpTowerCommand),
+          (Node) new ActionNode(RobotState.autoAimCommand)
         ),
         (Node) new SequenceNode( // Warm Up
           (Node) new ControllerNode(Constants.Controller.X),
-          (Node) new ActionNode(m_stateController.spinUpTowerCommand),
-          (Node) new ActionNode(m_stateController.midShootTowerCommand),
-          (Node) new ActionNode(m_stateController.driveModeCommand)
+          (Node) new ActionNode(RobotState.spinUpTowerCommand),
+          (Node) new ActionNode(RobotState.midShootTowerCommand),
+          (Node) new ActionNode(RobotState.driveModeCommand)
         ),
         (Node) new SequenceNode( // Default/Spin Down
-          (Node) new ActionNode(m_stateController.spinDownTowerCommand),
-          (Node) new ActionNode(m_stateController.driveModeCommand),
-          (Node) new ActionNode(m_stateController.xModeOffCommand)
+          (Node) new ActionNode(RobotState.spinDownTowerCommand),
+          (Node) new ActionNode(RobotState.driveModeCommand),
+          (Node) new ActionNode(RobotState.xModeOffCommand)
         )
       );
 
     Node intakeNode = new SelectorNode(
         (Node) new SequenceNode(
-          (Node) new ControllerNode(Constants.Controller.LeftBumper),
-          (Node) new ActionNode(m_stateController.deployIntakeCommand),
-          (Node) new ActionNode(m_stateController.startIntakeCommand)
+          (Node) new ConditionNode(() -> m_driver.getLeftTriggerAxis() >= 0.5),
+          (Node) new ActionNode(RobotState.deployIntakeCommand),
+          (Node) new ActionNode(RobotState.startIntakeCommand)
         ),
-        (Node) new ActionNode(m_stateController.stopIntakeCommand)
+        (Node) new SequenceNode(
+          (Node) new ControllerNode(Constants.Controller.A),
+          (Node) new ActionNode(RobotState.retractIntakeCommand),
+          (Node) new ActionNode(RobotState.stopIntakeCommand)
+        ),
+        (Node) new ActionNode(RobotState.stopIntakeCommand)
       );
 
     Node driveNode =
       (Node) new SelectorNode(
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.RightPaddle),
-          (Node) new ActionNode(() -> m_stateController.setDrive(-m_driver.getLeftY() / 2, -m_driver.getLeftX() / 2, -m_driver.getRightX() / 2))
+          (Node) new ActionNode(RobotState.slowModeCommand),
+          (Node) new ActionNode(() -> RobotState.setDrive(-m_driver.getLeftY(), -m_driver.getLeftX(), -m_driver.getRightX()))
         ),
-        (Node) new ActionNode(() -> m_stateController.setDrive(-m_driver.getLeftY(), -m_driver.getLeftX(), -m_driver.getRightX()))
+        (Node) new ActionNode(() -> RobotState.setDrive(-m_driver.getLeftY(), -m_driver.getLeftX(), -m_driver.getRightX()))
       );
 
     Node indexNode = 
       (Node) new SelectorNode( // Indexing
         (Node) new SequenceNode(
-          (Node) new ConditionNode(() -> m_stateController.GetIsReady()),
-          (Node) new ActionNode(m_stateController.indexingCommand)
+          (Node) new ConditionNode(() -> RobotState.GetIsReady()),
+          (Node) new ActionNode(RobotState.indexingCommand)
         ),
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.LeftPaddle),
-          (Node) new ActionNode(m_stateController.indexingCommand)
+          (Node) new ActionNode(RobotState.indexingCommand)
         ),
         // Default
-        (Node) new ActionNode(m_stateController.notIndexingCommand)
+        (Node) new ActionNode(RobotState.notIndexingCommand)
       );
 
     m_driverBT = new RootNode(
       driveNode,
-      shootingNode,
       indexNode,
-      intakeNode
+      intakeNode,
+      shootingNode
     );
 
     Node shootingModeNodes = 
       (Node) new SelectorNode(
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.A),
-          (Node) new ActionNode(m_stateController.lowShootTowerCommand)
+          (Node) new ActionNode(RobotState.lowShootTowerCommand)
         ),        
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.B),
-          (Node) new ActionNode(m_stateController.midShootTowerCommand)
+          (Node) new ActionNode(RobotState.midShootTowerCommand)
         ),
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.Y),
-          (Node) new ActionNode(m_stateController.longShootTowerCommand)
+          (Node) new ActionNode(RobotState.longShootTowerCommand)
         ),
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.LeftPaddle),
-          (Node) new ActionNode(m_stateController.autoTowerCommand)
+          (Node) new ActionNode(RobotState.autoTowerCommand)
         )
       );
 
@@ -124,30 +125,30 @@ public class RobotContainer
       (Node) new SelectorNode(
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.RightPaddle),
-          (Node) new ActionNode(m_stateController.manualTowerCommand)
+          (Node) new ActionNode(RobotState.manualTowerCommand)
         ),
         (Node) new SequenceNode( // insure its only on press
           (Node) new ConditionNode(()->m_operator.getRawButtonPressed(Constants.Controller.RightBumper)),
-          (Node) new ActionNode(m_stateController.increaseManualTowerCommand)
+          (Node) new ActionNode(RobotState.increaseManualTowerCommand)
         ),
         (Node) new SequenceNode( // insure its only on press
           (Node) new ConditionNode(()->m_operator.getRawButtonPressed(Constants.Controller.LeftBumper)),
-          (Node) new ActionNode(m_stateController.decreaseManualTowerCommand)
+          (Node) new ActionNode(RobotState.decreaseManualTowerCommand)
         ),
         (Node) new SelectorNode(
           (Node) new ConditionNode(() -> RobotState.m_towerState != RobotState.TowerState.ManualControl),
           (Node) new SequenceNode(
             (Node) new ConditionNode(() -> m_operator.getRightTriggerAxis() >= 0.5),
-            (Node) new ActionNode(m_stateController.spinUpTowerCommand)
+            (Node) new ActionNode(RobotState.spinUpTowerCommand)
           ),
-          (Node) new ActionNode(m_stateController.spinDownTowerCommand)
+          (Node) new ActionNode(RobotState.spinDownTowerCommand)
         )
       );
 
     Node intakeJoggingNode =
       (Node) new SequenceNode(
         (Node) new ConditionNode(() -> m_operator.getLeftTriggerAxis() >= 0.5),
-        (Node) new ActionNode(m_stateController.jiggleIntakeCommand)
+        (Node) new ActionNode(RobotState.jiggleIntakeCommand)
       );
 
     m_operatorBT = new RootNode(
@@ -168,7 +169,7 @@ public class RobotContainer
 
   public void log()
   {
-    m_stateController.Periodic();
+    RobotState.Periodic();
   }
 
   public Command getAutonomousCommand() 

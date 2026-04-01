@@ -24,5 +24,4 @@ public class SequenceNode extends Node
     }
 
     private List<Node> m_nodes;
-    private int m_currentIndex = 0;
 }

@@ -1,18 +1,18 @@
-package frc.robot.subsystems;
+package frc.robot.subsystems.tower;
 
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.controls.Follower;
 
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.lib.TalonFXConfig;
 
-public class Tower extends SubsystemBase
+public class Tower implements TowerIO
 {
     private TalonFX m_leaderFlywheel   = new TalonFX(Constants.CanIds.FlywheelMotorId);
     private TalonFX m_followerFlywheel = new TalonFX(Constants.CanIds.FlywheelFollowerMotorId);
@@ -31,7 +31,7 @@ public class Tower extends SubsystemBase
                         0.0,             // D gain
                         0.49,             // S (static friction feedforward)
                         0.19,            // V (velocity feedforward)
-                        1.32,            // A (acceleration feedforward)
+                        0.99,            // A (acceleration feedforward)
                         0.0,           // Velocity limit
                         0.0);  // Acceleration limit
 
@@ -43,21 +43,9 @@ public class Tower extends SubsystemBase
     {
         m_setTPS = speed;
 
-        if (Math.abs(speed) <= 0.10)
-        {
-            m_leaderFlywheel.setControl(new VoltageOut(0.0));
-        } 
-        else
-        {
-           m_leaderFlywheel.setControl(new VelocityVoltage(speed));
-        }
+        m_leaderFlywheel.setControl(new VelocityVoltage(speed));
     }
 
     public double getDesiredFlywheelTPS() { return m_setTPS; }
     public double getFlywheelTPS()        { return m_leaderFlywheel.getVelocity().getValue().in(RotationsPerSecond); }
-
-    public boolean isSpunUp()
-    {
-        return m_leaderFlywheel.getVelocity().isNear(m_setTPS, Constants.Tower.SpunUpTolerance);
-    }
 }

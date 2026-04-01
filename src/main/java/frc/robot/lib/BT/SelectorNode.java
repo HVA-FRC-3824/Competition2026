@@ -23,5 +23,4 @@ public class SelectorNode extends Node
     }
 
     List<Node> m_nodes;
-    private int m_currentIndex = 0;
 }

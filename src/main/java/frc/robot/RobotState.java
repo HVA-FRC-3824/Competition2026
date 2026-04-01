@@ -1,39 +1,50 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Meters;
+
+import java.util.Arrays;
+
+import org.littletonrobotics.junction.Logger;
+
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
-import static edu.wpi.first.units.Units.Meters;
-
-import java.util.Arrays;
-import java.util.Optional;
-
-import edu.wpi.first.wpilibj.Timer;
-
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.lib.HubActivePeriod;
 import frc.robot.subsystems.Indexer;
-import frc.robot.subsystems.Tower;
-import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.chassis.Chassis;
 import frc.robot.subsystems.chassis.ChassisIO;
 import frc.robot.subsystems.chassis.SimChassis;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIO;
+import frc.robot.subsystems.intake.IntakeSim;
+import frc.robot.subsystems.tower.Tower;
+import frc.robot.subsystems.tower.TowerIO;
+import frc.robot.subsystems.tower.TowerSim;
 
 public class RobotState 
 {
+    public enum MonolithState
+    {
+        HubInactivePassing,
+        HubInactiveIntaking,
+        HubInactiveWarmUp,
+
+        HubActiveShooting,
+        HubActiveIntaking
+    }
+
     public enum TowerState
     {
         Low,
@@ -85,69 +96,93 @@ public class RobotState
     {
         Pathplanning,
         Driving,
+        Slow,
         AimHub
     }
 
-    public  static TowerState        m_towerState = TowerState.Middle;
-    private static TowerRunningState m_towerRunningState = TowerRunningState.Off;
-    private static IndexerState      m_indexerState = IndexerState.Stopped;
-    private static LedState          m_ledState = LedState.MatchMode;
-    private static IntakePosState    m_intakePosState = IntakePosState.StartingPos;
-    private static IntakeRollerState m_intakeRollerState = IntakeRollerState.Off;
-    private static double            m_manualFlywheelSpeed = 55.0;
-    private static ChassisState      m_chassisState = ChassisState.Driving;
-    private static ChassisSpeeds     m_speeds = new ChassisSpeeds();
+    // STATES
 
-    private static Tower       m_tower;
-    private static Indexer     m_indexer;
-    private static Intake      m_intake;
-    private static ChassisIO   m_chassis;
+    static public TowerState        m_towerState = TowerState.Middle;
+    static public TowerRunningState m_towerRunningState = TowerRunningState.Off;
+    static public IndexerState      m_indexerState = IndexerState.Stopped;
+    static public LedState          m_ledState = LedState.MatchMode;
+    static public IntakePosState    m_intakePosState = IntakePosState.Stowed;
+    static public IntakeRollerState m_intakeRollerState = IntakeRollerState.Off;
+    static public double            m_manualFlywheelSpeed = 55.0;
+    static public ChassisState      m_chassisState = ChassisState.Driving;
+    static public ChassisSpeeds     m_speeds = new ChassisSpeeds();
 
-    private static final PIDController m_aimController = new PIDController(0.59, 0.05, 0.0);
+    // SUBSYSTEM INSTANTATIONS
+
+    static private final TowerIO     m_tower   = (RobotBase.isSimulation()) ? new TowerSim() : new Tower();
+    static private final ChassisIO   m_chassis = (RobotBase.isSimulation()) ? new SimChassis() : new Chassis();
+    static private final Indexer     m_indexer = new Indexer();
+    static private final IntakeIO    m_intake  = (RobotBase.isSimulation()) ? new IntakeSim(m_chassis.getSimChassis()) : new Intake();
+
+    // CONTROLLERS
+
+    private static final PIDController m_aimController = new PIDController(1.0, 0.05, 0.1);
+    
+    // FUNCTIONS
 
     // Indexer
-    public final Runnable indexingCommand          = () -> m_indexerState = IndexerState.Spindexing;
-    public final Runnable notIndexingCommand       = () -> m_indexerState = IndexerState.Stopped;
-    public final Runnable backwardsIndexingCommand = () -> m_indexerState = IndexerState.Backwards;
-
-    // Intake
-    public final Runnable deployIntakeCommand  = () -> m_intakePosState = IntakePosState.Deployed;
-    public final Runnable retractIntakeCommand = () -> m_intakePosState = IntakePosState.Stowed;
-    public final Runnable jiggleIntakeCommand  = () -> { 
-        if (((int)Timer.getMatchTime()) % 2 == 0)
-            m_intakePosState = IntakePosState.Stowed;
+    static public final Runnable indexingCommand          = () -> m_indexerState = IndexerState.Spindexing;
+    static public final Runnable notIndexingCommand       = () -> m_indexerState = IndexerState.Stopped;
+    static public final Runnable backwardsIndexingCommand = () -> m_indexerState = IndexerState.Backwards;
+    static public final Runnable jiggleIndexingCommand  = () -> {
+        if (((int)Timer.getTimestamp() / 2) % 2 == 0)
+        {
+            m_indexerState = IndexerState.Spindexing;
+        }
         else
-            m_intakePosState = IntakePosState.Deployed;
+        {
+            m_indexerState = IndexerState.Backwards;
+        }
     };
 
-    public final Runnable startIntakeCommand   = () -> m_intakeRollerState = IntakeRollerState.Intaking;
-    public final Runnable stopIntakeCommand    = () -> m_intakeRollerState = IntakeRollerState.Off;
-    public final Runnable spitOutIntakeCommand = () -> m_intakeRollerState = IntakeRollerState.Backwards;
+    // Intake
+    static public final Runnable deployIntakeCommand  = () -> m_intakePosState = IntakePosState.Deployed;
+    static public final Runnable retractIntakeCommand = () -> m_intakePosState = IntakePosState.Stowed;
+    static public final Runnable jiggleIntakeCommand  = () -> {
+        if (((int)Timer.getTimestamp() / 2) % 2 == 0)
+        {
+            m_intakePosState = IntakePosState.Stowed;
+        }
+        else
+        {
+            m_intakePosState = IntakePosState.Deployed;
+        }
+    };
 
+    static public final Runnable startIntakeCommand   = () -> m_intakeRollerState = IntakeRollerState.Intaking;
+    static public final Runnable stopIntakeCommand    = () -> m_intakeRollerState = IntakeRollerState.Off;
+    static public final Runnable spitOutIntakeCommand = () -> m_intakeRollerState = IntakeRollerState.Backwards;
+    
     // Tower
-    public final Runnable spinDownTowerCommand = () -> m_towerRunningState = TowerRunningState.Off;
-    public final Runnable spinUpTowerCommand   = () -> m_towerRunningState = TowerRunningState.On;
+    static public final Runnable spinDownTowerCommand = () -> m_towerRunningState = TowerRunningState.Off;
+    static public final Runnable spinUpTowerCommand   = () -> m_towerRunningState = TowerRunningState.On;
 
-    public final Runnable lowShootTowerCommand  = () -> m_towerState = TowerState.Low;
-    public final Runnable midShootTowerCommand  = () -> m_towerState = TowerState.Middle;
-    public final Runnable longShootTowerCommand = () -> m_towerState = TowerState.Long;
-    public final Runnable autoTowerCommand      = () -> m_towerState = TowerState.Auto;
-    public final Runnable manualTowerCommand    = () -> m_towerState = TowerState.ManualControl;
+    static public final Runnable lowShootTowerCommand  = () -> m_towerState = TowerState.Low;
+    static public final Runnable midShootTowerCommand  = () -> m_towerState = TowerState.Middle;
+    static public final Runnable longShootTowerCommand = () -> m_towerState = TowerState.Long;
+    static public final Runnable autoTowerCommand      = () -> m_towerState = TowerState.Auto;
+    static public final Runnable manualTowerCommand    = () -> m_towerState = TowerState.ManualControl;
 
-    public final Runnable increaseManualTowerCommand = () -> m_manualFlywheelSpeed += 1.0;
-    public final Runnable decreaseManualTowerCommand = () -> m_manualFlywheelSpeed -= 1.0;
-    public final Runnable resetManualTowerCommand    = () -> m_manualFlywheelSpeed  = 30.0;
+    static public final Runnable increaseManualTowerCommand = () -> m_manualFlywheelSpeed += 1.0;
+    static public final Runnable decreaseManualTowerCommand = () -> m_manualFlywheelSpeed -= 1.0;
+    static public final Runnable resetManualTowerCommand    = () -> m_manualFlywheelSpeed  = 30.0;
 
     // Chassis
-    public final Runnable autoAimCommand      = () -> m_chassisState = ChassisState.AimHub;
-    public final Runnable driveModeCommand    = () -> m_chassisState = ChassisState.Driving;
-    public final Runnable pathplanningCommand = () -> m_chassisState = ChassisState.Pathplanning;
+    static public final Runnable autoAimCommand      = () -> m_chassisState = ChassisState.AimHub;
+    static public final Runnable slowModeCommand     = () -> m_chassisState = ChassisState.Slow;
+    static public final Runnable driveModeCommand    = () -> m_chassisState = ChassisState.Driving;
+    static public final Runnable pathplanningCommand = () -> m_chassisState = ChassisState.Pathplanning;
 
-    public final Runnable xModeCommand    = () -> m_chassis.toggleXMode();
-    public final Runnable xModeOnCommand  = () -> { if (!m_chassis.getIsXMode()) m_chassis.toggleXMode(); };
-    public final Runnable xModeOffCommand = () -> { if (m_chassis.getIsXMode()) m_chassis.toggleXMode(); };
+    static public final Runnable xModeCommand    = () -> m_chassis.toggleXMode();
+    static public final Runnable xModeOnCommand  = () -> { if (!m_chassis.getIsXMode()) m_chassis.toggleXMode(); };
+    static public final Runnable xModeOffCommand = () -> { if (m_chassis.getIsXMode()) m_chassis.toggleXMode(); };
     
-    public final Runnable chassisTrackAndShootHub = () -> {
+    static public final Runnable chassisTrackAndShootHub = () -> {
         Transform2d relativeDistance = getPose().minus(getTargetPose());
 
         Rotation2d angleToHubFromPos = new Rotation2d(Math.atan2(relativeDistance.getY(), relativeDistance.getX()));
@@ -173,10 +208,6 @@ public class RobotState
 
     public RobotState()
     {
-        m_tower   = new Tower();
-        m_indexer = new Indexer();
-        m_intake  = new Intake();
-        m_chassis = (RobotBase.isSimulation()) ? new SimChassis() : new Chassis();
 
         m_tower.setDefaultCommand(m_tower.runOnce(()->{}));
         m_indexer.setDefaultCommand(m_indexer.runOnce(()->{}));
@@ -185,6 +216,8 @@ public class RobotState
 
         // Config PID to be tolerant within 5 degrees
         m_aimController.setTolerance(Units.degreesToRadians(2.0));
+
+        m_aimController.enableContinuousInput(-Math.PI, Math.PI);
 
         PathplannerSubsystem pathplannerSubsystem = new PathplannerSubsystem();        
 
@@ -212,7 +245,7 @@ public class RobotState
         NamedCommands.registerCommand("jiggleIntake", pathplannerSubsystem.runOnce(jiggleIntakeCommand));
     }
 
-    public void Logging()
+    static public void Logging()
     {
         Logger.recordOutput("Is Hub Active", HubActivePeriod.isHubActive());
         Logger.recordOutput("Game State", DriverStation.isAutonomous() ? "Autonomous" : DriverStation.isTeleop() && DriverStation.getMatchTime() < 30 ? "EndGame" : "Teleop");
@@ -225,10 +258,9 @@ public class RobotState
 
         Logger.recordOutput("Measured/Pose",         m_chassis.getPose());
         Logger.recordOutput("Measured/Heading",      m_chassis.getHeading().getDegrees());
-        Logger.recordOutput("Measured/Cam 1 Result", Vision.getResult1());
-        Logger.recordOutput("Measured/Cam 2 Result", Vision.getResult2());
-        
+
         Logger.recordOutput("Measured/Chassis To Hub Speed", Units.radiansToDegrees(m_aimController.getError()));
+        Logger.recordOutput("Measured/Target Dist Inches", Units.metersToInches(getTargetDistMeters()));
 
         Logger.recordOutput("Measured/Tower/Is Spun Up", m_tower.isSpunUp());
         Logger.recordOutput("Measured/Tower/TPS",        m_tower.getFlywheelTPS());
@@ -237,6 +269,7 @@ public class RobotState
 
         Logger.recordOutput("Desired/Chassis/Speeds", m_speeds);
         Logger.recordOutput("Desired/Chassis/XMode",  m_chassis.getIsXMode());
+        Logger.recordOutput("Desired/Chassis/XMode",  m_chassisState == ChassisState.Slow);
 
         Logger.recordOutput("Desired/Tower/TPS",        m_tower.getDesiredFlywheelTPS());
         Logger.recordOutput("Desired/Tower/Manual TPS", m_manualFlywheelSpeed);
@@ -246,9 +279,13 @@ public class RobotState
         Logger.recordOutput("Desired/Indexer/State", m_indexerState.toString());
         Logger.recordOutput("Desired/Intake/State",  m_intakePosState.toString() + " " + m_intakeRollerState.toString());
         Logger.recordOutput("Desired/Led/State", "No Tyler, there's no LEDs");
+
+        // Simulation
+
+        Logger.recordOutput("Simulation/Is Fuel In Intake", m_intake.isFuelInsideIntake());
     }
 
-    public void Periodic()
+    static public void Periodic()
     {
         Logging();
 
@@ -264,21 +301,33 @@ public class RobotState
         {
             switch (m_towerState)
             {
-                case Low:
+                case Low: // 70 in
+                    if (RobotBase.isSimulation() && m_indexerState == IndexerState.Spindexing)
+                        m_intake.launchFuel(20.6);
                     m_tower.setSpeed(Constants.Tower.CloseSpeed);
                     break;
-                case Middle:
+                case Middle: // 95 in
+                    if (RobotBase.isSimulation() && m_indexerState == IndexerState.Spindexing)
+                        m_intake.launchFuel(22.6);
                     m_tower.setSpeed(Constants.Tower.MiddleSpeed);
                     break;
-                case Long:
+                case Long: // 120 in
+                    if (RobotBase.isSimulation() && m_indexerState == IndexerState.Spindexing)
+                        m_intake.launchFuel(25.0);
                     m_tower.setSpeed(Constants.Tower.LongSpeed);
                     break;
                 case Auto:
                     double dist = getTargetDistMeters();
+                    double desiredGamePieceSpeedFtPerSec = 15 + dist * 0.08;
+
+                    if (RobotBase.isSimulation() && m_indexerState == IndexerState.Spindexing)
+                        m_intake.launchFuel(desiredGamePieceSpeedFtPerSec);
                     // TODO:
-                    m_tower.setSpeed(0.0);
+                    m_tower.setSpeed(-0.017 + desiredGamePieceSpeedFtPerSec*1.25275);
                     break;
                 case ManualControl:
+                    if (RobotBase.isSimulation() && m_indexerState == IndexerState.Spindexing)
+                        m_intake.launchFuel(20.6);
                     m_tower.setSpeed(m_manualFlywheelSpeed);
                     break;
             }
@@ -325,6 +374,7 @@ public class RobotState
         switch (m_chassisState)
         {
             case Pathplanning:
+                xModeOffCommand.run();
                 break;
             case Driving:
                 m_chassis.driveFieldRelative(m_speeds);
@@ -333,16 +383,20 @@ public class RobotState
             case AimHub:
                 chassisTrackAndShootHub.run();
                 break;
+            case Slow:
+                m_chassis.driveFieldRelative(new ChassisSpeeds(m_speeds.vxMetersPerSecond / 2, m_speeds.vyMetersPerSecond / 2, m_speeds.omegaRadiansPerSecond / 2));
+                xModeOffCommand.run();
+                break;
         }
     }
 
-    public double getTargetDistMeters()
+    static public double getTargetDistMeters()
     {
         return Math.sqrt(Math.pow(getTargetPose().getMeasureX().in(Meters) - getTargetPose().getMeasureX().in(Meters), 2) + 
                          Math.pow(getTargetPose().getMeasureY().in(Meters) - getTargetPose().getMeasureY().in(Meters), 2));
     }
 
-    public Pose2d getTargetPose()
+    static public Pose2d getTargetPose()
     {
         return HubActivePeriod.isHubActive() ?
             ((DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red) ? 
@@ -354,17 +408,17 @@ public class RobotState
                 (DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red) ? Constants.Field.RedAllianceZoneFar   : Constants.Field.BlueAllianceZoneFar));
     }
 
-    public Pose2d getPose()
+    static public Pose2d getPose()
     {
         return m_chassis.getPose();
     }
 
-    public Rotation2d getHeading()
+    static public Rotation2d getHeading()
     {
         return m_chassis.getHeading();
     }
 
-    public boolean GetIsReady()
+    static public boolean GetIsReady()
     {
         // If the flywheel is spun up and we're aiming at the target, shoot
         return m_tower.isSpunUp() && 
@@ -372,15 +426,10 @@ public class RobotState
                m_chassisState == ChassisState.AimHub;
     }
 
-    public void setDrive(double leftY, double leftX, double rightX)
+    static public void setDrive(double leftY, double leftX, double rightX)
     {
-        double magnitude = Math.sqrt(leftY * leftY + leftX * leftX);
-        double angle = Math.atan2(leftY, leftX);
-
-        magnitude = Math.pow(Math.abs(magnitude), Constants.Chassis.TranslateExponentialPower);
-
-        leftY = magnitude * Math.sin(angle);
-        leftX = magnitude * Math.cos(angle);
+        // leftY = m_yAccelLimiter.calculate(leftY);
+        // leftX = m_xAccelLimiter.calculate(leftX);
 
         rightX = Math.pow(Math.abs(rightX), Constants.Chassis.AngularExponentialPower) * rightX;
 

@@ -1,5 +1,10 @@
 package frc.robot.subsystems.chassis;
 
+import static edu.wpi.first.units.Units.Meters;
+
+import org.ironmaple.simulation.drivesims.AbstractDriveTrainSimulation;
+import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -54,5 +59,10 @@ public interface ChassisIO extends Subsystem
 
     default void setHeading(Rotation2d heading) {
         resetPose(new Pose2d(getPose().getTranslation(), heading));
+    }
+
+    default public AbstractDriveTrainSimulation getSimChassis()
+    {
+        return null;
     }
 }

@@ -52,7 +52,9 @@ public final class Constants
         public static final String kCameraName1 = "LeftCam";
         public static final String kCameraName2 = "RightCam";
         
-        public static final Transform3d RobotToCam1 = new Transform3d(new Translation3d(Units.inchesToMeters(0.0), Units.inchesToMeters(0.0), Units.inchesToMeters(0.0)), new Rotation3d());
+        public static final Transform3d RobotToCam1 = new Transform3d(
+            new Translation3d(Units.inchesToMeters(-12.0), Units.inchesToMeters(-6.0), Units.inchesToMeters(10.0)), 
+            new Rotation3d(0.0, Units.degreesToRadians(10), Units.degreesToRadians(180)));
         public static final Transform3d CamToRobot1 = RobotToCam1.inverse();
 
         // some of these probably need to be flipped
@@ -69,10 +71,10 @@ public final class Constants
 
     public static final class Intake
     {
-        public static final double IntakeStowedTurns    = 3.0;
-        public static final double IntakeDeployedTurns  = 6.0;
+        public static final double IntakeStowedTurns    = 2.0;
+        public static final double IntakeDeployedTurns  = 7.2;
 
-        public static final double IntakeDriveTurnsPerSec = 60;
+        public static final double IntakeDriveTurnsPerSec = 600;
 
         public static final double IntakePositionGearReduction = 25.0;
         public static final double IntakeRollerGearReduction   = 10.0;
@@ -80,7 +82,7 @@ public final class Constants
 
     public static final class Indexer
     {
-        public static final double BeltTurnsPerSec = 130;
+        public static final double BeltTurnsPerSec = 1300;
         public static final double KickerWheelTurnsPerSec  = 120;
     }
 
@@ -97,7 +99,7 @@ public final class Constants
     {
         // NOTE: The absolute encoder range is 0.5 to -0.5
         // These are the absolute encoder values that correspond to the wheels facing "forward"
-        public static final double FrontLeftForwardDegrees  = -0.115479 + (0.25 / 2);
+        public static final double FrontLeftForwardDegrees  =  0.3824; // WE ARE SO COOKED
         public static final double FrontRightForwardDegrees =  0.408691;
         public static final double BackRightForwardDegrees  = -0.11377;
         public static final double BackLeftForwardDegrees   = -0.025146;
@@ -110,7 +112,6 @@ public final class Constants
         public static final double WheelBaseMeters  = Units.inchesToMeters(30.0);
         public static final double TrackWidthMeters = Units.inchesToMeters(24.0);
 
-        
         public static final double DriveMotorReduction  = 6.75;
         public static final double WheelDiameter        = 0.098022; // meters
         public static final double WheelCircumference   = WheelDiameter * Math.PI;
@@ -124,10 +125,10 @@ public final class Constants
         };
 
         public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
-            new Translation2d( Constants.Chassis.WheelBaseMeters / 2,  Constants.Chassis.TrackWidthMeters / 2), // Front Left
-            new Translation2d( Constants.Chassis.WheelBaseMeters / 2, -Constants.Chassis.TrackWidthMeters / 2), // Front Right
-            new Translation2d(-Constants.Chassis.WheelBaseMeters / 2,  Constants.Chassis.TrackWidthMeters / 2), // Back Left
-            new Translation2d(-Constants.Chassis.WheelBaseMeters / 2, -Constants.Chassis.TrackWidthMeters / 2)  // Back Right
+            new Translation2d( Constants.Chassis.WheelBaseMeters / 2, -Constants.Chassis.TrackWidthMeters / 2), // Front Left
+            new Translation2d( Constants.Chassis.WheelBaseMeters / 2,  Constants.Chassis.TrackWidthMeters / 2), // Front Right
+            new Translation2d(-Constants.Chassis.WheelBaseMeters / 2, -Constants.Chassis.TrackWidthMeters / 2), // Back Left
+            new Translation2d(-Constants.Chassis.WheelBaseMeters / 2,  Constants.Chassis.TrackWidthMeters / 2)  // Back Right
         );
 
         public static final PathConstraints constraints = new PathConstraints(Constants.Chassis.MaximumSpeedMetersPerSec, 
@@ -178,7 +179,7 @@ public final class Constants
         public static final int BackRightTurnId         = 02; // Kraken X44
         public static final int BackRightEncoderId      = 03; // CANCoder
 
-        public static final int PigeonGyroId = 5; // CTR Pigeon 2.0
+        public static final int PigeonGyroId = 05; // CTR Pigeon 2.0
 
         public static final int IntakePositionFollowerMotorId = 42; // Kraken X44
         public static final int IntakePositionLeaderMotorId   = 41; // Kraken X44
@@ -203,8 +204,7 @@ public final class Constants
     }
 
     public static final class Usb
-    {
-        
+    {   
         // drive Input Configurations
         public static final int DrivePort    = 0;
         public static final int OperatorPort = 1;

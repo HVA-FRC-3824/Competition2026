@@ -2,36 +2,33 @@ package frc.robot.subsystems.chassis;
 
 import static edu.wpi.first.units.Units.Inches;
 
-import java.util.Optional;
-
 import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.AbstractDriveTrainSimulation;
 import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SelfControlledSwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.littletonrobotics.junction.Logger;
-import org.photonvision.EstimatedRobotPose;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Subsystem;
+import frc.robot.Constants;
 import frc.robot.subsystems.Vision;
-import us.hebi.quickbuf.Descriptors.Descriptor;
 
 public class SimChassis implements ChassisIO 
 {
@@ -39,6 +36,8 @@ public class SimChassis implements ChassisIO
     private final Field2d field2d;
 
     private boolean m_xMode = false;
+
+    private Vision  m_vision = new Vision(this::addVisionMeasurement);
 
     public SimChassis() 
     {
@@ -153,28 +152,25 @@ public class SimChassis implements ChassisIO
     public void periodic() {
         // update the odometry of the SimplifedSwerveSimulation instance
         simulatedDrive.periodic();
-
-        if (Vision.getResult1() != null)
-        {
-            Optional<EstimatedRobotPose> visionBotPose1 = Vision.getEstimatedGlobalPoseCam1(Vision.getResult1(), getPose());
-            if (visionBotPose1.isPresent()){
-                simulatedDrive.addVisionEstimation(visionBotPose1.get().estimatedPose.toPose2d(), Timer.getMatchTime(), Vision.updateEstimationStdDevs(visionBotPose1, visionBotPose1.get().targetsUsed));
-            }
-        }
-        if (Vision.getResult2() != null)
-        {
-            Optional<EstimatedRobotPose> visionBotPose2 = Vision.getEstimatedGlobalPoseCam2(getPose(), Vision.getResult2());
-            if (visionBotPose2.isPresent())
-            {
-                simulatedDrive.addVisionEstimation(visionBotPose2.get().estimatedPose.toPose2d(), Timer.getTimestamp(), Vision.updateEstimationStdDevs(visionBotPose2, visionBotPose2.get().targetsUsed));
-            }
-        } 
-        
+        m_vision.simulationPeriodic(simulatedDrive.getActualPoseInSimulationWorld());
+        m_vision.periodic();
 
         // send simulation data to dashboard for testing
         field2d.setRobotPose(simulatedDrive.getActualPoseInSimulationWorld());
         field2d.getObject("odometry").setPose(getPose());
         Logger.recordOutput("Simulation/Actual Pose", simulatedDrive.getActualPoseInSimulationWorld());
         Logger.recordOutput("Simulation/Measured Pose", getPose());
+    }
+
+    public void addVisionMeasurement(Pose2d visionMeasurement, double timestampSeconds, Matrix<N3, N1> stdDevs) 
+    {
+        Logger.recordOutput("Measured/Vision Measurement", visionMeasurement);
+        simulatedDrive.addVisionEstimation(visionMeasurement, timestampSeconds, stdDevs);
+    }
+
+    @Override
+    public AbstractDriveTrainSimulation getSimChassis()
+    {
+        return simulatedDrive.getDriveTrainSimulation();
     }
 }

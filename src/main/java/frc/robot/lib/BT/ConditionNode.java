@@ -13,16 +13,19 @@ public class ConditionNode extends Node
     @Override
     public NodeStatus update(XboxController controller)
     {
-        boolean checked = m_conditionChecker.get(); 
+        return (m_inversed != m_conditionChecker.get()) ? NodeStatus.Success : NodeStatus.Failure;
+    }
 
-        // if (m_toggleCheck)
-        //     checked = false;
+    // DECORATORS
 
-        // m_toggleCheck = checked;
-        
-        return checked ? NodeStatus.Success : NodeStatus.Failure;
+    public Node inverse()
+    {
+        m_inversed = !m_inversed;
+
+        return this;
     }
     
     private Supplier<Boolean> m_conditionChecker;
-    private boolean           m_toggleCheck = false;
+    
+    protected boolean m_inversed = false;
 }

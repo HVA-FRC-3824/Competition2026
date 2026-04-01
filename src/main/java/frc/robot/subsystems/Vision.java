@@ -1,224 +1,207 @@
-package frc.robot.subsystems;
-// Graciously professionally stolen from 3966
+/*
+ * MIT License
+ *
+ * Copyright (c) PhotonVision
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
-import org.photonvision.EstimatedRobotPose;
-import org.photonvision.PhotonCamera;
-import org.photonvision.PhotonPoseEstimator;
-import org.photonvision.targeting.PhotonPipelineResult;
-import org.photonvision.targeting.PhotonTrackedTarget;
+package frc.robot.subsystems;
+
+import static frc.robot.Constants.Vision.*;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.Constants;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.photonvision.EstimatedRobotPose;
+import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.SimCameraProperties;
+import org.photonvision.simulation.VisionSystemSim;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
+public class Vision implements Subsystem {
+    private final PhotonCamera camera;
+    private final PhotonPoseEstimator photonEstimator;
+    private Matrix<N3, N1> curStdDevs;
+    private final EstimateConsumer estConsumer;
 
-public class Vision extends SubsystemBase 
-{
-    private static final PhotonCamera m_camera1 = new PhotonCamera(Constants.Vision.kCameraName1);
-    private static final PhotonCamera m_camera2 = new PhotonCamera(Constants.Vision.kCameraName2);
+    // Simulation
+    private PhotonCameraSim cameraSim;
+    private VisionSystemSim visionSim;
 
-    private static PhotonPipelineResult m_result1 = null;
-    private static PhotonPipelineResult m_result2 = null;
+    /**
+     * @param estConsumer Lamba that will accept a pose estimate and pass it to your desired {@link
+     *     edu.wpi.first.math.estimator.SwerveDrivePoseEstimator}
+     */
+    public Vision(EstimateConsumer estConsumer) {
+        this.estConsumer = estConsumer;
+        camera = new PhotonCamera(Constants.Vision.kCameraName1);
+        photonEstimator = new PhotonPoseEstimator(kTagLayout, Constants.Vision.RobotToCam1);
 
-    private static final PhotonPoseEstimator m_poseEstimator1 = new PhotonPoseEstimator(
-        Constants.Vision.kTagLayout, Constants.Vision.RobotToCam1);
-    private static final PhotonPoseEstimator m_poseEstimator2 = new PhotonPoseEstimator(
-        Constants.Vision.kTagLayout, Constants.Vision.kRobotToCam2);
+        // ----- Simulation
+        if (RobotBase.isSimulation()) {
+            // Create the vision system simulation which handles cameras and targets on the field.
+            visionSim = new VisionSystemSim("main");
+            // Add all the AprilTags inside the tag layout as visible targets to this simulated field.
+            visionSim.addAprilTags(kTagLayout);
+            // Create simulated camera properties. These can be set to mimic your actual camera.
+            var cameraProp = new SimCameraProperties();
+            cameraProp.setCalibration(960, 720, Rotation2d.fromDegrees(90));
+            cameraProp.setCalibError(0.35, 0.10);
+            cameraProp.setFPS(15);
+            cameraProp.setAvgLatencyMs(50);
+            cameraProp.setLatencyStdDevMs(15);
+            // Create a PhotonCameraSim which will update the linked PhotonCamera's values with visible
+            // targets.
+            cameraSim = new PhotonCameraSim(camera, cameraProp);
+            // Add the simulated camera to view the targets on this simulated field.
+            visionSim.addCamera(cameraSim, Constants.Vision.RobotToCam1);
 
-    public Vision()
-    {
-        
+            cameraSim.enableDrawWireframe(true);
+        }
     }
 
     @Override
     public void periodic() {
-        var results1 = m_camera1.getAllUnreadResults();
-        if (!results1.isEmpty()){
-            m_result1 = results1.get(results1.size() - 1);
-        }
-        var results2 = m_camera2.getAllUnreadResults();
-        if (!results2.isEmpty()){
-            m_result2 = results2.get(results2.size() - 1);
-        }
-    }
-
-    public static PhotonPipelineResult getResult1() {
-        return m_result1;
-    }
-
-    public static PhotonPipelineResult getResult2() {
-        return m_result2;
-    }
-
-    public static PhotonCamera getCamera1() {
-        return m_camera1;
-    }
-
-    public static PhotonCamera getCamera2() {
-        return m_camera2;
-    }
-    
-    public static boolean resultHasTargets() {
-        return (m_result1 != null && m_result1.hasTargets()) || (m_result2 != null && m_result2.hasTargets());
-    }
-
-    public static int[] tagsInFrame() {
-        List<PhotonTrackedTarget> targets = getAllTargets();
-        int[] tags = new int[targets.size()];
-        for (int i = 0; i < targets.size(); i++) {
-            tags[i] = targets.get(i).getFiducialId();
-        }
-        return tags;
-    }
-
-    public static List<PhotonTrackedTarget> getAllTargets() {
-        List<PhotonTrackedTarget> allTargets = new ArrayList<>();
-        if (m_result1 != null && m_result1.hasTargets()) {
-            allTargets.addAll(m_result1.getTargets());
-        }
-        if (m_result2 != null && m_result2.hasTargets()) {
-            allTargets.addAll(m_result2.getTargets());
-        }
-        return allTargets;
-    }
-
-    public static int getBestTag()
-    {
-        if (m_result1 != null && m_result1.hasTargets())
+        Optional<EstimatedRobotPose> visionEst = Optional.empty();
+        for (var result : camera.getAllUnreadResults())
         {
-            return m_result1.getBestTarget().getFiducialId();
+            visionEst = photonEstimator.estimateCoprocMultiTagPose(result);
+            if (visionEst.isEmpty()) 
+            {
+                visionEst = photonEstimator.estimateLowestAmbiguityPose(result);
+            }
+            updateEstimationStdDevs(visionEst, result.getTargets());
+
+            if (RobotBase.isSimulation()) 
+            {
+                visionEst.ifPresentOrElse(
+                        est ->
+                                getSimDebugField()
+                                        .getObject("VisionEstimation")
+                                        .setPose(est.estimatedPose.toPose2d()),
+                        () -> {
+                            getSimDebugField().getObject("VisionEstimation").setPoses();
+                        });
+            }
+
+            visionEst.ifPresent(
+                    est -> {
+                        // Change our trust in the measurement based on the tags we can see
+                        var estStdDevs = getEstimationStdDevs();
+
+                        estConsumer.accept(est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
+                    });
         }
-        if (m_result2 != null && m_result2.hasTargets())
-        {
-            return m_result2.getBestTarget().getFiducialId();
-        }
-        return 0;
     }
 
-    public static Optional<EstimatedRobotPose> getEstimatedGlobalPoseCam1(PhotonPipelineResult result, Pose2d referencePose)
-    {
-        if (result == null || !result.hasTargets())
-        {
-            return Optional.empty();
-        }
-
-        Pose3d[] usedTags = new Pose3d[result.targets.size()];
-        for (int i = 0; i < result.targets.size(); i++)
-        {
-          usedTags[i] = (Constants.Vision.kTagLayout.getTagPose(result.targets.get(i).fiducialId).get());
-        }
-
-        Optional<EstimatedRobotPose> update = m_poseEstimator1.estimateClosestToReferencePose(result, new Pose3d(referencePose));
-            
-        
-        return update;
-    }
-
-    public static Matrix<N3, N1> updateEstimationStdDevs(Optional<EstimatedRobotPose> estimatedPose,
-                                                         List<PhotonTrackedTarget> targets) 
-    {
-
-        Matrix<N3, N1> curStdDevs = Constants.Vision.kSingleTagStdDevs;
+    /**
+     * Calculates new standard deviations This algorithm is a heuristic that creates dynamic standard
+     * deviations based on number of tags, estimation strategy, and distance from the tags.
+     *
+     * @param estimatedPose The estimated pose to guess standard deviations for.
+     * @param targets All targets in this camera frame
+     */
+    private void updateEstimationStdDevs(
+            Optional<EstimatedRobotPose> estimatedPose, List<PhotonTrackedTarget> targets) {
         if (estimatedPose.isEmpty()) {
             // No pose input. Default to single-tag std devs
-            curStdDevs = Constants.Vision.kSingleTagStdDevs;
+            curStdDevs = kSingleTagStdDevs;
+
         } else {
             // Pose present. Start running Heuristic
-            var estStdDevs = Constants.Vision.kSingleTagStdDevs;
+            var estStdDevs = kSingleTagStdDevs;
             int numTags = 0;
             double avgDist = 0;
 
             // Precalculation - see how many tags we found, and calculate an average-distance metric
-            for (var tgt : targets) {
-                var tagPose = Constants.Vision.kTagLayout.getTagPose(tgt.getFiducialId());
+            for (var tgt : targets)
+            {
+                var tagPose = photonEstimator.getFieldTags().getTagPose(tgt.getFiducialId());
                 if (tagPose.isEmpty()) continue;
                 numTags++;
-                avgDist +=
-                        tagPose
-                                .get()
-                                .toPose2d()
-                                .getTranslation()
-                                .getDistance(estimatedPose.get().estimatedPose.toPose2d().getTranslation());
+                avgDist += tagPose.get().toPose2d().getTranslation()
+                    .getDistance(estimatedPose.get().estimatedPose.toPose2d().getTranslation());
             }
 
             if (numTags == 0) {
-                // No tags visible.
-                curStdDevs = VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+                // No tags visible. Default to single-tag std devs
+                curStdDevs = kSingleTagStdDevs;
             } else {
                 // One or more tags visible, run the full heuristic.
                 avgDist /= numTags;
                 // Decrease std devs if multiple targets are visible
-                if (numTags > 1) estStdDevs = Constants.Vision.kMultiTagStdDevs;
+                if (numTags > 1) estStdDevs = kMultiTagStdDevs;
                 // Increase std devs based on (average) distance
-                if (numTags == 1 && avgDist > 2)
+                if (numTags == 1 && avgDist > 4)
                     estStdDevs = VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
-                // TODO Tweak the constant here PLEASE to change how much we trust multi tag as distances increase
                 else estStdDevs = estStdDevs.times(1 + (avgDist * avgDist / 30));
                 curStdDevs = estStdDevs;
             }
         }
+    }
+
+    /**
+     * Returns the latest standard deviations of the estimated pose from {@link
+     * #getEstimatedGlobalPose()}, for use with {@link
+     * edu.wpi.first.math.estimator.SwerveDrivePoseEstimator SwerveDrivePoseEstimator}. This should
+     * only be used when there are targets visible.
+     */
+    public Matrix<N3, N1> getEstimationStdDevs()
+    {
         return curStdDevs;
     }
 
+    // ----- Simulation
 
-
-    public static Optional<EstimatedRobotPose> getEstimatedGlobalPoseCam2(Pose2d prevEstimatedRobotPose, PhotonPipelineResult result) {
-        if (result == null || !result.hasTargets()){
-            return Optional.empty();
-        }
-
-        Optional<EstimatedRobotPose> update = Optional.empty();
-
-        Pose3d[] usedTags = new Pose3d[result.targets.size()];
-        for (int i = 0; i < result.targets.size(); i++){
-          usedTags[i] = (Constants.Vision.kTagLayout.getTagPose(result.targets.get(i).fiducialId).get());
-        }
-
-        update = m_poseEstimator2.estimateClosestToCameraHeightPose(result);
-        
-        return update;
-    }
-
-    public static double targetYaw(int targetNumber) {
-        for (PhotonTrackedTarget target : getAllTargets()) {
-            if (target.getFiducialId() == targetNumber) {
-                return target.getYaw();
-            }
-        }
-        return 0;
-    }
-
-    public static Transform3d targetTransform(int targetNumber)
+    public void simulationPeriodic(Pose2d robotSimPose)
     {
-        for (PhotonTrackedTarget target : getAllTargets()) 
-        {
-            if (target.getFiducialId() == targetNumber) 
-            {
-                return target.getBestCameraToTarget();
-            }
-        }
-        return new Transform3d();
+        visionSim.update(robotSimPose);
     }
 
-    public static PhotonTrackedTarget returnTag(int targetNumber)
+    /** Reset pose history of the robot in the vision system simulation. */
+    public void resetSimPose(Pose2d pose)
     {
-        for (PhotonTrackedTarget target : getAllTargets())
-        {
-            if (target.getFiducialId() == targetNumber)
-            {
-                return target;
-            }
-        }
-        return new PhotonTrackedTarget(); // Empty target
+        if (RobotBase.isSimulation()) visionSim.resetRobotPose(pose);
+    }
+
+    /** A Field2d for visualizing our robot and objects on the field. */
+    public Field2d getSimDebugField()
+    {
+        if (!RobotBase.isSimulation()) return null;
+        return visionSim.getDebugField();
+    }
+
+    @FunctionalInterface
+    public static interface EstimateConsumer {
+        public void accept(Pose2d pose, double timestamp, Matrix<N3, N1> estimationStdDevs);
     }
 }
