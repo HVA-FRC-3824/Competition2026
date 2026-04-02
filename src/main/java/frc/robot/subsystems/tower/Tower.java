@@ -3,12 +3,11 @@ package frc.robot.subsystems.tower;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.controls.Follower;
 
-import edu.wpi.first.units.Units;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.lib.TalonFXConfig;
 
@@ -26,11 +25,11 @@ public class Tower implements TowerIO
                         false,            // Inverted
                         false,           // Brake mode
                         false,           // Continuous wrap
-                        0.45,            // P gain
+                        0.55,            // P gain
                         0.0,             // I gain
                         0.0,             // D gain
-                        0.49,             // S (static friction feedforward)
-                        0.19,            // V (velocity feedforward)
+                        0.0,             // S (static friction feedforward)
+                        0.13,            // V (velocity feedforward)
                         0.99,            // A (acceleration feedforward)
                         0.0,           // Velocity limit
                         0.0);  // Acceleration limit
@@ -43,7 +42,14 @@ public class Tower implements TowerIO
     {
         m_setTPS = speed;
 
-        m_leaderFlywheel.setControl(new VelocityVoltage(speed));
+        if (speed <= 0.5)
+        {
+            m_leaderFlywheel.setControl(new VoltageOut(0.0));
+        }
+        else
+        {
+            m_leaderFlywheel.setControl(new VelocityVoltage(speed));
+        }
     }
 
     public double getDesiredFlywheelTPS() { return m_setTPS; }

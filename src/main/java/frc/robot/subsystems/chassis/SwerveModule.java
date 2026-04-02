@@ -46,8 +46,8 @@ public class SwerveModule
         // Configure motors (you’ll need your own config helper or inline config)
         TalonFXConfig.configure(
             m_drivingMotor,    // drive motor configuration
-            120,              // Maximum Amperage
-            false,           // Inverted
+            40.0,              // Maximum Amperage
+            driveMotorCanId == Constants.CanIds.FrontLeftDriveId,
             true,            // Brake mode enabled
             false,           // Continuous wrap
             0.03,            // P gain
@@ -61,7 +61,7 @@ public class SwerveModule
 
         TalonFXConfig.configure(
             m_angleMotor,    // Angle motor configuration
-            70.0,            // Maximum Amperage
+            40.0,            // Maximum Amperage
             true,            // Inverted
             true,            // Brake mode enabled
             true,            // Continuous wrap
