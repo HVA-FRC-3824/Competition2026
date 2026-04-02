@@ -431,7 +431,7 @@ public class RobotState
         // leftY = m_yAccelLimiter.calculate(leftY);
         // leftX = m_xAccelLimiter.calculate(leftX);
 
-        rightX = Math.pow(Math.abs(rightX), Constants.Chassis.AngularExponentialPower) * rightX;
+        // rightX = Math.pow(Math.abs(rightX), Constants.Chassis.AngularExponentialPower) * rightX;
 
         m_speeds = new ChassisSpeeds(
             leftY  * Constants.Chassis.MaximumSpeedMetersPerSec,
