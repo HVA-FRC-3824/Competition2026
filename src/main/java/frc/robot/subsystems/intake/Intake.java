@@ -39,11 +39,11 @@ public class Intake implements IntakeIO
 
         TalonFXConfig.configure(
             m_intakePositionLeaderMotor,
-            50.0,
+            60.0,
             true,
             true,
             false,
-            0.5,
+            0.9,
             0.0,
             0.0,
             0.0,
@@ -55,11 +55,11 @@ public class Intake implements IntakeIO
 
         TalonFXConfig.configure(
             m_intakePositionFollowerMotor,
-            50.0,
+            60.0,
             false,
             true,
             false,
-            0.5,
+            0.9,
             0.0,
             0.0,
             0.0,
