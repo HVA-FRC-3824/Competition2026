@@ -12,6 +12,7 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
@@ -135,6 +136,13 @@ public class Chassis extends SubsystemBase implements ChassisIO
     @Override
     public void setModuleStates(SwerveModuleState[] states)
     {
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Chassis.MaximumSpeedMetersPerSec);
+
+        states[0].optimize(m_flSwerveModules.getState().angle);
+        states[1].optimize(m_frSwerveModules.getState().angle);
+        states[2].optimize(m_blSwerveModules.getState().angle);
+        states[3].optimize(m_brSwerveModules.getState().angle);
+
         // Set the desired state for each swerve module
         m_flSwerveModules.setDesiredState(states[0], "Front Left " );
         m_frSwerveModules.setDesiredState(states[1], "Front Right ");

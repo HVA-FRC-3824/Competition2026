@@ -121,7 +121,7 @@ public class RobotState
 
     // CONTROLLERS
 
-    private static final PIDController m_aimController = new PIDController(10.0, 0.05, 0.1);
+    private static final PIDController m_aimController = new PIDController(10.0, 0.0, 0.5);
     
     // FUNCTIONS
 
@@ -398,14 +398,22 @@ public class RobotState
 
     static public Pose2d getTargetPose()
     {
-        return HubActivePeriod.isHubActive() ?
-            ((DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red) ? 
+        // If were in our alliance zone, score fuel to our alliance zone
+        if (DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Blue ?
+            getPose().getX() > Constants.Field.FieldLengthMeters - Constants.Field.AllianceWallToAllianceZoneMeters :
+            getPose().getX() < Constants.Field.AllianceWallToAllianceZoneMeters)
+        {
+            return ((DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red) ? 
                 Constants.Field.RedHub.toPose2d() : 
-                Constants.Field.BlueHub.toPose2d()) 
-            :
-            getPose().nearest(Arrays.asList(
+                Constants.Field.BlueHub.toPose2d());
+        }
+        else
+        {
+            return getPose().nearest(Arrays.asList(
                 (DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red) ? Constants.Field.RedAllianceZoneClose : Constants.Field.BlueAllianceZoneClose, 
                 (DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red) ? Constants.Field.RedAllianceZoneFar   : Constants.Field.BlueAllianceZoneFar));
+
+        }
     }
 
     static public Pose2d getPose()

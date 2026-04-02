@@ -1,0 +1,61 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "midShoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "driveMode"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "spinUpTower"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "xModeOff"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "pathplanningMode"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LSP to mid"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "aimMode"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "jiggleIntake"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
