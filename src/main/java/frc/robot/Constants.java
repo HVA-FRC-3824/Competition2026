@@ -104,7 +104,7 @@ public final class Constants
         public static final double BackRightForwardDegrees  = -0.11377;
         public static final double BackLeftForwardDegrees   = -0.025146;
 
-        public static final double MaximumSpeedMetersPerSec  = Units.feetToMeters(10.0);
+        public static final double MaximumSpeedMetersPerSec  = Units.feetToMeters(12.0);
         public static final double MaximumAngularVelocity    = 1 * Math.PI;
         public static final double TranslateExponentialPower = 3.0;
         public static final double AngularExponentialPower   = 2.0;
