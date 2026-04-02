@@ -121,7 +121,7 @@ public class RobotState
 
     // CONTROLLERS
 
-    private static final PIDController m_aimController = new PIDController(1.0, 0.05, 0.1);
+    private static final PIDController m_aimController = new PIDController(3.0, 0.05, 0.1);
     
     // FUNCTIONS
 

@@ -5,9 +5,51 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "midShoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "driveMode"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "spinUpTower"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "xModeOff"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "pathplanningMode"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "LSP backup and shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "aimMode"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "jiggleIntake"
           }
         }
       ]
