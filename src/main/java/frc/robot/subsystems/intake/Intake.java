@@ -3,6 +3,7 @@ package frc.robot.subsystems.intake;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 
@@ -40,7 +41,7 @@ public class Intake implements IntakeIO
             m_intakePositionLeaderMotor,
             50.0,
             true,
-            false,
+            true,
             false,
             0.5,
             0.0,
@@ -56,7 +57,7 @@ public class Intake implements IntakeIO
             m_intakePositionFollowerMotor,
             50.0,
             false,
-            false,
+            true,
             false,
             0.5,
             0.0,
@@ -67,6 +68,7 @@ public class Intake implements IntakeIO
             5.0,
             5.0
         );
+        
 
         m_fuelIntakeMotor.setPosition(0.0);
 
@@ -83,6 +85,13 @@ public class Intake implements IntakeIO
     // turns per second
     public void setRollers(double speed)
     {
-        m_fuelIntakeMotor.setControl(new VelocityVoltage(speed));
+        if (speed <= 0.5)
+        {
+            m_fuelIntakeMotor.setControl(new VoltageOut(0.0));
+        }
+        else
+        {
+            m_fuelIntakeMotor.setControl(new VelocityVoltage(speed));
+        }
     }
 }

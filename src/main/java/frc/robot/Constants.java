@@ -88,9 +88,9 @@ public final class Constants
 
     public static final class Tower
     {
-        public static final double CloseSpeed      = 21.0;
-        public static final double MiddleSpeed     = 25.0;
-        public static final double LongSpeed       = 31.0;
+        public static final double CloseSpeed      = 45.0; // 90 in
+        public static final double MiddleSpeed     = 51.0; // 120 in
+        public static final double LongSpeed       = 55.0; // 150 in
 
         public static final double SpunUpTolerance = 2.0;
     }
@@ -104,7 +104,9 @@ public final class Constants
         public static final double BackRightForwardDegrees  = -0.11377;
         public static final double BackLeftForwardDegrees   = -0.025146;
 
-        public static final double MaximumSpeedMetersPerSec  = Units.feetToMeters(15.0);
+        public static final double MaximumSpeedMetersPerSec  = Units.feetToMeters(12.0);
+        public static final double SlowSpeedMetersPerSec     = Units.feetToMeters(6.0);
+        public static       boolean isSlowFlag = false;
         public static final double MaximumAngularVelocity    = 2 * Math.PI;
         public static final double TranslateExponentialPower = 3.0;
         public static final double AngularExponentialPower   = 2.0;
@@ -125,10 +127,10 @@ public final class Constants
         };
 
         public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
-            new Translation2d( Constants.Chassis.WheelBaseMeters / 2, -Constants.Chassis.TrackWidthMeters / 2), // Front Left
-            new Translation2d( Constants.Chassis.WheelBaseMeters / 2,  Constants.Chassis.TrackWidthMeters / 2), // Front Right
-            new Translation2d(-Constants.Chassis.WheelBaseMeters / 2, -Constants.Chassis.TrackWidthMeters / 2), // Back Left
-            new Translation2d(-Constants.Chassis.WheelBaseMeters / 2,  Constants.Chassis.TrackWidthMeters / 2)  // Back Right
+            new Translation2d( Constants.Chassis.WheelBaseMeters / 2,  Constants.Chassis.TrackWidthMeters / 2), // Front Left
+            new Translation2d( Constants.Chassis.WheelBaseMeters / 2, -Constants.Chassis.TrackWidthMeters / 2), // Front Right
+            new Translation2d(-Constants.Chassis.WheelBaseMeters / 2,  Constants.Chassis.TrackWidthMeters / 2), // Back Left
+            new Translation2d(-Constants.Chassis.WheelBaseMeters / 2, -Constants.Chassis.TrackWidthMeters / 2)  // Back Right
         );
 
         public static final PathConstraints constraints = new PathConstraints(Constants.Chassis.MaximumSpeedMetersPerSec, 

@@ -41,6 +41,7 @@ public class RobotContainer
         (Node) new SequenceNode( // Auto
           (Node) new ConditionNode(() -> m_driver.getRightTriggerAxis() >= 0.5),
           (Node) new ActionNode(RobotState.spinUpTowerCommand),
+          (Node) new ActionNode(RobotState.autoTowerCommand),
           (Node) new ActionNode(RobotState.autoAimCommand)
         ),
         (Node) new SequenceNode( // Warm Up
@@ -72,11 +73,6 @@ public class RobotContainer
 
     Node driveNode =
       (Node) new SelectorNode(
-        (Node) new SequenceNode(
-          (Node) new ControllerNode(Constants.Controller.RightPaddle),
-          (Node) new ActionNode(RobotState.slowModeCommand),
-          (Node) new ActionNode(() -> RobotState.setDrive(-m_driver.getLeftY(), -m_driver.getLeftX(), -m_driver.getRightX()))
-        ),
         (Node) new ActionNode(() -> RobotState.setDrive(-m_driver.getLeftY(), -m_driver.getLeftX(), -m_driver.getRightX()))
       );
 
@@ -105,28 +101,34 @@ public class RobotContainer
       (Node) new SelectorNode(
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.A),
-          (Node) new ActionNode(RobotState.lowShootTowerCommand)
+          (Node) new ActionNode(RobotState.lowShootTowerCommand),
+            (Node) new ActionNode(RobotState.spinUpTowerCommand)
         ),        
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.B),
-          (Node) new ActionNode(RobotState.midShootTowerCommand)
+          (Node) new ActionNode(RobotState.midShootTowerCommand),
+            (Node) new ActionNode(RobotState.spinUpTowerCommand)
         ),
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.Y),
-          (Node) new ActionNode(RobotState.longShootTowerCommand)
+          (Node) new ActionNode(RobotState.longShootTowerCommand),
+          (Node) new ActionNode(RobotState.spinUpTowerCommand)
+        ),
+        (Node) new SequenceNode( // skepticism
+          (Node) new ControllerNode(Constants.Controller.LeftPaddle),
+          (Node) new ActionNode(RobotState.spinUpTowerCommand),
+          (Node) new ActionNode(RobotState.autoTowerCommand)
         ),
         (Node) new SequenceNode(
-          (Node) new ControllerNode(Constants.Controller.LeftPaddle),
-          (Node) new ActionNode(RobotState.autoTowerCommand)
-        )
+          (Node) new ConditionNode(() -> m_operator.getRightTriggerAxis() >= 0.5),
+          (Node) new ActionNode(RobotState.spinUpTowerCommand),
+          (Node) new ActionNode(RobotState.manualTowerCommand)
+        ),
+        (Node) new ActionNode(RobotState.spinDownTowerCommand)
       );
 
     Node manualModeNodes = 
       (Node) new SelectorNode(
-        (Node) new SequenceNode(
-          (Node) new ControllerNode(Constants.Controller.RightPaddle),
-          (Node) new ActionNode(RobotState.manualTowerCommand)
-        ),
         (Node) new SequenceNode( // insure its only on press
           (Node) new ConditionNode(()->m_operator.getRawButtonPressed(Constants.Controller.RightBumper)),
           (Node) new ActionNode(RobotState.increaseManualTowerCommand)
@@ -134,14 +136,6 @@ public class RobotContainer
         (Node) new SequenceNode( // insure its only on press
           (Node) new ConditionNode(()->m_operator.getRawButtonPressed(Constants.Controller.LeftBumper)),
           (Node) new ActionNode(RobotState.decreaseManualTowerCommand)
-        ),
-        (Node) new SelectorNode(
-          (Node) new ConditionNode(() -> RobotState.m_towerState != RobotState.TowerState.ManualControl),
-          (Node) new SequenceNode(
-            (Node) new ConditionNode(() -> m_operator.getRightTriggerAxis() >= 0.5),
-            (Node) new ActionNode(RobotState.spinUpTowerCommand)
-          ),
-          (Node) new ActionNode(RobotState.spinDownTowerCommand)
         )
       );
 

@@ -114,7 +114,7 @@ public class Chassis extends SubsystemBase implements ChassisIO
     }
 
     @Override
-    public void  driveRobotRelative(ChassisSpeeds speeds)
+    public void driveRobotRelative(ChassisSpeeds speeds)
     {
         // If the chassis is in x mode, than stay in x mode, ignoring the desired speeds
         if (m_isXMode)
@@ -136,13 +136,6 @@ public class Chassis extends SubsystemBase implements ChassisIO
     @Override
     public void setModuleStates(SwerveModuleState[] states)
     {
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Chassis.MaximumSpeedMetersPerSec);
-
-        states[0].optimize(m_flSwerveModules.getState().angle);
-        states[1].optimize(m_frSwerveModules.getState().angle);
-        states[2].optimize(m_blSwerveModules.getState().angle);
-        states[3].optimize(m_brSwerveModules.getState().angle);
-
         // Set the desired state for each swerve module
         m_flSwerveModules.setDesiredState(states[0], "Front Left " );
         m_frSwerveModules.setDesiredState(states[1], "Front Right ");

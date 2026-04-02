@@ -96,7 +96,6 @@ public class RobotState
     {
         Pathplanning,
         Driving,
-        Slow,
         AimHub
     }
 
@@ -121,7 +120,7 @@ public class RobotState
 
     // CONTROLLERS
 
-    private static final PIDController m_aimController = new PIDController(10.0, 0.0, 0.5);
+    private static final PIDController m_aimController = new PIDController(3.0, 0.0, 0.5);
     
     // FUNCTIONS
 
@@ -174,7 +173,6 @@ public class RobotState
 
     // Chassis
     static public final Runnable autoAimCommand      = () -> m_chassisState = ChassisState.AimHub;
-    static public final Runnable slowModeCommand     = () -> m_chassisState = ChassisState.Slow;
     static public final Runnable driveModeCommand    = () -> m_chassisState = ChassisState.Driving;
     static public final Runnable pathplanningCommand = () -> m_chassisState = ChassisState.Pathplanning;
 
@@ -189,14 +187,14 @@ public class RobotState
 
         m_speeds.omegaRadiansPerSecond = m_aimController.calculate(getHeading().getRadians(), angleToHubFromPos.getRadians());
 
-        if (m_aimController.atSetpoint())
-        {
-            xModeOnCommand.run();
-        }
-        else
-        {
-            xModeOffCommand.run();
-        }
+        // if (m_aimController.atSetpoint() && getTargetPose() == ((DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red) ? Constants.Field.RedHub : Constants.Field.BlueHub).toPose2d())
+        // {
+        //     xModeOnCommand.run();
+        // }
+        // else
+        // {
+        //     xModeOffCommand.run();
+        // }
 
         m_chassis.driveFieldRelative(m_speeds);
     };
@@ -256,8 +254,9 @@ public class RobotState
         Logger.recordOutput("Measured/Chassis/States",   m_chassis.getModuleStates());
         Logger.recordOutput("Measured/Chassis/Is Aimed", m_aimController.atSetpoint());
 
-        Logger.recordOutput("Measured/Pose",         m_chassis.getPose());
-        Logger.recordOutput("Measured/Heading",      m_chassis.getHeading().getDegrees());
+        Logger.recordOutput("Measured/Pose",             m_chassis.getPose());
+        Logger.recordOutput("Measured/Dist From Target", Units.metersToInches(getTargetDistMeters()));
+        Logger.recordOutput("Measured/Heading",          m_chassis.getHeading().getDegrees());
 
         Logger.recordOutput("Measured/Chassis To Hub Speed", Units.radiansToDegrees(m_aimController.getError()));
         Logger.recordOutput("Measured/Target Dist Inches", Units.metersToInches(getTargetDistMeters()));
@@ -269,7 +268,6 @@ public class RobotState
 
         Logger.recordOutput("Desired/Chassis/Speeds", m_speeds);
         Logger.recordOutput("Desired/Chassis/XMode",  m_chassis.getIsXMode());
-        Logger.recordOutput("Desired/Chassis/XMode",  m_chassisState == ChassisState.Slow);
 
         Logger.recordOutput("Desired/Tower/TPS",        m_tower.getDesiredFlywheelTPS());
         Logger.recordOutput("Desired/Tower/Manual TPS", m_manualFlywheelSpeed);
@@ -318,12 +316,12 @@ public class RobotState
                     break;
                 case Auto:
                     double dist = getTargetDistMeters();
-                    double desiredGamePieceSpeedFtPerSec = 15 + dist * 0.08;
+                    double desiredGamePieceSpeedFtPerSec = 15 + dist * 0.08; // In my magical perfect world :heart:
 
                     if (RobotBase.isSimulation() && m_indexerState == IndexerState.Spindexing)
                         m_intake.launchFuel(desiredGamePieceSpeedFtPerSec);
-                    // TODO:
-                    m_tower.setSpeed(-0.017 + desiredGamePieceSpeedFtPerSec*1.25275);
+
+                    m_tower.setSpeed(0.166667 * dist + 30.33333);
                     break;
                 case ManualControl:
                     if (RobotBase.isSimulation() && m_indexerState == IndexerState.Spindexing)
@@ -382,10 +380,6 @@ public class RobotState
                 break;
             case AimHub:
                 chassisTrackAndShootHub.run();
-                break;
-            case Slow:
-                m_chassis.driveFieldRelative(new ChassisSpeeds(m_speeds.vxMetersPerSecond / 2, m_speeds.vyMetersPerSecond / 2, m_speeds.omegaRadiansPerSecond / 2));
-                xModeOffCommand.run();
                 break;
         }
     }

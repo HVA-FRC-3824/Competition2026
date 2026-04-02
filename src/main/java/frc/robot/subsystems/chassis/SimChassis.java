@@ -49,7 +49,7 @@ public class SimChassis implements ChassisIO
                         DCMotor.getKrakenX60(1), // Drive motor is a Kraken X60
                         DCMotor.getKrakenX44(1), // Steer motor is a Falcon 500
                         COTS.WHEELS.COLSONS.cof, // Use the COF for Colson Wheels
-                        3)) // L3 Gear ratio
+                        2)) // L3 Gear ratio
                 // Configures the track length and track width (spacing between swerve modules)
                 .withTrackLengthTrackWidth(Inches.of(24), Inches.of(30))
                 // Configures the bumper size (dimensions of the robot bumper)
