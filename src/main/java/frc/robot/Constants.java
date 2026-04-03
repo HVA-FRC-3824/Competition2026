@@ -72,7 +72,7 @@ public final class Constants
     public static final class Intake
     {
         public static final double IntakeStowedTurns    = 0.8;
-        public static final double IntakeDeployedTurns  = 9.6;
+        public static final double IntakeDeployedTurns  = 10.0;
 
         public static final double IntakeDriveTurnsPerSec = 600;
 
@@ -104,7 +104,7 @@ public final class Constants
         public static final double BackRightForwardDegrees  = -0.11377;
         public static final double BackLeftForwardDegrees   = -0.025146;
 
-        public static final double MaximumSpeedMetersPerSec  = Units.feetToMeters(12.0);
+        public static final double MaximumSpeedMetersPerSec  = Units.feetToMeters(15.0);
         public static final double SlowSpeedMetersPerSec     = Units.feetToMeters(6.0);
         public static       boolean isSlowFlag = false;
         public static final double MaximumAngularVelocity    = 4 * Math.PI;

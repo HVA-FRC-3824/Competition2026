@@ -1,5 +1,7 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Rotations;
+
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -43,11 +45,11 @@ public class Intake implements IntakeIO
             0.8,
             0.0,
             0.0,
-            0.8,
             0.0,
             0.0,
-            5.0,
-            5.0
+            0.0,
+            6.0,
+            25.0
         );
 
         TalonFXConfig.configure(
@@ -77,6 +79,12 @@ public class Intake implements IntakeIO
     public void setPos(double pos) 
     {
         m_intakePositionLeaderMotor.setControl(new MotionMagicVoltage(pos));
+    }
+
+    @Override
+    public boolean atSetpoint()
+    {
+        return m_intakePositionLeaderMotor.getPosition().getValue().isNear(Rotations.of(m_intakePositionLeaderMotor.getClosedLoopReference().getValue()), 0.1);
     }
 
     // turns per second

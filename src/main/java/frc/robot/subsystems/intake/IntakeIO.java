@@ -12,4 +12,6 @@ public interface IntakeIO extends Subsystem
     }
 
     default public void launchFuel(double shooterSpeed) {}
+
+    default public boolean atSetpoint() { return true; }
 }

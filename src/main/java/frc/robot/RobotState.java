@@ -143,13 +143,27 @@ public class RobotState
     static public final Runnable deployIntakeCommand  = () -> m_intakePosState = IntakePosState.Deployed;
     static public final Runnable retractIntakeCommand = () -> m_intakePosState = IntakePosState.Stowed;
     static public final Runnable jiggleIntakeCommand  = () -> {
-        if (((int)Timer.getTimestamp() / 2) % 2 == 0)
+        double time = Timer.getTimestamp();
+        time = ((double) ((int) time) - time);
+        if (time > 0.8)
         {
             m_intakePosState = IntakePosState.Stowed;
         }
-        else
+        else if (time > 0.55)
         {
             m_intakePosState = IntakePosState.Deployed;
+        }
+        else if (time > 0.4)
+        {
+            m_intakePosState = IntakePosState.Stowed;
+        }
+        else if (time > 0.25)
+        {
+            m_intakePosState = IntakePosState.Deployed;
+        }
+        else
+        {
+            m_intakePosState = IntakePosState.Stowed;
         }
     };
 
@@ -175,6 +189,8 @@ public class RobotState
     static public final Runnable autoAimCommand      = () -> m_chassisState = ChassisState.AimHub;
     static public final Runnable driveModeCommand    = () -> m_chassisState = ChassisState.Driving;
     static public final Runnable pathplanningCommand = () -> m_chassisState = ChassisState.Pathplanning;
+
+    static public final Runnable resetGyro  = () -> m_chassis.resetGyroAngle();
 
     static public final Runnable xModeCommand    = () -> m_chassis.toggleXMode();
     static public final Runnable xModeOnCommand  = () -> { if (!m_chassis.getIsXMode()) m_chassis.toggleXMode(); };
@@ -206,12 +222,6 @@ public class RobotState
 
     public RobotState()
     {
-
-        m_tower.setDefaultCommand(m_tower.runOnce(()->{}));
-        m_indexer.setDefaultCommand(m_indexer.runOnce(()->{}));
-        m_intake.setDefaultCommand(m_intake.runOnce(()->{}));
-        m_chassis.setDefaultCommand(m_chassis.runOnce(()->{}));
-
         // Config PID to be tolerant within 5 degrees
         m_aimController.setTolerance(Units.degreesToRadians(2.0));
 
@@ -238,7 +248,7 @@ public class RobotState
         NamedCommands.registerCommand("driveMode", pathplannerSubsystem.runOnce(driveModeCommand));
         NamedCommands.registerCommand("pathplanningMode", pathplannerSubsystem.runOnce(pathplanningCommand));
 
-        NamedCommands.registerCommand("deployIntake", pathplannerSubsystem.runOnce(deployIntakeCommand));
+        NamedCommands.registerCommand("deployIntake", pathplannerSubsystem.runOnce(deployIntakeCommand).andThen(pathplannerSubsystem.runOnce(startIntakeCommand)));
         NamedCommands.registerCommand("retractIntake", pathplannerSubsystem.runOnce(retractIntakeCommand));
         NamedCommands.registerCommand("jiggleIntake", pathplannerSubsystem.runOnce(jiggleIntakeCommand));
     }
@@ -382,6 +392,11 @@ public class RobotState
                 chassisTrackAndShootHub.run();
                 break;
         }
+        
+        m_tower.periodic(); // manually do so bc WPILib command based is very silly and I don't like it
+        m_indexer.periodic(); // manually do so bc WPILib command based is very silly and I don't like it
+        m_intake.periodic(); // manually do so bc WPILib command based is very silly and I don't like it
+        m_chassis.periodic(); // manually do so bc WPILib command based is very silly and I don't like it
     }
 
     static public double getTargetDistMeters()
@@ -440,9 +455,18 @@ public class RobotState
 
     static public void setDrive(double leftY, double leftX, double rightX)
     {
+        double angle = Math.atan2(leftY, leftX);
+
+        double magnitude = Math.sqrt(leftY * leftY + leftX * leftX);
+
+        magnitude = Math.pow(Math.abs(magnitude), Constants.Chassis.TranslateExponentialPower) * magnitude; // expo stuff here
+
+        double strafe   = magnitude * Math.sin(angle);
+        double forwards = magnitude * Math.cos(angle);
+
         m_speeds = new ChassisSpeeds(
-            Math.pow(Math.abs(leftY), Constants.Chassis.TranslateExponentialPower) * leftY  * Constants.Chassis.MaximumSpeedMetersPerSec, 
-            Math.pow(Math.abs(leftX), Constants.Chassis.TranslateExponentialPower) * leftX  * Constants.Chassis.MaximumSpeedMetersPerSec, 
-            Math.pow(Math.abs(rightX), Constants.Chassis.AngularExponentialPower) * rightX * Constants.Chassis.MaximumAngularVelocity);
+            strafe  * Constants.Chassis.MaximumSpeedMetersPerSec, 
+            forwards  * Constants.Chassis.MaximumSpeedMetersPerSec, 
+            rightX * Constants.Chassis.MaximumAngularVelocity);
     }
 }

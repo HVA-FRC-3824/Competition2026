@@ -10,6 +10,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.lib.BT.Node;
 import frc.robot.lib.BT.RootNode;
+import frc.robot.RobotState.IndexerState;
+import frc.robot.RobotState.IntakeRollerState;
 import frc.robot.RobotState.TowerState;
 import frc.robot.lib.BT.ActionNode;
 import frc.robot.lib.BT.SequenceNode;
@@ -67,6 +69,14 @@ public class RobotContainer
 
     Node intakeNode = new SelectorNode(
         (Node) new SequenceNode(
+          (Node) new ConditionNode(() -> RobotState.m_indexerState == IndexerState.Spindexing),
+          (Node) new SelectorNode(
+            (Node) new ConditionNode(() -> m_driver.getRightTriggerAxis() >= 0.5),
+            (Node) new ControllerNode(Constants.Controller.RightBumper)
+          ),
+          (Node) new ActionNode(RobotState.jiggleIntakeCommand)
+        ),
+        (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.RightPaddle),
           (Node) new ActionNode(RobotState.deployIntakeCommand),
           (Node) new ActionNode(RobotState.startIntakeCommand)
@@ -79,10 +89,14 @@ public class RobotContainer
       );
 
     Node driveNode =
-      (Node) new SelectorNode(
+      (Node) new RootNode(
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.X),
           (Node) new ActionNode(RobotState.xModeOnCommand)
+        ),
+        (Node) new SequenceNode(
+          (Node) new ControllerNode(Constants.Controller.B),
+          (Node) new ActionNode(RobotState.resetGyro)
         ),
         (Node) new SequenceNode(
           (Node) new ActionNode(() -> RobotState.setDrive(-m_driver.getLeftY(), -m_driver.getLeftX(), -m_driver.getRightX())),
