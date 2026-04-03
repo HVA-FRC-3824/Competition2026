@@ -19,12 +19,6 @@
         {
           "type": "named",
           "data": {
-            "name": "spinUpTower"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
             "name": "xModeOff"
           }
         },
@@ -35,21 +29,21 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "deployIntake"
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "LSP to mid"
+            "pathName": "Right to Center"
           }
         },
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "aimMode"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "jiggleIntake"
+            "pathName": "Right center intake"
           }
         }
       ]

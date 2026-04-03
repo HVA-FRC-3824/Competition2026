@@ -7,11 +7,8 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.lib.TalonFXConfig;
-
-
 
 public class Intake implements IntakeIO
 {
@@ -43,10 +40,10 @@ public class Intake implements IntakeIO
             true,
             true,
             false,
-            0.5,
+            0.8,
             0.0,
             0.0,
-            0.0,
+            0.8,
             0.0,
             0.0,
             5.0,
@@ -59,7 +56,7 @@ public class Intake implements IntakeIO
             false,
             true,
             false,
-            0.5,
+            0.8,
             0.0,
             0.0,
             0.0,
@@ -91,7 +88,7 @@ public class Intake implements IntakeIO
         }
         else
         {
-            m_fuelIntakeMotor.setControl(new VelocityVoltage(speed));
+            m_fuelIntakeMotor.setControl(new VoltageOut(12.0));
         }
     }
 }

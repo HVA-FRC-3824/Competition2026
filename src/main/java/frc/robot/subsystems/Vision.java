@@ -39,6 +39,8 @@ import frc.robot.Constants;
 
 import java.util.List;
 import java.util.Optional;
+
+import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -47,7 +49,8 @@ import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
-public class Vision implements Subsystem {
+public class Vision implements Subsystem 
+{
     private final PhotonCamera camera;
     private final PhotonPoseEstimator photonEstimator;
     private Matrix<N3, N1> curStdDevs;
@@ -114,12 +117,10 @@ public class Vision implements Subsystem {
             }
 
             visionEst.ifPresent(
-                    est -> {
-                        // Change our trust in the measurement based on the tags we can see
-                        var estStdDevs = getEstimationStdDevs();
-
-                        estConsumer.accept(est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
-                    });
+                est -> {
+                    Logger.recordOutput("VISSSIOONNN WORKK??????", true);
+                    estConsumer.accept(est.estimatedPose.toPose2d(), est.timestampSeconds, getEstimationStdDevs());
+                });
         }
     }
 

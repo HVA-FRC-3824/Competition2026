@@ -315,7 +315,7 @@ public class RobotState
                     m_tower.setSpeed(Constants.Tower.LongSpeed);
                     break;
                 case Auto:
-                    double dist = getTargetDistMeters();
+                    double dist = Units.metersToInches(getTargetDistMeters());
                     double desiredGamePieceSpeedFtPerSec = 15 + dist * 0.08; // In my magical perfect world :heart:
 
                     if (RobotBase.isSimulation() && m_indexerState == IndexerState.Spindexing)
@@ -386,28 +386,28 @@ public class RobotState
 
     static public double getTargetDistMeters()
     {
-        return Math.sqrt(Math.pow(getTargetPose().getMeasureX().in(Meters) - getTargetPose().getMeasureX().in(Meters), 2) + 
-                         Math.pow(getTargetPose().getMeasureY().in(Meters) - getTargetPose().getMeasureY().in(Meters), 2));
+        return Math.sqrt(Math.pow(getTargetPose().getMeasureX().in(Meters) - getPose().getMeasureX().in(Meters), 2) + 
+                         Math.pow(getTargetPose().getMeasureY().in(Meters) - getPose().getMeasureY().in(Meters), 2));
     }
 
     static public Pose2d getTargetPose()
     {
         // If were in our alliance zone, score fuel to our alliance zone
-        if (DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Blue ?
-            getPose().getX() > Constants.Field.FieldLengthMeters - Constants.Field.AllianceWallToAllianceZoneMeters :
-            getPose().getX() < Constants.Field.AllianceWallToAllianceZoneMeters)
-        {
+        // if (DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Blue ?
+        //     getPose().getX() > Constants.Field.FieldLengthMeters - Constants.Field.AllianceWallToAllianceZoneMeters :
+        //     getPose().getX() < Constants.Field.AllianceWallToAllianceZoneMeters)
+        // {
             return ((DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red) ? 
                 Constants.Field.RedHub.toPose2d() : 
                 Constants.Field.BlueHub.toPose2d());
-        }
-        else
-        {
-            return getPose().nearest(Arrays.asList(
-                (DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red) ? Constants.Field.RedAllianceZoneClose : Constants.Field.BlueAllianceZoneClose, 
-                (DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red) ? Constants.Field.RedAllianceZoneFar   : Constants.Field.BlueAllianceZoneFar));
+        // }
+        // else
+        // {
+        //     return getPose().nearest(Arrays.asList(
+        //         (DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red) ? Constants.Field.RedAllianceZoneClose : Constants.Field.BlueAllianceZoneClose, 
+        //         (DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red) ? Constants.Field.RedAllianceZoneFar   : Constants.Field.BlueAllianceZoneFar));
 
-        }
+        // }
     }
 
     static public Pose2d getPose()
@@ -420,24 +420,29 @@ public class RobotState
         return m_chassis.getHeading();
     }
 
+    static public boolean isSpunUp()
+    {
+        if (m_tower.getDesiredFlywheelTPS() == 0.0)
+        {
+            return false;
+        }
+        
+        return m_tower.isSpunUp();
+    }
+
     static public boolean GetIsReady()
     {
         // If the flywheel is spun up and we're aiming at the target, shoot
-        return m_tower.isSpunUp() && 
+        return isSpunUp() && 
                m_aimController.atSetpoint() && 
                m_chassisState == ChassisState.AimHub;
     }
 
     static public void setDrive(double leftY, double leftX, double rightX)
     {
-        // leftY = m_yAccelLimiter.calculate(leftY);
-        // leftX = m_xAccelLimiter.calculate(leftX);
-
-        rightX = Math.pow(Math.abs(rightX), Constants.Chassis.AngularExponentialPower) * rightX;
-
         m_speeds = new ChassisSpeeds(
-            leftY  * Constants.Chassis.MaximumSpeedMetersPerSec,
-            leftX  * Constants.Chassis.MaximumSpeedMetersPerSec, 
-            rightX * Constants.Chassis.MaximumAngularVelocity);
+            Math.pow(Math.abs(leftY), Constants.Chassis.TranslateExponentialPower) * leftY  * Constants.Chassis.MaximumSpeedMetersPerSec, 
+            Math.pow(Math.abs(leftX), Constants.Chassis.TranslateExponentialPower) * leftX  * Constants.Chassis.MaximumSpeedMetersPerSec, 
+            Math.pow(Math.abs(rightX), Constants.Chassis.AngularExponentialPower) * rightX * Constants.Chassis.MaximumAngularVelocity);
     }
 }

@@ -120,7 +120,7 @@ public class Chassis extends SubsystemBase implements ChassisIO
         if (m_isXMode)
         {
             // Set the module states to x mode
-            setModuleStates((SwerveModuleState[]) Constants.Chassis.xStates);
+            setModuleStates((SwerveModuleState[]) Constants.Chassis.XishStates);
 
             // Save the desired speeds for logging later
             return;
@@ -218,7 +218,7 @@ public class Chassis extends SubsystemBase implements ChassisIO
 
     public void addVisionMeasurement(Pose2d visionMeasurement, double timestampSeconds, Matrix<N3, N1> stdDevs) 
     {
-        m_poseEstimator.addVisionMeasurement(visionMeasurement, timestampSeconds, stdDevs);
+        m_poseEstimator.addVisionMeasurement(visionMeasurement, timestampSeconds, Constants.Vision.kMultiTagStdDevs);
     }
 
     @Override

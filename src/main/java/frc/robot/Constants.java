@@ -71,8 +71,8 @@ public final class Constants
 
     public static final class Intake
     {
-        public static final double IntakeStowedTurns    = 2.0;
-        public static final double IntakeDeployedTurns  = 7.2;
+        public static final double IntakeStowedTurns    = 0.8;
+        public static final double IntakeDeployedTurns  = 9.6;
 
         public static final double IntakeDriveTurnsPerSec = 600;
 
@@ -107,9 +107,9 @@ public final class Constants
         public static final double MaximumSpeedMetersPerSec  = Units.feetToMeters(12.0);
         public static final double SlowSpeedMetersPerSec     = Units.feetToMeters(6.0);
         public static       boolean isSlowFlag = false;
-        public static final double MaximumAngularVelocity    = 2 * Math.PI;
+        public static final double MaximumAngularVelocity    = 4 * Math.PI;
         public static final double TranslateExponentialPower = 3.0;
-        public static final double AngularExponentialPower   = 2.0;
+        public static final double AngularExponentialPower   = 4.0;
 
         public static final double WheelBaseMeters  = Units.inchesToMeters(30.0);
         public static final double TrackWidthMeters = Units.inchesToMeters(24.0);
@@ -119,10 +119,10 @@ public final class Constants
         public static final double WheelCircumference   = WheelDiameter * Math.PI;
         public static final double DriveMotorConversion = WheelCircumference / DriveMotorReduction;  // Meters per motor turn
 
-        public static final SwerveModuleState[] xStates = {
+        public static final SwerveModuleState[] XishStates = {
             new SwerveModuleState(0.0, new Rotation2d(315.0)),  // FL
-            new SwerveModuleState(0.0, new Rotation2d( 45.0)),  // FR
-            new SwerveModuleState(0.0, new Rotation2d( 45.0)),  // BL
+            new SwerveModuleState(0.0, new Rotation2d( 225.0)),  // FR
+            new SwerveModuleState(0.0, new Rotation2d( 225.0)),  // BL
             new SwerveModuleState(0.0, new Rotation2d(315.0))  // BR
         };
 

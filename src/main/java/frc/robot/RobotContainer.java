@@ -1,5 +1,7 @@
 package frc.robot;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.wpilibj.XboxController;
@@ -8,6 +10,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.lib.BT.Node;
 import frc.robot.lib.BT.RootNode;
+import frc.robot.RobotState.TowerState;
 import frc.robot.lib.BT.ActionNode;
 import frc.robot.lib.BT.SequenceNode;
 import frc.robot.lib.BT.SelectorNode;
@@ -38,63 +41,81 @@ public class RobotContainer
   {
     Node shootingNode =
       (Node) new SelectorNode(
-        (Node) new SequenceNode( // Auto
+        (Node) new SequenceNode( // Shoot
           (Node) new ConditionNode(() -> m_driver.getRightTriggerAxis() >= 0.5),
-          (Node) new ActionNode(RobotState.spinUpTowerCommand),
-          (Node) new ActionNode(RobotState.autoTowerCommand),
-          (Node) new ActionNode(RobotState.autoAimCommand)
-        ),
-        (Node) new SequenceNode( // Warm Up
-          (Node) new ControllerNode(Constants.Controller.X),
-          (Node) new ActionNode(RobotState.spinUpTowerCommand),
           (Node) new ActionNode(RobotState.midShootTowerCommand),
-          (Node) new ActionNode(RobotState.driveModeCommand)
+          (Node) new ActionNode(RobotState.driveModeCommand),
+          (Node) new ActionNode(RobotState.spinUpTowerCommand)
+        ),
+        (Node) new SequenceNode( // Shoot
+          (Node) new ConditionNode(() -> m_driver.getLeftTriggerAxis() >= 0.5),
+          (Node) new ActionNode(RobotState.midShootTowerCommand),
+          (Node) new ActionNode(RobotState.driveModeCommand),
+          (Node) new ActionNode(RobotState.spinUpTowerCommand)
+        ),
+        (Node) new SequenceNode( // Shoot
+          (Node) new ControllerNode(Constants.Controller.RightBumper),
+          (Node) new ActionNode(RobotState.longShootTowerCommand),
+          (Node) new ActionNode(RobotState.driveModeCommand),
+          (Node) new ActionNode(RobotState.spinUpTowerCommand)
         ),
         (Node) new SequenceNode( // Default/Spin Down
           (Node) new ActionNode(RobotState.spinDownTowerCommand),
-          (Node) new ActionNode(RobotState.driveModeCommand),
-          (Node) new ActionNode(RobotState.xModeOffCommand)
+          (Node) new ActionNode(RobotState.driveModeCommand)
         )
       );
 
     Node intakeNode = new SelectorNode(
         (Node) new SequenceNode(
-          (Node) new ConditionNode(() -> m_driver.getLeftTriggerAxis() >= 0.5),
+          (Node) new ControllerNode(Constants.Controller.RightPaddle),
           (Node) new ActionNode(RobotState.deployIntakeCommand),
           (Node) new ActionNode(RobotState.startIntakeCommand)
         ),
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.A),
-          (Node) new ActionNode(RobotState.retractIntakeCommand),
-          (Node) new ActionNode(RobotState.stopIntakeCommand)
+          (Node) new ActionNode(RobotState.jiggleIntakeCommand)
         ),
         (Node) new ActionNode(RobotState.stopIntakeCommand)
       );
 
     Node driveNode =
       (Node) new SelectorNode(
-        (Node) new ActionNode(() -> RobotState.setDrive(-m_driver.getLeftY(), -m_driver.getLeftX(), -m_driver.getRightX()))
+        (Node) new SequenceNode(
+          (Node) new ControllerNode(Constants.Controller.X),
+          (Node) new ActionNode(RobotState.xModeOnCommand)
+        ),
+        (Node) new SequenceNode(
+          (Node) new ActionNode(() -> RobotState.setDrive(-m_driver.getLeftY(), -m_driver.getLeftX(), -m_driver.getRightX())),
+          (Node) new ActionNode(RobotState.xModeOffCommand)
+        )
       );
 
-    Node indexNode = 
-      (Node) new SelectorNode( // Indexing
+    Node indexNode = (Node) new SelectorNode(
         (Node) new SequenceNode(
-          (Node) new ConditionNode(() -> RobotState.GetIsReady()),
+          (Node) new ConditionNode(() -> RobotState.isSpunUp()),
+          (Node) new SelectorNode(
+            (Node) new ControllerNode(Constants.Controller.RightBumper),
+            (Node) new ConditionNode(() -> m_driver.getRightTriggerAxis() >= 0.5)
+          ),
           (Node) new ActionNode(RobotState.indexingCommand)
         ),
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.LeftPaddle),
-          (Node) new ActionNode(RobotState.indexingCommand)
+          (Node) new ActionNode(RobotState.indexingCommand),
+          (Node) new ActionNode(()->Logger.recordOutput("Doo the index MANUEL", "Are we index manuel?"))
         ),
-        // Default
+        (Node) new SequenceNode(
+          (Node) new ControllerNode(Constants.Controller.Y),
+          (Node) new ActionNode(RobotState.backwardsIndexingCommand)
+        ),
         (Node) new ActionNode(RobotState.notIndexingCommand)
       );
 
     m_driverBT = new RootNode(
       driveNode,
-      indexNode,
       intakeNode,
-      shootingNode
+      shootingNode,
+      indexNode
     );
 
     Node shootingModeNodes = 
@@ -124,7 +145,10 @@ public class RobotContainer
           (Node) new ActionNode(RobotState.spinUpTowerCommand),
           (Node) new ActionNode(RobotState.manualTowerCommand)
         ),
-        (Node) new ActionNode(RobotState.spinDownTowerCommand)
+        (Node) new SequenceNode(
+          (Node) new ConditionNode(() -> RobotState.m_towerState != TowerState.Auto),
+          (Node) new ActionNode(RobotState.spinDownTowerCommand)
+        )
       );
 
     Node manualModeNodes = 
@@ -157,8 +181,8 @@ public class RobotContainer
     // Mid match swap
     // m_driverBT.update((Timer.getMatchTime() - ((2 * 60) + 30) / 2 > 0) ? m_driver : m_operator);
 
-    m_driverBT.update(m_driver);
     m_operatorBT.update(m_operator);
+    m_driverBT.update(m_driver);
   }
 
   public void log()

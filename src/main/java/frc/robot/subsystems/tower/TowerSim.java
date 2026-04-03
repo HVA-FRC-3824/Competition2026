@@ -3,6 +3,7 @@ package frc.robot.subsystems.tower;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
@@ -35,18 +36,18 @@ public class TowerSim implements TowerIO
         m_leaderFlywheelSim = m_leaderFlywheel.getSimState();
 
         TalonFXConfig.configure(m_leaderFlywheel,
-                85,            // Current limit
-                false,            // Inverted
-                false,           // Brake mode
-                false, // Continuous wrap
-                0.7,            // P gain
-                0.0,             // I gain
-                0.0,             // D gain
-                0.0,             // S (static friction feedforward)
-                0.19,            // V (velocity feedforward)
-                0.79,            // A (acceleration feedforward)
-                0.0,           // Velocity limit
-                0.0);  // Acceleration limit
+                        85,            // Current limit
+                        false,            // Inverted
+                        false,           // Brake mode
+                        false,           // Continuous wrap
+                        0.55,            // P gain
+                        0.0,             // I gain
+                        0.0,             // D gain
+                        0.0,             // S (static friction feedforward)
+                        0.13,            // V (velocity feedforward)
+                        0.99,            // A (acceleration feedforward)
+                        0.0,           // Velocity limit
+                        0.0);  // Acceleration limit
 
         m_motorSim.setInputVoltage(m_setTPS);
 
@@ -57,7 +58,14 @@ public class TowerSim implements TowerIO
     public void setSpeed(double speed)
     {
         m_setTPS = speed;
-        m_leaderFlywheel.setControl(new VelocityVoltage(m_setTPS));
+        if (speed <= 0.5)
+        {
+            m_leaderFlywheel.setControl(new VoltageOut(0.0));
+        }
+        else
+        {
+            m_leaderFlywheel.setControl(new VelocityVoltage(speed));
+        }
 
         // Technically periodic stuff
         m_leaderFlywheelSim.setSupplyVoltage(RobotController.getBatteryVoltage());
