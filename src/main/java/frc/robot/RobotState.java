@@ -2,14 +2,12 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Meters;
 
-import java.util.Arrays;
 
 import org.littletonrobotics.junction.Logger;
 
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -20,7 +18,13 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+    import static edu.wpi.first.units.Units.Seconds;
+
+import edu.wpi.first.units.measure.Time;
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.util.sendable.SendableRegistry;
 import frc.robot.lib.HubActivePeriod;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.chassis.Chassis;
@@ -49,7 +53,8 @@ public class RobotState
     {
         Low,
         Middle,
-        Long,
+        Field,
+        Neutral,
         Auto,
         ManualControl
     }
@@ -144,7 +149,8 @@ public class RobotState
     static public final Runnable retractIntakeCommand = () -> m_intakePosState = IntakePosState.Stowed;
     static public final Runnable jiggleIntakeCommand  = () -> {
         double time = Timer.getTimestamp();
-        time = ((double) ((int) time) - time);
+        time = (time - (double) ((int) time));
+
         if (time > 0.8)
         {
             m_intakePosState = IntakePosState.Stowed;
@@ -177,7 +183,8 @@ public class RobotState
 
     static public final Runnable lowShootTowerCommand  = () -> m_towerState = TowerState.Low;
     static public final Runnable midShootTowerCommand  = () -> m_towerState = TowerState.Middle;
-    static public final Runnable longShootTowerCommand = () -> m_towerState = TowerState.Long;
+    static public final Runnable fieldShootTowerCommand = () -> m_towerState = TowerState.Field;
+    static public final Runnable neutralShootTowerCommand = () -> m_towerState = TowerState.Neutral;
     static public final Runnable autoTowerCommand      = () -> m_towerState = TowerState.Auto;
     static public final Runnable manualTowerCommand    = () -> m_towerState = TowerState.ManualControl;
 
@@ -215,6 +222,67 @@ public class RobotState
         m_chassis.driveFieldRelative(m_speeds);
     };
 
+
+
+/**
+ * A command that does nothing but takes a specified amount of time to finish.
+ *
+ * <p>This class is provided by the NewCommands VendorDep
+ */
+public class WaitCommand extends Command {
+  /** The timer used for waiting. */
+  protected Timer m_timer = new Timer();
+
+  private final double m_duration;
+
+  /**
+   * Creates a new WaitCommand. This command will do nothing, and end after the specified duration.
+   *
+   * @param seconds the time to wait, in seconds
+   */
+  @SuppressWarnings("this-escape")
+  public WaitCommand(double seconds) {
+    m_duration = seconds;
+    SendableRegistry.setName(this, getName() + ": " + seconds + " seconds");
+  }
+
+  /**
+   * Creates a new WaitCommand. This command will do nothing, and end after the specified duration.
+   *
+   * @param time the time to wait
+   */
+  public WaitCommand(Time time) {
+    this(time.in(Seconds));
+  }
+
+  @Override
+  public void initialize() {
+    m_timer.restart();
+  }
+
+  @Override
+  public void end(boolean interrupted) {
+    m_timer.stop();
+  }
+
+  @Override
+  public boolean isFinished() {
+    return m_timer.hasElapsed(m_duration);
+  }
+
+  @Override
+  public boolean runsWhenDisabled() {
+    return true;
+  }
+
+  @Override
+  public void initSendable(SendableBuilder builder) {
+    super.initSendable(builder);
+    builder.addDoubleProperty("duration", () -> m_duration, null);
+  }
+}
+
+
     class PathplannerSubsystem extends SubsystemBase
     {
         public PathplannerSubsystem() {}
@@ -222,6 +290,7 @@ public class RobotState
 
     public RobotState()
     {
+
         // Config PID to be tolerant within 5 degrees
         m_aimController.setTolerance(Units.degreesToRadians(2.0));
 
@@ -236,12 +305,14 @@ public class RobotState
         NamedCommands.registerCommand("autoShoot", pathplannerSubsystem.runOnce(autoTowerCommand));
         NamedCommands.registerCommand("lowShoot",  pathplannerSubsystem.runOnce(lowShootTowerCommand));
         NamedCommands.registerCommand("midShoot",  pathplannerSubsystem.runOnce(midShootTowerCommand));
-        NamedCommands.registerCommand("longShoot", pathplannerSubsystem.runOnce(longShootTowerCommand));
+        NamedCommands.registerCommand("fieldShoot", pathplannerSubsystem.runOnce(fieldShootTowerCommand));
+        NamedCommands.registerCommand("neutralShoot", pathplannerSubsystem.runOnce(neutralShootTowerCommand));
 
         NamedCommands.registerCommand("spinDownTower", pathplannerSubsystem.runOnce(spinDownTowerCommand));
         NamedCommands.registerCommand("spinUpTower",   pathplannerSubsystem.runOnce(spinUpTowerCommand));
 
         NamedCommands.registerCommand("xModeOn",  pathplannerSubsystem.runOnce(xModeOnCommand));
+        NamedCommands.registerCommand("wait for bombs",  new WaitCommand(4.5));
         NamedCommands.registerCommand("xModeOff", pathplannerSubsystem.runOnce(xModeOffCommand));
 
         NamedCommands.registerCommand("aimMode",   pathplannerSubsystem.runOnce(autoAimCommand));
@@ -319,10 +390,15 @@ public class RobotState
                         m_intake.launchFuel(22.6);
                     m_tower.setSpeed(Constants.Tower.MiddleSpeed);
                     break;
-                case Long: // 120 in
+                case Field:
                     if (RobotBase.isSimulation() && m_indexerState == IndexerState.Spindexing)
-                        m_intake.launchFuel(25.0);
-                    m_tower.setSpeed(Constants.Tower.LongSpeed);
+                        m_intake.launchFuel(25.0); // TODO FIX
+                    m_tower.setSpeed(Constants.Tower.FieldPassSpeed);
+                    break;
+                case Neutral:
+                    if (RobotBase.isSimulation() && m_indexerState == IndexerState.Spindexing)
+                        m_intake.launchFuel(25.0); // TODO FIX
+                    m_tower.setSpeed(Constants.Tower.NeutralPassSpeed);
                     break;
                 case Auto:
                     double dist = Units.metersToInches(getTargetDistMeters());
@@ -382,11 +458,9 @@ public class RobotState
         switch (m_chassisState)
         {
             case Pathplanning:
-                xModeOffCommand.run();
                 break;
             case Driving:
                 m_chassis.driveFieldRelative(m_speeds);
-                xModeOffCommand.run();
                 break;
             case AimHub:
                 chassisTrackAndShootHub.run();

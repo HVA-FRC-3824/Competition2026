@@ -37,13 +37,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "LSP to center"
+            "pathName": "Right to Center"
           }
         },
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "neutralShoot"
+            "pathName": "Right center intake"
           }
         },
         {
@@ -55,7 +55,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "left center intake"
+            "pathName": "Right center to shooting"
           }
         },
         {
@@ -68,6 +68,36 @@
           "type": "named",
           "data": {
             "name": "jiggleIntake"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 5.0
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "retractIntake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right side shooting intake 2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "deployIntake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "right intake 2 electric boogaloooo"
           }
         }
       ]

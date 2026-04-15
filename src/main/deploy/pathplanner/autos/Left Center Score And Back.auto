@@ -41,9 +41,9 @@
           }
         },
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "neutralShoot"
+            "pathName": "left center intake"
           }
         },
         {
@@ -55,7 +55,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "left center intake"
+            "pathName": "left center to shooting"
           }
         },
         {
@@ -68,6 +68,36 @@
           "type": "named",
           "data": {
             "name": "jiggleIntake"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 5.0
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "retractIntake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Left shooting to intake 2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "deployIntake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Left intake center 2"
           }
         }
       ]

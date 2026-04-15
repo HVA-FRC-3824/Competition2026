@@ -19,6 +19,12 @@
         {
           "type": "named",
           "data": {
+            "name": "spinUpTower"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
             "name": "xModeOff"
           }
         },
@@ -37,31 +43,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "LSP to center"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "neutralShoot"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "spinUpTower"
+            "pathName": "Bomb start to depot"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "left center intake"
+            "pathName": "BOMB depot to shoot"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "index"
+            "name": "aimMode"
           }
         },
         {

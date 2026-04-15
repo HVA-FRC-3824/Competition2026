@@ -3,37 +3,32 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 8.2315350877193,
-        "y": 7.195533625730993
+        "x": 3.7240722891566262,
+        "y": 5.958277108433736
       },
       "prevControl": null,
       "nextControl": {
-        "x": 8.458893018770892,
-        "y": 7.299496942280339
+        "x": 1.5603855421686745,
+        "y": 5.553951807228916
       },
       "isLocked": false,
-      "linkedName": "LM"
+      "linkedName": "Bomb Start"
     },
     {
       "anchor": {
-        "x": 8.05844298245614,
-        "y": 4.676081871345028
+        "x": 6.914963855421686,
+        "y": 5.280759036144579
       },
       "prevControl": {
-        "x": 7.87708164794493,
-        "y": 4.8482619319162055
+        "x": 5.914963855421686,
+        "y": 5.280759036144579
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "L center"
+      "linkedName": null
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 0.5,
-      "rotationDegrees": -90.0
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -47,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -129.80557109226515
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -91.63657704161673
+    "rotation": 180.0
   },
   "useDefaultConstraints": true
 }

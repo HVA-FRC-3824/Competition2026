@@ -57,7 +57,13 @@ public class RobotContainer
         ),
         (Node) new SequenceNode( // Shoot
           (Node) new ControllerNode(Constants.Controller.RightBumper),
-          (Node) new ActionNode(RobotState.longShootTowerCommand),
+          (Node) new ActionNode(RobotState.fieldShootTowerCommand),
+          (Node) new ActionNode(RobotState.driveModeCommand),
+          (Node) new ActionNode(RobotState.spinUpTowerCommand)
+        ),
+        (Node) new SequenceNode( // Shoot
+          (Node) new ControllerNode(Constants.Controller.LeftBumper),
+          (Node) new ActionNode(RobotState.neutralShootTowerCommand),
           (Node) new ActionNode(RobotState.driveModeCommand),
           (Node) new ActionNode(RobotState.spinUpTowerCommand)
         ),
@@ -72,7 +78,8 @@ public class RobotContainer
           (Node) new ConditionNode(() -> RobotState.m_indexerState == IndexerState.Spindexing),
           (Node) new SelectorNode(
             (Node) new ConditionNode(() -> m_driver.getRightTriggerAxis() >= 0.5),
-            (Node) new ControllerNode(Constants.Controller.RightBumper)
+            (Node) new ControllerNode(Constants.Controller.RightBumper),
+            (Node) new ControllerNode(Constants.Controller.LeftBumper)
           ),
           (Node) new ActionNode(RobotState.jiggleIntakeCommand)
         ),
@@ -83,13 +90,13 @@ public class RobotContainer
         ),
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.A),
-          (Node) new ActionNode(RobotState.jiggleIntakeCommand)
+          (Node) new ActionNode(RobotState.retractIntakeCommand)
         ),
         (Node) new ActionNode(RobotState.stopIntakeCommand)
       );
 
     Node driveNode =
-      (Node) new RootNode(
+      (Node) new SelectorNode(
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.X),
           (Node) new ActionNode(RobotState.xModeOnCommand)
@@ -109,6 +116,7 @@ public class RobotContainer
           (Node) new ConditionNode(() -> RobotState.isSpunUp()),
           (Node) new SelectorNode(
             (Node) new ControllerNode(Constants.Controller.RightBumper),
+            (Node) new ControllerNode(Constants.Controller.LeftBumper),
             (Node) new ConditionNode(() -> m_driver.getRightTriggerAxis() >= 0.5)
           ),
           (Node) new ActionNode(RobotState.indexingCommand)
@@ -146,7 +154,7 @@ public class RobotContainer
         ),
         (Node) new SequenceNode(
           (Node) new ControllerNode(Constants.Controller.Y),
-          (Node) new ActionNode(RobotState.longShootTowerCommand),
+          (Node) new ActionNode(RobotState.neutralShootTowerCommand),
           (Node) new ActionNode(RobotState.spinUpTowerCommand)
         ),
         (Node) new SequenceNode( // skepticism

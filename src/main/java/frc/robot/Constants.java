@@ -88,9 +88,10 @@ public final class Constants
 
     public static final class Tower
     {
-        public static final double CloseSpeed      = 45.0; // 90 in
-        public static final double MiddleSpeed     = 51.0; // 120 in
-        public static final double LongSpeed       = 55.0; // 150 in
+        public static final double CloseSpeed        = 45.0; // 90 in
+        public static final double MiddleSpeed       = 51.0; // 120 in
+        public static final double FieldPassSpeed    = 85.0;
+        public static final double NeutralPassSpeed  = 65.0;
 
         public static final double SpunUpTolerance = 2.0;
     }

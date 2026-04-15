@@ -78,7 +78,7 @@ public class Intake implements IntakeIO
     // pos is in turns
     public void setPos(double pos) 
     {
-        m_intakePositionLeaderMotor.setControl(new MotionMagicVoltage(pos));
+        // m_intakePositionLeaderMotor.setControl(new MotionMagicVoltage(pos));
     }
 
     @Override
