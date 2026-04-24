@@ -26,7 +26,6 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import frc.robot.Constants;
 import frc.robot.lib.motor.talonFX.SimpleTalon;
@@ -34,96 +33,98 @@ import frc.robot.lib.motor.talonFX.SimpleTalon;
 // It shares a name with the wpilibj name FlywheelSim... we fix this
 public class FlywheelSiim extends Flywheel
 {
-    public AngularVelocity m_lastinput = RotationsPerSecond.of(0.0);
+  private AngularVelocity m_lastinput = RotationsPerSecond.of(0.0);
 
-    public Angle m_simPosTurns = Rotations.of(0.0);
+  private Angle m_simPosTurns = Rotations.of(0.0);
 
-    final public SimpleTalon m_motor;
-    final public FlywheelSim m_motorModel;
+  private int m_offsetIndex = 0;
 
-    public SwerveDriveSimulation m_simDrive = null;
-    public IntakeSimulation      m_intakeSimulation = null;
+  final public SimpleTalon m_motor;
+  final public FlywheelSim m_motorModel;
 
-    public FlywheelSiim(SwerveDriveSimulation simDrive, IntakeSimulation intakeSimulation)
-    {
-        m_inputs = new Inputs();
-        m_outputs = new Outputs();
+  public SwerveDriveSimulation m_simDrive = null;
+  public IntakeSimulation      m_intakeSimulation = null;
 
-        m_motor = new SimpleTalon(Constants.CanIds.FlywheelMotorId, Constants.Flywheel.Config, true);
+  public FlywheelSiim(SwerveDriveSimulation simDrive, IntakeSimulation intakeSimulation)
+  {
+    m_inputs = new Inputs();
+    m_outputs = new Outputs();
 
-        m_motorModel = new FlywheelSim(
-            LinearSystemId.createFlywheelSystem(
-                DCMotor.getKrakenX60(2), 
-                0.021, 
-                1.0),
-            DCMotor.getKrakenX60(2),
-            0.2);
+    m_motor = new SimpleTalon(Constants.CanIds.FlywheelMotorId, Constants.Flywheel.Config, true);
 
-        m_simDrive         = simDrive;
-        m_intakeSimulation = intakeSimulation;
+    m_motorModel = new FlywheelSim(
+      LinearSystemId.createFlywheelSystem(
+        DCMotor.getKrakenX60(2), 
+        0.021, 
+        1.0),
+      DCMotor.getKrakenX60(2),
+      0.2);
+
+    m_simDrive     = simDrive;
+    m_intakeSimulation = intakeSimulation;
+  }
+
+  protected void setFlywheel(AngularVelocity velocity)
+  {
+    m_motor.setVelocity(velocity);
+
+    m_motorModel.setInputVoltage(m_motor.getAppliedVoltage().in(Volts));
+    m_motorModel.update(0.02);
+
+    m_motor.simPeriodic(m_motorModel.getAngularVelocity());
+
+    if (isSpunUp() && m_inputs.m_isIndexing) { // "isFuel" check
+      Distance offset = Inches.of(0.0);
+      m_offsetIndex++;
+      if (m_offsetIndex == 21) m_offsetIndex = 0;
+      if (m_offsetIndex % 2 == 0) return;
+
+      if (m_offsetIndex > 0) {
+        offset = Inches.of(m_offsetIndex % 3);
+      } else if (m_offsetIndex > 5) {
+        return;
+      } else if (m_offsetIndex > 10) {
+        offset = Inches.of(-m_offsetIndex % 3);
+      } else if (m_offsetIndex > 15) {
+        return;
+      }
+
+      SimulatedArena.getInstance()
+        .addGamePieceProjectile(
+          new RebuiltFuelOnFly(
+            (Translation2d)  m_simDrive.getSimulatedDriveTrainPose().getTranslation(),
+            (Translation2d)  new Translation2d(Units.inchesToMeters(10), offset.in(Meters)), // shooter offet from center
+            (ChassisSpeeds)  m_simDrive.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
+            (Rotation2d)     m_simDrive.getSimulatedDriveTrainPose().getRotation(),
+            (Distance)       Inches.of(15), // initial height of the ball, in meters
+            (LinearVelocity) FeetPerSecond.of((0.608497 * velocity.in(RotationsPerSecond)) - 4.02533), // initial velocity, in m/s
+            (Angle)          Degrees.of(90-24)) // shooter angle
+            .withProjectileTrajectoryDisplayCallBack(
+              (poses) -> Logger.recordOutput("successfulShotsTrajectory", poses.toArray(Pose3d[]::new)),
+              (poses) -> Logger.recordOutput("missedShotsTrajectory", poses.toArray(Pose3d[]::new)))
+        );
     }
+  }
 
-    protected void setFlywheel(AngularVelocity velocity)
-    {
-        m_motor.setVelocity(velocity);
+  protected void stopFlywheel()
+  {
+    m_motor.brake();
 
-        m_motorModel.setInputVoltage(m_motor.getAppliedVoltage().in(Volts));
-        m_motorModel.update(0.02);
+    m_motor.setPosition(m_simPosTurns);
 
-        m_motor.simPeriodic(m_motorModel.getAngularVelocity());
+    m_motorModel.setInputVoltage(m_motor.getAppliedVoltage().in(Volts));
+    m_motorModel.update(0.02);
 
-        for (int i = 0; i < m_inputs.m_simIntakeSpeed / 5; i++) {
-            if (m_intakeSimulation.obtainGamePieceFromIntake()) { // "isFuel" check
-                Distance offset;
-                double time = Timer.getTimestamp();
-                time = (time - (double) ((int) time));
-                if (time >= 0.75) {
-                    offset = Inches.of((0.5 / 2) + 0.5);
-                } else if (time >= 0.5) {
-                    offset = Inches.of((0.5 / 2));
-                } else if (time >= 0.25) {
-                    offset = Inches.of((-0.5 / 2));
-                } else {
-                    offset = Inches.of((-0.5 / 2) - 0.5);
-                }
+    m_motor.simPeriodic(RadiansPerSecond.of(m_motorModel.getAngularVelocityRadPerSec()));
+  }
 
-                SimulatedArena.getInstance()
-                    .addGamePieceProjectile(
-                        new RebuiltFuelOnFly(
-                            (Translation2d)  m_simDrive.getSimulatedDriveTrainPose().getTranslation(),
-                            (Translation2d)  new Translation2d(offset.in(Meters), Units.inchesToMeters(-20)), // shooter offet from center
-                            (ChassisSpeeds)  m_simDrive.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-                            (Rotation2d)     m_simDrive.getSimulatedDriveTrainPose().getRotation(),
-                            (Distance)       Inches.of(15), // initial height of the ball, in meters
-                            (LinearVelocity) FeetPerSecond.of(0.908497 * velocity.in(RotationsPerSecond) - 4.02533), // initial velocity, in m/s
-                            (Angle)          Degrees.of(90+24)) // shooter angle
-                            .withProjectileTrajectoryDisplayCallBack(
-                                (poses) -> Logger.recordOutput("successfulShotsTrajectory", poses.toArray(Pose3d[]::new)),
-                                (poses) -> Logger.recordOutput("missedShotsTrajectory", poses.toArray(Pose3d[]::new)))
-                    );
-            }
-        }
-    }
+  protected AngularVelocity getReference()
+  {
+    return m_lastinput;
+  }
 
-    protected void stopFlywheel()
-    {
-        m_motor.brake();
-
-        m_motor.setPosition(m_simPosTurns);
-
-        m_motorModel.setInputVoltage(m_motor.getAppliedVoltage().in(Volts));
-        m_motorModel.update(0.02);
-
-        m_motor.simPeriodic(RadiansPerSecond.of(m_motorModel.getAngularVelocityRadPerSec()));
-    }
-
-    protected AngularVelocity getReference()
-    {
-        return m_lastinput;
-    }
-
-    protected AngularVelocity getMeasured()
-    {
-        return m_motor.getVelocity();
-    }
+  protected AngularVelocity getMeasured()
+  {
+    return m_motor.getVelocity();
+  }
 }

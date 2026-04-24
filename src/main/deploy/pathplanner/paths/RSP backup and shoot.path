@@ -54,25 +54,25 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "midShoot",
+      "name": "",
       "waypointRelativePos": 0,
       "endWaypointRelativePos": null,
       "command": null
     },
     {
-      "name": "spinUpTower",
+      "name": "",
       "waypointRelativePos": 0,
       "endWaypointRelativePos": null,
       "command": null
     },
     {
-      "name": "deployIntake",
+      "name": "",
       "waypointRelativePos": 1.3121588089329885,
       "endWaypointRelativePos": null,
       "command": null
     },
     {
-      "name": "aimMode",
+      "name": "",
       "waypointRelativePos": 2.0,
       "endWaypointRelativePos": null,
       "command": null

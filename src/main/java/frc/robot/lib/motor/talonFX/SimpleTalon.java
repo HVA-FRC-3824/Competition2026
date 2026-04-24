@@ -25,120 +25,121 @@ import frc.robot.lib.motor.MotorIO;
 
 public class SimpleTalon implements MotorIO
 {
-    final TalonFX m_motor;
 
-    final Supplier<Angle>           m_posSupplier;
-    final Supplier<AngularVelocity> m_velSupplier;
+  final TalonFX m_motor;
 
-    final TalonFXSimState m_motorSim;
+  final Supplier<Angle>       m_posSupplier;
+  final Supplier<AngularVelocity> m_velSupplier;
 
-    Angle m_simPos;
+  final TalonFXSimState m_motorSim;
 
-    public SimpleTalon(int id, boolean isX60)
+  Angle m_simPos;
+
+  public SimpleTalon(int id, boolean isX60)
+  {
+    m_motor = new TalonFX(id);
+    m_posSupplier = m_motor.getPosition().asSupplier();
+    m_velSupplier = m_motor.getVelocity().asSupplier();
+
+    if (RobotBase.isSimulation())
     {
-        m_motor = new TalonFX(id);
-        m_posSupplier = m_motor.getPosition().asSupplier();
-        m_velSupplier = m_motor.getVelocity().asSupplier();
+      m_motorSim = m_motor.getSimState();
+      m_motorSim.setMotorType(isX60 ? MotorType.KrakenX60 : MotorType.KrakenX44);
 
-        if (RobotBase.isSimulation())
-        {
-            m_motorSim = m_motor.getSimState();
-            m_motorSim.setMotorType(isX60 ? MotorType.KrakenX60 : MotorType.KrakenX44);
-
-            m_simPos = Rotations.of(0.0);
-        }
-        else
-        {
-            m_motorSim = null;
-        }
-        
-        OrchestraOrchestrator.addInstrument(m_motor);
+      m_simPos = Rotations.of(0.0);
     }
-
-    public SimpleTalon(int id, MotorConfig config, boolean isX60)
+    else
     {
-        this(id, isX60);
-
-        config.Apply(m_motor);
+      m_motorSim = null;
     }
+    
+    OrchestraOrchestrator.addInstrument(m_motor);
+  }
 
-    public SimpleTalon(int id, MotorConfig config)
-    {
-        // Assume its an X60, although its not relevant for real life
-        // Real implementations for an X44 running this will be fine
-        this(id, config, true);
-    }
+  public SimpleTalon(int id, MotorConfig config, boolean isX60)
+  {
+    this(id, isX60);
 
-    public SimpleTalon(int id)
-    {
-        // Assume its an X60, although its not relevant for real life
-        // Real implementations for an X44 running this will be fine
-        this(id, true);
-    }
+    config.Apply(m_motor);
+  }
 
-    public void config(MotorConfig config)
-    {
-        config.Apply(m_motor);
-    }
+  public SimpleTalon(int id, MotorConfig config)
+  {
+    // Assume its an X60, although its not relevant for real life
+    // Real implementations for an X44 running this will be fine
+    this(id, config, true);
+  }
 
-    // Call this in your updateHardwareInputs function 
-    // Get the velocity from your motor model (eg FlywheelSim)
-    public void simPeriodic(AngularVelocity velocity)
-    {
-        m_simPos = m_simPos.plus(Rotations.of((velocity.in(RotationsPerSecond) / 60.0) * 0.02));
-        m_motorSim.setSupplyVoltage(RobotController.getBatteryVoltage());
-        m_motorSim.setRawRotorPosition(m_simPos);
-        m_motorSim.setRotorVelocity(velocity.in(RotationsPerSecond));
-    }
+  public SimpleTalon(int id)
+  {
+    // Assume its an X60, although its not relevant for real life
+    // Real implementations for an X44 running this will be fine
+    this(id, true);
+  }
 
-    public Voltage getAppliedVoltage()
-    {
-        return RobotBase.isSimulation() ? m_motorSim.getMotorVoltageMeasure() : m_motor.getMotorVoltage().getValue();
-    }
+  public void config(MotorConfig config)
+  {
+    config.Apply(m_motor);
+  }
 
-    public Voltage getSupplyVoltage()
-    {
-        return RobotBase.isSimulation() ? Volts.of(RobotController.getBatteryVoltage()) : m_motor.getSupplyVoltage().getValue();
-    }
+  // Call this in your updateHardwareInputs function 
+  // Get the velocity from your motor model (eg FlywheelSim)
+  public void simPeriodic(AngularVelocity velocity)
+  {
+    m_simPos = m_simPos.plus(Rotations.of((velocity.in(RotationsPerSecond) / 60.0) * 0.02));
+    m_motorSim.setSupplyVoltage(RobotController.getBatteryVoltage());
+    m_motorSim.setRawRotorPosition(m_simPos);
+    m_motorSim.setRotorVelocity(velocity.in(RotationsPerSecond));
+  }
 
-    public Angle getPos()
-    {
-        return m_posSupplier.get();
-    }
+  public Voltage getAppliedVoltage()
+  {
+    return RobotBase.isSimulation() ? m_motorSim.getMotorVoltageMeasure() : m_motor.getMotorVoltage().getValue();
+  }
 
-    public AngularVelocity getVelocity()
-    {
-        return m_velSupplier.get();
-    }
+  public Voltage getSupplyVoltage()
+  {
+    return RobotBase.isSimulation() ? Volts.of(RobotController.getBatteryVoltage()) : m_motor.getSupplyVoltage().getValue();
+  }
 
-    public void setVelocity(AngularVelocity angleVel)
-    {
-        OrchestraOrchestrator.removeInstrument(m_motor.getDeviceID());
-        m_motor.setControl(new MotionMagicVelocityVoltage(angleVel));
-    }
+  public Angle getPos()
+  {
+    return m_posSupplier.get();
+  }
 
-    public void setPosition(Angle angle)
-    {
-        OrchestraOrchestrator.removeInstrument(m_motor.getDeviceID());
-        m_motor.setControl(new MotionMagicVoltage(angle));
-    }
+  public AngularVelocity getVelocity()
+  {
+    return m_velSupplier.get();
+  }
 
-    public void follow(int id, boolean inverted)
-    {
-        OrchestraOrchestrator.removeInstrument(m_motor.getDeviceID());
-        m_motor.setControl(new Follower(id, inverted ? MotorAlignmentValue.Opposed : MotorAlignmentValue.Aligned));
-    }
+  public void setVelocity(AngularVelocity angleVel)
+  {
+    OrchestraOrchestrator.removeInstrument(m_motor.getDeviceID());
+    m_motor.setControl(new MotionMagicVelocityVoltage(angleVel));
+  }
 
-    public void brake()
-    {
-        m_motor.setControl(new VoltageOut(0.0));
-        OrchestraOrchestrator.addInstrument(m_motor);
-    }
+  public void setPosition(Angle angle)
+  {
+    OrchestraOrchestrator.removeInstrument(m_motor.getDeviceID());
+    m_motor.setControl(new MotionMagicVoltage(angle));
+  }
 
-    public void resetEncoder(Angle angle)
-    {
-        m_motor.setPosition(angle);
+  public void follow(int id, boolean inverted)
+  {
+    OrchestraOrchestrator.removeInstrument(m_motor.getDeviceID());
+    m_motor.setControl(new Follower(id, inverted ? MotorAlignmentValue.Opposed : MotorAlignmentValue.Aligned));
+  }
 
-        if (RobotBase.isSimulation()) m_simPos = angle;
-    }
+  public void brake()
+  {
+    m_motor.setControl(new VoltageOut(0.0));
+    // OrchestraOrchestrator.addInstrument(m_motor);
+  }
+
+  public void resetEncoder(Angle angle)
+  {
+    m_motor.setPosition(angle);
+
+    if (RobotBase.isSimulation()) m_simPos = angle;
+  }
 }

@@ -11,71 +11,71 @@ import frc.robot.lib.Module;
 
 public abstract class Roller extends Module<Roller.Inputs, Roller.Outputs>
 {
-    public enum State
+  public enum State
+  {
+    On,
+    Off,
+    Backwards
+  }
+
+  public static class Inputs
+  {
+    public State m_state = State.Off;
+
+    public Inputs(State state) {
+      m_state = state;
+    }
+
+    public Inputs()
     {
-        On,
-        Off,
-        Backwards
-    }
 
-    public static class Inputs
+    }
+  }
+
+  public static class Outputs extends Logged
+  {
+    public State m_state;
+    public AngularVelocity m_measuredVelocity;
+
+    public Outputs()
     {
-        public State m_state = State.Off;
-
-        public Inputs(State state) {
-            m_state = state;
-        }
-
-        public Inputs()
-        {
-
-        }
+      m_state      = State.Off;
+      m_measuredVelocity = RotationsPerSecond.of(0.0);
     }
 
-    public static class Outputs extends Logged
+    public Outputs(State state, AngularVelocity measuredVelocity)
     {
-        State           m_state;
-        AngularVelocity m_measuredVelocity;
-
-        public Outputs()
-        {
-            m_state            = State.Off;
-            m_measuredVelocity = RotationsPerSecond.of(0.0);
-        }
-
-        public Outputs(State state, AngularVelocity measuredVelocity)
-        {
-            m_state            = state;
-            m_measuredVelocity = measuredVelocity;
-        }
-
-        public void log() {
-            Logger.recordOutput("Roller/State",              m_state);
-            Logger.recordOutput("Roller/Measured Velocity",  m_measuredVelocity);
-        }
+      m_state      = state;
+      m_measuredVelocity = measuredVelocity;
     }
 
-    @Override
-    public void updateHardwareInputs() {
-        switch (m_inputs.m_state) {
-            case Off:
-                brakeRoller();
-                break;
-            case On:
-                setRoller(Constants.Roller.IntakeDriveTurnsPerSec);
-                break;
-            case Backwards:
-                setRoller(Constants.Roller.IntakeDriveTurnsPerSec.times(-1.0));
-                break;
-        }
+    public void log() {
+      Logger.recordOutput("Roller/State",        m_state);
+      Logger.recordOutput("Roller/Measured Velocity",  m_measuredVelocity);
     }
+  }
 
-    @Override
-    public void updateOutputs() {
-        m_outputs = new Outputs(m_inputs.m_state, getVelocity());
+  @Override
+  protected void updateHardwareInputs() {
+    switch (m_inputs.m_state) {
+      case Off:
+        brakeRoller();
+        break;
+      case On:
+        setRoller(Constants.Roller.IntakeDriveTurnsPerSec);
+        break;
+      case Backwards:
+        setRoller(Constants.Roller.IntakeDriveTurnsPerSec.times(-1.0));
+        break;
     }
+  }
 
-    abstract protected void setRoller(AngularVelocity velocity); 
-    abstract protected void brakeRoller();
-    abstract protected AngularVelocity getVelocity();
+  @Override
+  protected void updateOutputs() {
+    m_outputs = new Outputs(m_inputs.m_state, getVelocity());
+  }
+
+  abstract protected void setRoller(AngularVelocity velocity); 
+  abstract protected void brakeRoller();
+  abstract protected AngularVelocity getVelocity();
 }

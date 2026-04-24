@@ -19,84 +19,84 @@ import frc.robot.lib.motor.talonFX.SimpleTalon;
 
 public class SwerveModuleSim extends SwerveModule {
 
-    
-    private final SwerveModuleSimulation                          m_moduleSimulation;
-    private final SimulatedMotorController.GenericMotorController m_driveModel;
-    private final SimulatedMotorController.GenericMotorController m_turnModel;
+  
+  private final SwerveModuleSimulation              m_moduleSimulation;
+  private final SimulatedMotorController.GenericMotorController m_driveModel;
+  private final SimulatedMotorController.GenericMotorController m_turnModel;
 
-    private final SimpleTalon m_drivingMotor;
-    private final SimpleTalon m_angleMotor;
+  private final SimpleTalon m_drivingMotor;
+  private final SimpleTalon m_angleMotor;
 
-    private final int m_num;
+  private final int m_num;
 
-    public SwerveModuleSim(int moduleNum, SwerveModuleSimulation moduleSimulation, int driveMotorCanId, int angleMotorCanId, int angleEncoderCanId) {
+  public SwerveModuleSim(int moduleNum, SwerveModuleSimulation moduleSimulation, int driveMotorCanId, int angleMotorCanId, int angleEncoderCanId) {
 
-        m_inputs  = new Inputs();
-        m_outputs = new Outputs();
+    m_inputs  = new Inputs();
+    m_outputs = new Outputs();
 
-        m_drivingMotor = new SimpleTalon(driveMotorCanId, Constants.Chassis.DriveConfig, true);
-        m_angleMotor   = new SimpleTalon(angleMotorCanId, Constants.Chassis.TurnConfig, false);
+    m_drivingMotor = new SimpleTalon(driveMotorCanId, Constants.Chassis.DriveConfig, true);
+    m_angleMotor   = new SimpleTalon(angleMotorCanId, Constants.Chassis.TurnConfig, false);
 
-        m_moduleSimulation = moduleSimulation;
+    m_moduleSimulation = moduleSimulation;
 
-        m_driveModel = moduleSimulation
-            .useGenericMotorControllerForDrive()
-            .withCurrentLimit(Amps.of(85));
+    m_driveModel = moduleSimulation
+      .useGenericMotorControllerForDrive()
+      .withCurrentLimit(Amps.of(85));
 
-        m_turnModel = moduleSimulation
-            .useGenericControllerForSteer()
-            .withCurrentLimit(Amps.of(40));
+    m_turnModel = moduleSimulation
+      .useGenericControllerForSteer()
+      .withCurrentLimit(Amps.of(40));
 
-        m_num = moduleNum;
-    }
+    m_num = moduleNum;
+  }
 
-    @Override
-    protected int getNum() {
-        return m_num;
-    }
+  @Override
+  protected int getNum() {
+    return m_num;
+  }
 
-    @Override
-    protected void setPosition(Angle angle) {
-        m_angleMotor.setPosition(angle);
+  @Override
+  protected void setPosition(Angle angle) {
+    m_angleMotor.setPosition(angle);
 
-        m_turnModel.requestVoltage(m_angleMotor.getAppliedVoltage());
+    m_turnModel.requestVoltage(m_angleMotor.getAppliedVoltage());
 
-        m_angleMotor.simPeriodic(m_moduleSimulation.getSteerRelativeEncoderVelocity()); // Not sure if this needs to be like de-geared
-    }
+    m_angleMotor.simPeriodic(m_moduleSimulation.getSteerRelativeEncoderVelocity()); // Not sure if this needs to be like de-geared
+  }
 
-    @Override
-    protected void setVelocity(AngularVelocity velocity) {
-        m_drivingMotor.setVelocity(velocity);
+  @Override
+  protected void setVelocity(AngularVelocity velocity) {
+    m_drivingMotor.setVelocity(velocity);
 
-        m_driveModel.requestVoltage(m_drivingMotor.getAppliedVoltage());
+    m_driveModel.requestVoltage(m_drivingMotor.getAppliedVoltage());
 
-        m_drivingMotor.simPeriodic(m_moduleSimulation.getDriveEncoderUnGearedSpeed());
-    }
+    m_drivingMotor.simPeriodic(m_moduleSimulation.getDriveEncoderUnGearedSpeed());
+  }
 
-    @Override
-    protected SwerveModuleState getState() {
-        return new SwerveModuleState(
-            MetersPerSecond.of(m_moduleSimulation.getDriveWheelFinalSpeed().in(RotationsPerSecond) 
-                * Constants.Chassis.WheelCircumference), 
-            new Rotation2d(m_moduleSimulation.getSteerRelativeEncoderPosition()));
-    }
+  @Override
+  protected SwerveModuleState getState() {
+    return new SwerveModuleState(
+      MetersPerSecond.of(m_moduleSimulation.getDriveWheelFinalSpeed().in(RotationsPerSecond) 
+        * Constants.Chassis.WheelCircumference), 
+      new Rotation2d(m_moduleSimulation.getSteerRelativeEncoderPosition()));
+  }
 
-    @Override
-    protected SwerveModulePosition getPosition() {
-        return new SwerveModulePosition(
-            Meters.of(m_moduleSimulation.getDriveWheelFinalPosition().in(Rotations) 
-                * Constants.Chassis.WheelCircumference), 
-            new Rotation2d(m_moduleSimulation.getSteerRelativeEncoderPosition()));
-    }
+  @Override
+  protected SwerveModulePosition getPosition() {
+    return new SwerveModulePosition(
+      Meters.of(m_moduleSimulation.getDriveWheelFinalPosition().in(Rotations) 
+        * Constants.Chassis.WheelCircumference), 
+      new Rotation2d(m_moduleSimulation.getSteerRelativeEncoderPosition()));
+  }
 
-    @Override
-    public void resetEncoders() {
-        m_drivingMotor.resetEncoder(Rotations.of(0.0));
-    }
+  @Override
+  public void resetEncoders() {
+    m_drivingMotor.resetEncoder(Rotations.of(0.0));
+  }
 
-    @Override
-    public void setWheelAngleToForward(Angle forwardAngleDeg) {
-        // NOTHINGGGG
-    }
-    
+  @Override
+  public void setWheelAngleToForward(Angle forwardAngleDeg) {
+    // NOTHINGGGG
+  }
+  
 }

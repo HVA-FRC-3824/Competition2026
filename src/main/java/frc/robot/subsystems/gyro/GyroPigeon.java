@@ -8,30 +8,30 @@ import frc.robot.Constants;
 
 public class GyroPigeon extends Gyro
 {
-    Pigeon2 m_gyro;
+  Pigeon2 m_gyro;
 
-    public GyroPigeon() {
-        m_inputs = new Inputs();
-        m_outputs = new Outputs();
+  public GyroPigeon() {
+    m_inputs = new Inputs();
+    m_outputs = new Outputs();
 
-        m_gyro = new Pigeon2(Constants.CanIds.PigeonGyroId);
-    }
+    m_gyro = new Pigeon2(Constants.CanIds.PigeonGyroId);
+  }
 
-    @Override
-    public Rotation2d getGyroRotation() 
-    {
-        return m_gyro.getRotation2d();
-    }
+  @Override
+  public Rotation2d getGyroRotation() 
+  {
+    return m_gyro.getRotation2d();
+  }
 
-    @Override
-    public AngularVelocity getGyroAngularVelocity() 
-    {
-        return m_gyro.getAngularVelocityZWorld().getValue();
-    }
+  @Override
+  public AngularVelocity getGyroAngularVelocity() 
+  {
+    return m_gyro.getAngularVelocityZWorld().getValue();
+  }
 
-    @Override
-    public void resetGyroAngle() 
-    {
-        m_gyro.reset();
-    }
+  @Override
+  public void resetGyroAngle() 
+  {
+    m_gyro.reset();
+  }
 }
