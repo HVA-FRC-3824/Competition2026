@@ -1,210 +1,277 @@
 package frc.robot.subsystems.swerve;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Rotations;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.Logger;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.ModuleConfig;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+
 import frc.robot.Constants;
 import frc.robot.lib.Alliance;
-import frc.robot.lib.Logged;
 import frc.robot.lib.Module;
-import frc.robot.lib.VisionMeasurement;
-
-import frc.robot.subsystems.swerveModule.SwerveModule;
-
+import frc.robot.lib.Module.Logged;
+import frc.robot.lib.VisionData;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj2.command.Command;
 
-public abstract class Swerve extends Module<Swerve.Inputs, Swerve.Outputs> implements Subsystem
-{
-	public static enum State
-	{
-		RobotRelativeDriving,
-		FieldRelativeDriving,
-		XMode,
-		Aiming // By default field relative***
+public class Swerve extends Module<Swerve.Outputs> {
+
+	private SwerveIO m_io;
+
+	private PIDController m_aimController = new PIDController(3.0, 0.0, 0.001);
+	
+	private SensorData m_data = new SensorData(Degrees.of(0.0), new ArrayList<>());
+
+	private ChassisSpeeds m_desiredSpeeds = new ChassisSpeeds();
+
+	public Swerve(SwerveIO io) {
+
+		m_io = io;
+
+		m_outputs = Outputs.zeroed();
+		
+		m_aimController.setTolerance(Units.degreesToRadians(2.0));
+		m_aimController.enableContinuousInput(-Math.PI, Math.PI);
+
+		RobotConfig config;
+		try {
+			config = RobotConfig.fromGUISettings();
+		} catch (Exception e) {
+			// If you see this, diagnose the issue and redeploy
+			e.printStackTrace();
+			Logger.recordOutput("Pathing Initialization ERROR", e.toString());
+
+			// This should never be the case
+			config = new RobotConfig(30, 5, new ModuleConfig(Constants.Chassis.WheelCircumference.in(Meters) / (2*Math.PI), 2, 1.0, DCMotor.getKrakenX60(1), 85, 1), 30);
+		}
+
+		// Access the drivetrain subsystem directly
+		AutoBuilder.configure(
+			() -> m_io.getPose(), 
+			m_io::resetPose,
+			m_io::getMeasuredSpeeds, 
+			(speeds, ff) -> {
+				SwerveModuleState[] states = Constants.Chassis.Kinematics.toSwerveModuleStates(speeds);
+				SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Chassis.MaximumLinear.in(MetersPerSecond));
+				m_io.setModules(new ArrayList<SwerveModuleState>(List.of(states)));
+			},
+			new PPHolonomicDriveController(
+						new PIDConstants(2.0, 0.0, 0.0),
+						new PIDConstants(2.0, 0.0, 0.0)
+					),
+			config,
+			Alliance::isRed,
+			this
+		);
 	}
 
-	public static class Inputs
-	{
-		public ChassisSpeeds   m_speeds  = new ChassisSpeeds();
-		public Angle       m_heading = Degrees.of(0);
-		public State       m_state   = State.RobotRelativeDriving;
-		public ArrayList<VisionMeasurement> m_visionMeasurement = new ArrayList<>();
+	public void updateSensorData(SensorData data) {
 
-		public Inputs(ChassisSpeeds speeds, State state, ArrayList<VisionMeasurement> visionMeasurement) {
-			m_speeds = speeds;
-			m_state  = state;
-			m_visionMeasurement = visionMeasurement;
-		}
-
-		public Inputs(ChassisSpeeds speeds, State state) {
-			m_speeds = speeds;
-			m_state  = state;
-		}
-
-		public Inputs() {
-
-		}
+		m_data = data;
 	}
 
-	public static class Outputs extends Logged
-	{
-		public Pose2d    m_pose;
-		public ChassisSpeeds m_desiredSpeeds;
-		public ChassisSpeeds m_measuredSpeeds;
-		public boolean     m_isAimed;
-		public State     m_state;
-		public Angle     m_aimSetPoint;
-		public Angle     m_aimAngle;
-
-		public Outputs()
-		{
-			m_pose       = new Pose2d();
-			m_desiredSpeeds  = new ChassisSpeeds();
-			m_measuredSpeeds = new ChassisSpeeds();
-			m_isAimed    = false;
-			m_state      = State.RobotRelativeDriving;
-			m_aimSetPoint = Rotations.of(0.0);
-			m_aimAngle  = Rotations.of(0.0);
-		}
-
-		public Outputs(Pose2d pose, ChassisSpeeds desiredSpeeds, ChassisSpeeds measuredSpeeds, boolean isAimed, State state, Angle aimSetPoint, Angle aimAngle)
-		{
-			m_pose = pose;
-			m_desiredSpeeds = desiredSpeeds;
-			m_measuredSpeeds = measuredSpeeds;
-			m_isAimed = isAimed;
-			m_state  = state;
-			m_aimSetPoint = aimSetPoint;
-			m_aimAngle  = aimAngle;
-		}
-
-		public void log() {
-			Logger.recordOutput("Swerve/Measured Pose", m_pose);
-			Logger.recordOutput("Swerve/Desired Speeds", m_desiredSpeeds);
-			Logger.recordOutput("Swerve/Measured Speeds", m_measuredSpeeds);
-			Logger.recordOutput("Swerve/State",  m_state);
-			Logger.recordOutput("Swerve/Aim Setpoint",  m_aimSetPoint);
-			Logger.recordOutput("Swerve/Aim Error",  m_aimAngle);
-		}
-	}
-
-	PIDController m_aimController = new PIDController(5.0, 0.0, 0.0);
-
-	// Handle logic between subsystems inputs and hardware inputs
+	
 	@Override
-	protected void updateHardwareInputs()
-	{
-		updatePoseEstimator(new Rotation2d(m_inputs.m_heading), getModulePositions());
-		for (VisionMeasurement measure : m_inputs.m_visionMeasurement)
-			updateVisionInputs(measure);
+	public void updateOutputs() {
+
+		m_io.update();
+		
+		m_io.updatePoseEstimator(new Rotation2d(m_data.heading()), m_io.getModulePositions());
+		for (VisionData measure : m_data.visionMeasurement()) {	
+			m_io.updateVisionInputs(measure);
+		}
 
 		// Probably not necessary, but I want to ensure that we aren't going through old measurements
-		m_inputs.m_visionMeasurement.clear();
+		m_data.visionMeasurement().clear();
 
-		SwerveModuleState[] swerveModuleStates = null;
-		switch (m_inputs.m_state) {
-			case RobotRelativeDriving:
-				swerveModuleStates = Constants.Chassis.kinematics.toSwerveModuleStates(m_inputs.m_speeds);
-				break;
-
-			case FieldRelativeDriving:
-				swerveModuleStates = Constants.Chassis.kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(
-						m_inputs.m_speeds,
-						new Rotation2d(m_inputs.m_heading).plus(Alliance.isRed() ? Rotation2d.kPi : new Rotation2d(0))
-					));
-				break;
-
-			case XMode:
-				swerveModuleStates = Constants.Chassis.XishStates;
-				break;
-
-			case Aiming:
-				// Get the angle between our position and the target via arctan (getAngle)
-				Rotation2d angleToTarget = getTargetPose().getTranslation().minus(getPose().getTranslation()).getAngle();
-
-				m_inputs.m_speeds.omegaRadiansPerSecond = m_aimController.calculate(
-						m_inputs.m_heading.in(Radians), 
-						angleToTarget.getRadians()
-				);
-
-				Logger.recordOutput("Swerve/reported target", angleToTarget.getDegrees());
-
-				swerveModuleStates = Constants.Chassis.kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(
-						m_inputs.m_speeds,
-						new Rotation2d(m_inputs.m_heading).plus(Alliance.isRed() ? Rotation2d.kPi : new Rotation2d(0))
-					));
-				break;
-
-			default:
-				swerveModuleStates = new SwerveModuleState[4];
-				break;
-		}
-
-		m_aimController.calculate(m_inputs.m_heading.in(Radians));
-
-		setModules(new ArrayList<SwerveModule.Inputs>(java.util.Arrays.asList(
-			new SwerveModule.Inputs(swerveModuleStates[0]),
-			new SwerveModule.Inputs(swerveModuleStates[1]),
-			new SwerveModule.Inputs(swerveModuleStates[2]),
-			new SwerveModule.Inputs(swerveModuleStates[3])
-		)));
-	}
-
-	// Update logging struct (m_outputs)
-	@Override
-	protected void updateOutputs()
-	{
+		m_aimController.calculate(m_data.heading.in(Radians));
+		
 		m_outputs = new Outputs(
-			getPose(),
-			getDesiredSpeeds(),
-			getMeasuredSpeeds(),
-			isAimed(),
-			m_inputs.m_state,
+			m_io.getPose(),
+			m_desiredSpeeds,
+			m_io.getMeasuredSpeeds(),
+			m_aimController.atSetpoint(),
 			Radians.of(m_aimController.getSetpoint()),
 			Radians.of(m_aimController.getError())
 		);
 	}
 
-	// For some inexplicable reason, maplesim does this internally
-	protected void updatePoseEstimator(Rotation2d gyroHeading, SwerveModulePosition[] modulePositions) {}
-	abstract void updateVisionInputs(VisionMeasurement measurement);
-
-	abstract protected void setModules(ArrayList<SwerveModule.Inputs> inputs);
-
-	protected ChassisSpeeds getDesiredSpeeds() { return m_inputs.m_speeds; }
-	abstract protected ChassisSpeeds getMeasuredSpeeds();
-	abstract public SwerveModulePosition[] getModulePositions();
-
-	abstract public SwerveModuleState[] getModuleStates();
-
-	abstract protected Pose2d getPose();
-	abstract public void resetPose(Pose2d pose); // Needs to be public for PP and BLine
-
-	protected boolean isAimed() {
-		return m_aimController.atSetpoint();
+	public Command resetSwerveModules() {
+		return runOnce(() -> m_io.resetSwerveModules()).withName("resetSwerveModules");
 	}
 
-	public Supplier<Rotation2d>    getSimGyro() { return null; }
-	public SwerveDriveSimulation getSimSwerve() { return null; }
+	public Command fieldCentricDrive(Supplier<ChassisSpeeds> speedsSupplier, boolean fieldCentric) {
 
-	public Pose2d getTargetPose()
-	{
-		return Alliance.isRed() ?
-			Constants.Field.RedHub.toPose2d() :
-			Constants.Field.BlueHub.toPose2d();
+		return run(() -> {
+			drive(fieldCentric 
+				? ChassisSpeeds.fromFieldRelativeSpeeds(
+					speedsSupplier.get(), 
+					new Rotation2d(m_data.heading()).plus(Alliance.isRed() ? Rotation2d.kPi : new Rotation2d(0)))
+				: speedsSupplier.get());
+		}).withName("Drive");
+	}
+
+	public Command xMode() {
+		return runOnce(() -> m_io.setModules(Constants.Chassis.XishStates)).withName("XMode");
+	}
+
+	public Command aim(AimTarget target, Supplier<ChassisSpeeds> speedsSupplier) {
+
+		return run(() -> {
+			ChassisSpeeds speeds = speedsSupplier.get();
+
+			// Get the angle between our position and the target via arctan (getAngle)
+			Rotation2d angleToTarget = getTargetPos(target).getTranslation().getAngle();
+
+			speeds.omegaRadiansPerSecond = m_aimController.calculate(
+					m_data.heading().in(Radians),
+					angleToTarget.getRadians()
+			);
+
+			drive(ChassisSpeeds.fromFieldRelativeSpeeds(
+				speeds,
+				new Rotation2d(m_data.heading()).plus(Alliance.isRed() ? Rotation2d.kPi : new Rotation2d(0))
+			));
+		}).withName("Aim at " + target.toString());
+	}
+
+	public Command aimPose(Supplier<Pose2d> target, Supplier<ChassisSpeeds> speedsSupplier, String targetName) {
+
+		return run(() -> {
+			ChassisSpeeds speeds = speedsSupplier.get();
+
+			// Get the angle between our position and the target via arctan (getAngle)
+			Rotation2d angleToTarget = target.get().getTranslation().getAngle();
+
+			speeds.omegaRadiansPerSecond = m_aimController.calculate(
+					m_data.heading().in(Radians),
+					angleToTarget.getRadians()
+			);
+
+			drive(ChassisSpeeds.fromFieldRelativeSpeeds(
+				speeds,
+				new Rotation2d(m_data.heading()).plus(Alliance.isRed() ? Rotation2d.kPi : new Rotation2d(0))
+			));
+		}).withName("Aim at " + target.toString());
+	}
+	
+	public Command aimPose(Supplier<Pose2d> target, Supplier<ChassisSpeeds> speedsSupplier) {
+		
+		return aimPose(target, speedsSupplier, target.get().toString());
+	}
+
+	public void drive(ChassisSpeeds speeds) {
+
+		m_desiredSpeeds = speeds;
+		
+		SwerveModuleState[] states = Constants.Chassis.Kinematics.toSwerveModuleStates(speeds);
+		// SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.Chassis.MaximumLinear.in(MetersPerSecond));
+		m_io.setModules(new ArrayList<SwerveModuleState>(List.of(states)));
+	}
+
+	public Supplier<Rotation2d> getSimGyro() {
+		return m_io.getSimGyro();
+	}
+	public SwerveDriveSimulation getSimSwerve() {
+		return m_io.getSimSwerve();
+	}
+
+	public Pose2d getTargetPos(AimTarget target) {
+
+		switch (target) {
+			case Score:
+				return (Alliance.isRed() ?
+					Constants.Field.RedHub.toPose2d() :
+					Constants.Field.BlueHub.toPose2d()
+				);
+
+			case Passing:
+				return (Alliance.isRed() ?
+					m_outputs.pose.nearest(List.of(Constants.Field.RedAllianceZoneClose, Constants.Field.RedAllianceZoneFar)) :
+					m_outputs.pose.nearest(List.of(Constants.Field.BlueAllianceZoneClose, Constants.Field.BlueAllianceZoneFar))
+				);
+
+				
+			case Down:
+				return new Pose2d(Meters.of(0.0), Meters.of(2.0), new Rotation2d()).rotateBy(Rotation2d.kCCW_90deg);
+			
+			case Left:
+				return new Pose2d(Meters.of(0.0), Meters.of(2.0), new Rotation2d()).rotateBy(Rotation2d.kZero);
+			
+			case Right:
+				return new Pose2d(Meters.of(0.0), Meters.of(2.0), new Rotation2d()).rotateBy(Rotation2d.k180deg);
+			
+			case Up:
+				return new Pose2d(Meters.of(0.0), Meters.of(2.0), new Rotation2d()).rotateBy(Rotation2d.kCW_90deg);
+
+			default:
+				return new Pose2d();
+		}
+	}
+
+	public static enum AimTarget {
+		Score,
+		Passing,
+		Up,
+		Down,
+		Left,
+		Right 
+	}
+
+	public static record SensorData(
+		Angle         			     heading,
+		ArrayList<VisionData> visionMeasurement
+	) {
+
+	}
+
+	public static record Outputs(
+		Pose2d  pose,    
+		ChassisSpeeds desiredSpeeds, 
+		ChassisSpeeds measuredSpeeds,
+		boolean isAimed, 
+		Angle   aimSetPoint, 
+		Angle   aimAngle
+	) implements Logged {
+
+		public static Outputs zeroed() {
+			return new Outputs(
+				new Pose2d(),
+				new ChassisSpeeds(),
+				new ChassisSpeeds(),
+				false,
+				Rotations.of(0.0),
+				Rotations.of(0.0));
+		}
+
+		@Override
+		public void log() {
+			Logger.recordOutput("Swerve/Measured Pose", pose);
+			Logger.recordOutput("Swerve/Desired Speeds", desiredSpeeds);
+			Logger.recordOutput("Swerve/Measured Speeds", measuredSpeeds);
+			Logger.recordOutput("Swerve/Aim Setpoint",  aimSetPoint);
+			Logger.recordOutput("Swerve/Aim Error",  aimAngle);
+		}
 	}
 }

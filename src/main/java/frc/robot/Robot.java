@@ -1,7 +1,6 @@
 package frc.robot;
 
 import org.ironmaple.simulation.SimulatedArena;
-import org.ironmaple.simulation.seasonspecific.rebuilt2026.RebuiltFuelOnField;
 import org.littletonrobotics.junction.LoggedPowerDistribution;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -13,52 +12,55 @@ import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.pathfinding.LocalADStar;
 
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
+
 import frc.robot.lib.HubActivePeriod;
-import frc.robot.lib.motor.talonFX.OrchestraOrchestrator;
+import frc.robot.lib.motor.OrchestraOrchestrator;
+import frc.robot.lib.motor.OrchestraOrchestrator.Song;
 
 public class Robot extends LoggedRobot {
 
-  private Command m_autonomousCommand;
+  private Command m_autonomousCommand = Commands.none();
 
-  private final RobotContainer m_robotContainer;
+  private final ControlLayer m_robotContainer;
 
   public Robot() {
 
-  // ADVANTAGE KIT
-  if (isReal()) {
-    Logger.addDataReceiver(new WPILOGWriter()); // Log to a USB stick ("/U/logs")
-    Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
-  } else {
-    // For now, all we want in sim is network tables
-    Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
-  }
+    // ADVANTAGE KIT
+    if (isReal()) {
+      Logger.addDataReceiver(new WPILOGWriter()); // Log to a USB stick ("/U/logs")
+      Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
+    } else {
+      // For now, all we want in sim is network tables
+      Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
+    }
 
-  Logger.start(); // Start logging! No more data receivers, replay sources, or metadata values may be added.
-  
-  LoggedPowerDistribution.getInstance(Constants.CanIds.PdhId, ModuleType.kRev); // Example: PDH on CAN ID 50
+    Logger.start(); // Start logging! No more data receivers, replay sources, or metadata values may be added.
+    
+    LoggedPowerDistribution.getInstance(Constants.CanIds.PdhId, ModuleType.kCTRE);
 
-  // PATHPLANNER
+    // PATHPLANNER
 
-  Pathfinding.setPathfinder(new LocalADStar());  
-  // I'm not sure which one to use... This is what's in the docs though
-  // CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
-  CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
+    Pathfinding.setPathfinder(new LocalADStar());  
+    // I'm not sure which one to use... This is what's in the docs though
+    // CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
+    CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
 
-  m_robotContainer = new RobotContainer();
+    m_robotContainer = new ControlLayer();
 
-  OrchestraOrchestrator.playSong();
+    SmartDashboard.putData(CommandScheduler.getInstance());
+    
+    OrchestraOrchestrator.playSong(Song.Tetris);
   }
 
   @Override
-  public void robotPeriodic() 
-  {
-  // GOD remove this ABSOLUTE GARBAGE, absolute SCUM OF THE EARTH ARCHITECTURE
-  CommandScheduler.getInstance().run();
-
-  // Beautiful, absolutely perfect, handling inputs from the controller GUHHHH
-  m_robotContainer.modulePeriodic();
+  public void robotPeriodic() {
+    
+    CommandScheduler.getInstance().run();
   }
 
   @Override
@@ -72,8 +74,8 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void autonomousInit() {
-  m_autonomousCommand = m_robotContainer.getAutoCommand();
-  CommandScheduler.getInstance().schedule(m_autonomousCommand);
+    
+    CommandScheduler.getInstance().schedule(m_robotContainer.getSwerveZero().andThen(m_robotContainer.getAutoCommand()).withName("AUTO"));
   }
 
   @Override
@@ -84,27 +86,23 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void teleopInit() {
+
     HubActivePeriod.initialize();
 
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.cancel();
-    }
+    m_autonomousCommand.cancel();
 
-    m_robotContainer.resetState();
+    CommandScheduler.getInstance().schedule(m_robotContainer.getSwerveZero());
   }
 
   @Override
-  public void teleopPeriodic() 
-  {
-  
-  }
+  public void teleopPeriodic() {}
 
   @Override
   public void teleopExit() {}
 
   @Override
-  public void simulationInit() 
-  {
+  public void simulationInit() {
+
   // for (int x = 7 * 6; x <= 10 * 6; x++)
   // {
   //   for (int y = 2 * 6; y <= 6 * 6; y++) 
@@ -127,6 +125,7 @@ public class Robot extends LoggedRobot {
   // simulation period method in your Robot.java
   @Override
   public void simulationPeriodic() {
+
     SimulatedArena.getInstance().simulationPeriodic();
     
     Logger.recordOutput("FieldSimulation/Fuel", SimulatedArena.getInstance().getGamePiecesArrayByType("Fuel"));
@@ -134,9 +133,9 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void testInit() 
-  {
-  CommandScheduler.getInstance().cancelAll();
+  public void testInit() {
+
+    CommandScheduler.getInstance().cancelAll();
   }
 
   @Override

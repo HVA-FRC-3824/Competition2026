@@ -6,13 +6,11 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.AngularVelocity;
 import frc.robot.Constants;
 
-public class GyroPigeon extends Gyro
+public class GyroPigeon implements GyroIO
 {
   Pigeon2 m_gyro;
 
   public GyroPigeon() {
-    m_inputs = new Inputs();
-    m_outputs = new Outputs();
 
     m_gyro = new Pigeon2(Constants.CanIds.PigeonGyroId);
   }
@@ -30,8 +28,7 @@ public class GyroPigeon extends Gyro
   }
 
   @Override
-  public void resetGyroAngle() 
-  {
+  public void reset() {
     m_gyro.reset();
   }
 }

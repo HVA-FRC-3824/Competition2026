@@ -5,77 +5,51 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
-import frc.robot.lib.Logged;
 import frc.robot.lib.Module;
+import frc.robot.lib.Module.Logged;
 
-public abstract class Roller extends Module<Roller.Inputs, Roller.Outputs>
-{
-  public enum State
-  {
-    On,
-    Off,
-    Backwards
+public class Roller extends Module<Roller.Outputs> {
+
+  private RollerIO m_io;
+
+  public Roller(RollerIO io) {
+
+    m_io = io;
+
+    m_outputs = Outputs.zeroed();
   }
 
-  public static class Inputs
-  {
-    public State m_state = State.Off;
-
-    public Inputs(State state) {
-      m_state = state;
-    }
-
-    public Inputs()
-    {
-
-    }
+  public Command off() {
+    return runOnce(m_io::brakeRoller);
+  }
+  
+  public Command on() {
+    return runOnce(() -> m_io.setRoller(Constants.Roller.IntakeDriveTurnsPerSec));
   }
 
-  public static class Outputs extends Logged
-  {
-    public State m_state;
-    public AngularVelocity m_measuredVelocity;
+  public Command backwards() {
+    return runOnce(() -> m_io.setRoller(Constants.Roller.IntakeDriveTurnsPerSec.times(-1.0)));
+  }
 
-    public Outputs()
-    {
-      m_state      = State.Off;
-      m_measuredVelocity = RotationsPerSecond.of(0.0);
+  @Override
+  public void updateOutputs() {
+    m_outputs = new Outputs(m_io.getVelocity());
+  }
+
+  public static record Outputs(
+    AngularVelocity measuredVelocity
+  ) implements Logged {
+
+    public static Outputs zeroed() {
+      return new Outputs(
+        RotationsPerSecond.of(0.0));
     }
 
-    public Outputs(State state, AngularVelocity measuredVelocity)
-    {
-      m_state      = state;
-      m_measuredVelocity = measuredVelocity;
-    }
-
+    @Override
     public void log() {
-      Logger.recordOutput("Roller/State",        m_state);
-      Logger.recordOutput("Roller/Measured Velocity",  m_measuredVelocity);
+      Logger.recordOutput("Roller/Measured Velocity",  measuredVelocity);
     }
   }
-
-  @Override
-  protected void updateHardwareInputs() {
-    switch (m_inputs.m_state) {
-      case Off:
-        brakeRoller();
-        break;
-      case On:
-        setRoller(Constants.Roller.IntakeDriveTurnsPerSec);
-        break;
-      case Backwards:
-        setRoller(Constants.Roller.IntakeDriveTurnsPerSec.times(-1.0));
-        break;
-    }
-  }
-
-  @Override
-  protected void updateOutputs() {
-    m_outputs = new Outputs(m_inputs.m_state, getVelocity());
-  }
-
-  abstract protected void setRoller(AngularVelocity velocity); 
-  abstract protected void brakeRoller();
-  abstract protected AngularVelocity getVelocity();
 }

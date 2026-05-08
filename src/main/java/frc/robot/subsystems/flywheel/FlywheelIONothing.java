@@ -1,0 +1,27 @@
+package frc.robot.subsystems.flywheel;
+
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
+import edu.wpi.first.units.measure.AngularVelocity;
+
+public class FlywheelIONothing implements FlywheelIO {
+
+  public FlywheelIONothing() {
+
+  } 
+
+  @Override
+  public void setFlywheel(AngularVelocity velocity) {
+
+  }
+
+  @Override
+  public void stopFlywheel() {
+
+  }
+
+  @Override
+  public AngularVelocity getMeasured() {
+    return RotationsPerSecond.of(0.0);
+  }
+}

@@ -1,26 +1,30 @@
 package frc.robot.subsystems.roller;
 
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
+
+import org.ironmaple.simulation.IntakeSimulation;
+import org.ironmaple.simulation.drivesims.AbstractDriveTrainSimulation;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Constants;
-import frc.robot.lib.motor.talonFX.SimpleTalon;
+import frc.robot.lib.motor.io.TalonIO;
 
-public class RollerSim extends Roller
+public class RollerSim implements RollerIO
 {
-  public SimpleTalon m_motor;
+  public TalonIO m_motor;
 
   public DCMotorSim  m_motorModel;
+  
+  private final IntakeSimulation m_intakeSimulation;
 
-  public RollerSim()
-  {
-    m_inputs = new Inputs();
-    m_outputs = new Outputs();
-
-    m_motor = new SimpleTalon(Constants.CanIds.FuelIntakeMotorId, Constants.Roller.RollerConfig, true); // is an X60
+  public RollerSim(AbstractDriveTrainSimulation driveTrain) {
+    
+    m_motor = new TalonIO(Constants.CanIds.FuelIntakeMotorId, Constants.Roller.RollerConfig, true); // is an X60
 
     m_motorModel = new DCMotorSim(
       LinearSystemId.createDCMotorSystem(
@@ -28,10 +32,22 @@ public class RollerSim extends Roller
       ),
       DCMotor.getKrakenX60(1)
     );
+
+    
+    m_intakeSimulation = IntakeSimulation.OverTheBumperIntake(
+      "Fuel",
+      driveTrain,
+      Inches.of(30 - (1.5 * 2)),  // Width
+      Inches.of(11.5), // Extension
+      IntakeSimulation.IntakeSide.FRONT,
+      40 // Capacity
+    );
+
+    m_intakeSimulation.addGamePiecesToIntake(8); // Preloads
   }
 
   @Override
-  protected void setRoller(AngularVelocity velocity)
+  public void setRoller(AngularVelocity velocity)
   {
     m_motor.setVelocity(velocity);
 
@@ -39,10 +55,17 @@ public class RollerSim extends Roller
     m_motorModel.update(0.02);
 
     m_motor.simPeriodic(m_motorModel.getAngularVelocity());
+
+    
+    if (velocity.gt(RotationsPerSecond.of(1.0))) {
+      m_intakeSimulation.startIntake();
+    } else {
+      m_intakeSimulation.stopIntake();
+    }
   }
 
   @Override
-  protected void brakeRoller()
+  public void brakeRoller()
   {
     m_motor.brake();
     
@@ -53,7 +76,7 @@ public class RollerSim extends Roller
   }
 
   @Override
-  protected AngularVelocity getVelocity()
+  public AngularVelocity getVelocity()
   {
     return m_motor.getVelocity();
   }

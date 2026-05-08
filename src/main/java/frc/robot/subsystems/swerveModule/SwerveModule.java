@@ -5,90 +5,73 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import org.littletonrobotics.junction.Logger;
 
 import frc.robot.Constants;
-import frc.robot.lib.Logged;
 import frc.robot.lib.Module;
-
+import frc.robot.lib.Module.Logged;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 
-public abstract class SwerveModule extends Module<SwerveModule.Inputs, SwerveModule.Outputs>
-{
-  public static class Inputs
-  {
-    public SwerveModuleState m_moduleState = new SwerveModuleState();
+public class SwerveModule extends Module<SwerveModule.Outputs> {
 
-    public Inputs(SwerveModuleState moduleState)
-    {
-      m_moduleState = moduleState;
-    }
+  private SwerveModuleIO m_io;
 
-    public Inputs()
-    {
+  private SwerveModuleState m_desiredState = new SwerveModuleState();
 
-    }
-  }
-
-  public static class Outputs extends Logged
-  {
-    public SwerveModuleState  m_measuredSwerveModuleState;
-    public SwerveModuleState  m_desiredSwerveModuleState;
-    public SwerveModulePosition m_swerveModulePosition;
-
-    public String         m_moduleName;
-
-    public Outputs()
-    {
-      m_measuredSwerveModuleState = new SwerveModuleState();
-      m_desiredSwerveModuleState  = new SwerveModuleState();
-      m_swerveModulePosition    = new SwerveModulePosition();
-      m_moduleName        = "";
-    }
-
-    public Outputs(SwerveModuleState measuredSwerveModuleState, 
-             SwerveModuleState desiredSwerveModuleState,
-             SwerveModulePosition swerveModulePosition)
-    {
-      m_measuredSwerveModuleState = measuredSwerveModuleState;
-      m_desiredSwerveModuleState  = desiredSwerveModuleState;
-      m_swerveModulePosition    = swerveModulePosition;
-    }
+  public SwerveModule(SwerveModuleIO io) {
     
-    public void log() {
-      Logger.recordOutput("" + m_moduleName + "/Measured drive ", m_measuredSwerveModuleState.speedMetersPerSecond);
-      Logger.recordOutput("" + m_moduleName + "/Measured angle ", m_measuredSwerveModuleState.angle);
-      Logger.recordOutput("" + m_moduleName + "/Desired drive ", m_desiredSwerveModuleState.speedMetersPerSecond);
-      Logger.recordOutput("" + m_moduleName + "/Desired angle ", m_desiredSwerveModuleState.angle);
-    }
+    m_io = io;
+
+    m_outputs = Outputs.zeroed();
+
+    setName("SwerveModule" + m_io.getNum());
+  }
+  
+  @Override
+  public void updateOutputs() {
+
+    m_outputs = new Outputs(m_io.getState(), m_desiredState, m_io.getPosition(), String.valueOf(m_io.getNum()));
   }
 
-  @Override
-  protected void updateOutputs()
-  {
-    m_outputs = new Outputs(getState(), getState(), getPosition());
+  public void resetSwerveModules() {
+
+    m_io.setWheelAngleToForward();
   }
 
-  @Override
-  protected void updateHardwareInputs() 
-  {
+  public void drive(SwerveModuleState moduleState) {
+
+    m_desiredState = moduleState;
+
     // Optimize state
-    m_inputs.m_moduleState.optimize(getPosition().angle);
+    moduleState.optimize(m_io.getPosition().angle);
 
     // Set velocity
     AngularVelocity velocity = 
-      RotationsPerSecond.of(m_inputs.m_moduleState.speedMetersPerSecond / Constants.Chassis.DriveMotorConversion);
+      RotationsPerSecond.of(moduleState.speedMetersPerSecond / Constants.Chassis.DriveMotorConversion);
 
-    setPosition(m_inputs.m_moduleState.angle.getMeasure());
-    setVelocity(velocity);
+    m_io.setState(new SwerveModuleInputs(velocity, moduleState.angle.getMeasure()));
   }
 
-  abstract protected void setPosition(Angle angle);
-  abstract protected void setVelocity(AngularVelocity velocity);
-  abstract protected SwerveModuleState getState();
-  abstract protected SwerveModulePosition getPosition();
-  abstract protected int getNum();
+  public static record Outputs(
+    SwerveModuleState measuredSwerveModuleState,
+    SwerveModuleState desiredSwerveModuleState,
+    SwerveModulePosition swerveModulePosition,
+    String moduleName
+  ) implements Logged {
 
-  abstract public void resetEncoders();
-  abstract public void setWheelAngleToForward(Angle forwardAngleDeg);
+    public static Outputs zeroed() {
+      return new Outputs(
+        new SwerveModuleState(),
+        new SwerveModuleState(),
+        new SwerveModulePosition(),
+        "");
+    }
+
+    @Override
+    public void log() {
+      Logger.recordOutput("Module " + moduleName + "/Measured drive ", measuredSwerveModuleState.speedMetersPerSecond);
+      Logger.recordOutput("Module " + moduleName + "/Measured angle ", measuredSwerveModuleState.angle);
+      Logger.recordOutput("Module " + moduleName + "/Desired drive ", desiredSwerveModuleState.speedMetersPerSecond);
+      Logger.recordOutput("Module " + moduleName + "/Desired angle ", desiredSwerveModuleState.angle);
+    }
+  }
 }

@@ -1,131 +1,85 @@
 package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.Seconds;
 
 import org.ironmaple.simulation.IntakeSimulation;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
-import frc.robot.lib.Logged;
 import frc.robot.lib.Module;
+import frc.robot.lib.Module.Logged;
 
-public abstract class Intake extends Module<Intake.Inputs, Intake.Outputs>
-{
-  public enum State
-  {
-    Starting,
-    Stowed,
-    Deployed,
-    Alligator
-  }
-
-  public static class Inputs
-  {
-    public State m_state = State.Starting;
-    public boolean m_rollersOn = false;
-
-    public Inputs(State state) {
-      m_state = state;
-    }
-
-    public Inputs(State state, boolean rollersOn) {
-      m_state = state;
-      m_rollersOn = rollersOn;
-    }
-
-    public Inputs() {
-    }
-  }
-
-  public static class Outputs extends Logged
-  {
-    public State m_state;
-    public Angle m_desiredPos;
-    public Angle m_measuredPos;
-
-    public Outputs() {
-      m_state     = State.Starting;
-      m_desiredPos  = Rotations.of(0.0);
-      m_measuredPos = Rotations.of(0.0);
-    }
-
-    public Outputs(State state, Angle desiredPos, Angle measuredPos) {
-      m_state     = state;
-      m_measuredPos = measuredPos;
-      m_desiredPos  = desiredPos;
-    }
-
-    public void log() 
-    {
-      Logger.recordOutput("Intake/State",  m_state);
-      Logger.recordOutput("Intake/Measured Pos", m_measuredPos);
-      Logger.recordOutput("Intake/Desired Pos",  m_desiredPos);
-    }
-  }
-
+public class Intake extends Module<Intake.Outputs> {
+  
   private Angle m_desiredAngle;
 
-  @Override
-  protected void updateHardwareInputs()
-  {
-    switch (m_inputs.m_state)
-    {
-      case Starting:
-        m_desiredAngle = Rotations.of(9999.9);
-        break;
-      case Stowed:
-        setPos(Constants.Intake.IntakeStowedTurns);
-        m_desiredAngle = Constants.Intake.IntakeStowedTurns;
-        break;
-      case Deployed:
-        setPos(Constants.Intake.IntakeDeployedTurns);
-        m_desiredAngle = Constants.Intake.IntakeDeployedTurns;
-        break;
-      case Alligator:
-        double time = Timer.getTimestamp();
-        time = (time - (double) ((int) time)); // thx CSA
-        if (time > 0.8)
-        {
-          setPos(Constants.Intake.IntakeStowedTurns);
-          m_desiredAngle = Constants.Intake.IntakeStowedTurns;
-        }
-        else if (time > 0.55)
-        {
-          setPos(Constants.Intake.IntakeDeployedTurns);
-          m_desiredAngle = Constants.Intake.IntakeDeployedTurns;
-        }
-        else if (time > 0.4)
-        {
-          setPos(Constants.Intake.IntakeStowedTurns);
-          m_desiredAngle = Constants.Intake.IntakeStowedTurns;
-        }
-        else if (time > 0.25)
-        {
-          setPos(Constants.Intake.IntakeDeployedTurns);
-          m_desiredAngle = Constants.Intake.IntakeDeployedTurns;
-        }
-        else
-        {
-          setPos(Constants.Intake.IntakeStowedTurns);
-          m_desiredAngle = Constants.Intake.IntakeStowedTurns;
-        }
-        break;
-    }
+  private IntakeIO m_io;
+
+  public Intake(IntakeIO io) {
+
+    m_io = io;
+    
+    m_outputs = Outputs.zeroed();
+  }
+
+  public Command starting() {
+    return runOnce(() -> m_desiredAngle = Rotations.of(9999.9));
+  }  
+
+  public Command stowed() {
+
+    return runOnce(() -> {
+      m_io.setPos(Constants.Intake.IntakeStowedTurns);
+      m_desiredAngle = Constants.Intake.IntakeStowedTurns;
+    });
+  }
+
+  public Command deployed() {
+    
+    return runOnce(() -> {
+      m_io.setPos(Constants.Intake.IntakeDeployedTurns);
+      m_desiredAngle = Constants.Intake.IntakeDeployedTurns;
+    });
+  }
+
+  public Command alligator() {
+    return stowed()
+      .andThen(new WaitCommand(Seconds.of(0.4)))
+      .andThen(deployed())
+      .andThen(new WaitCommand(Seconds.of(0.4)))
+      .repeatedly();
   }
 
   @Override
-  protected void updateOutputs()
+  public void updateOutputs()
   {
-    m_outputs = new Intake.Outputs(m_inputs.m_state, getPos(), m_desiredAngle);
+    m_outputs = new Intake.Outputs(m_desiredAngle, m_io.getPos());
   }
 
   public IntakeSimulation getSimIntake() {
     return null;
   }
 
-  abstract protected void setPos(Angle angle); 
+  public static record Outputs(
+    Angle desiredPos, Angle measuredPos
+  ) implements Logged {
 
-  abstract protected Angle getPos();
+    public static Outputs zeroed() {
+
+      return new Outputs(
+        Rotations.of(0.0),
+        Rotations.of(0.0));
+    }
+
+    @Override
+    public void log() {
+
+      Logger.recordOutput("Intake/Measured Pos", measuredPos);
+      Logger.recordOutput("Intake/Desired Pos",  desiredPos);
+    }
+  }
 }

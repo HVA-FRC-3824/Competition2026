@@ -1,21 +1,20 @@
 package frc.robot.subsystems.intake;
 
-import static edu.wpi.first.units.Units.Rotations;
-
 import edu.wpi.first.units.measure.Angle;
 import frc.robot.Constants;
-import frc.robot.lib.motor.talonFX.SimpleTalon;
+import frc.robot.lib.motor.io.TalonIO;
 
-public class IntakeTalonFX extends Intake
+public class IntakeTalonFX implements IntakeIO
 {
-  public SimpleTalon m_motor;
+  public TalonIO m_motor;
+  public TalonIO m_motorFollower;
 
-  public IntakeTalonFX()
-  {
-    m_inputs = new Inputs();
-    m_outputs = new Outputs();
+  public IntakeTalonFX() {
 
-    m_motor = new SimpleTalon(Constants.CanIds.IntakePositionFollowerMotorId, Constants.Intake.PivotConfig);
+    m_motor         = new TalonIO(Constants.CanIds.IntakePositionLeaderMotorId, Constants.Intake.PivotConfig);
+    m_motorFollower = new TalonIO(Constants.CanIds.IntakePositionFollowerMotorId, Constants.Intake.PivotConfig);
+
+    m_motorFollower.follow(Constants.CanIds.IntakePositionLeaderMotorId, true);
   }
 
   @Override

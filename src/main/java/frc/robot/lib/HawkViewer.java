@@ -9,25 +9,26 @@ import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class HawkViewer {
-  // Build the markup
-  @SuppressWarnings("unchecked") // Ima keep it a buck fiddy I have no clue why the compiler is so mad at me
+
   public static void testSampleMarkup() {
 
     JSONObject markup = new JSONObject();
 
     JSONArray elements = new JSONArray();
 
-    // Helper to add widgets
-    JSONObject element = new JSONObject();
-    element.put("name", "Test");
-    element.put("widget",  "Basic");
-    element.put("source",  "/SmartDashboard/help");
-    element.put("sizeX", 200.0);
-    element.put("sizeY", 80.0);
-    element.put("posX", 10.0);
-    element.put("posY", 40.0);
-    elements.add(element);
-
+    {
+      // Helper to add widgets
+      JSONObject element = new JSONObject();
+      element.put("name", "Test");
+      element.put("widget",  "Basic");
+      element.put("source",  "/SmartDashboard/help");
+      element.put("sizeX", 200.0);
+      element.put("sizeY", 80.0);
+      element.put("posX", 10.0);
+      element.put("posY", 40.0);
+      elements.add(element);
+    }
+    
     markup.put("elements", elements);
     
     markup.put("name", "HawkViewer Test Dashboard");
@@ -38,8 +39,6 @@ public class HawkViewer {
 
   private ArrayList<Widget> m_widgets = new ArrayList<>();
 
-  // NOTE, THIS IS PURPOSEFULLY NOTTTTTTT STATIC
-  // You are supposed to only have ***one*** instance of this
   public HawkViewer() {
 
   }
@@ -50,7 +49,6 @@ public class HawkViewer {
     return this;
   }
 
-  // ONLY CALL THIS ONCE
   public void pushMarkup() {
     String markup = createMarkupFromWidgets();
 
@@ -58,7 +56,7 @@ public class HawkViewer {
       .genericPublish(markup, (PubSubOption[]) null);
   }
 
-  @SuppressWarnings("unchecked")
+  // @SuppressWarnings("unchecked")
   private String createMarkupFromWidgets() {
     JSONObject markup = new JSONObject();
     markup.put("name", "HawkViewer — Test Dashboard");
@@ -127,7 +125,7 @@ public class HawkViewer {
     }
 
     public Widget withName  (String   name)   {m_name   = name;   return this; }
-    public Widget withType  (WidgetType type)   {m_type   = type;   return this; }
+    public Widget withType  (WidgetType type) {m_type   = type;   return this; }
     public Widget withSource(String   source) {m_source = source; return this; }
     public Widget withSizeX (double   sizeX)  {m_sizeX  = sizeX;  return this; }
     public Widget withSizeY (double   sizeY)  {m_sizeY  = sizeY;  return this; }

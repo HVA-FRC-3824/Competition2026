@@ -3,29 +3,25 @@ package frc.robot.subsystems.indexer;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
-import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Constants;
-import frc.robot.lib.motor.talonFX.SimpleTalon;
+import frc.robot.lib.motor.io.TalonIO;
 
-public class IndexerSim extends Indexer
+public class IndexerSim implements IndexerIO
 {
-  public SimpleTalon m_indexerMotor;
-  public SimpleTalon m_kickerMotor;
+  public TalonIO m_beltMotor;
+  public TalonIO m_kickerMotor;
 
   public DCMotorSim  m_indexerModel;
   public DCMotorSim  m_kickerModel;
 
-  public IndexerSim()
-  {
-    m_inputs  = new Inputs();
-    m_outputs = new Outputs();
+  public IndexerSim() {
 
-    m_indexerMotor = new SimpleTalon(Constants.CanIds.IndexerMotorId,  Constants.Indexer.BeltConfig,   true); // is an X60
-    m_kickerMotor  = new SimpleTalon(Constants.CanIds.KickerMotorId, Constants.Indexer.KickerConfig, false);
+    m_beltMotor   = new TalonIO(Constants.CanIds.IndexerMotorId,  Constants.Indexer.BeltConfig,   true); // is an X60
+    m_kickerMotor = new TalonIO(Constants.CanIds.KickerMotorId, Constants.Indexer.KickerConfig, false);
 
     m_indexerModel = new DCMotorSim(
       LinearSystemId.createDCMotorSystem(
@@ -43,38 +39,37 @@ public class IndexerSim extends Indexer
   }
 
   @Override
-  public void setIndexers(AngularVelocity indexerVelocity, AngularVelocity kickerVelocity)
-  {
-    m_kickerMotor.setVelocity(kickerVelocity);
-    m_indexerMotor.setVelocity(indexerVelocity);
+  public void setBelts(AngularVelocity indexerVelocity) {
 
-    m_indexerModel.setInputVoltage(m_kickerMotor.getAppliedVoltage().in(Volts));
+    m_beltMotor.setVelocity(indexerVelocity);
+    m_indexerModel.setInputVoltage(m_beltMotor.getAppliedVoltage().in(Volts));
     m_indexerModel.update(0.02);
-    
-    m_kickerModel.setInputVoltage(m_indexerMotor.getAppliedVoltage().in(Volts));
-    m_kickerModel.update(0.02);
-
-    m_kickerMotor.simPeriodic(m_kickerModel.getAngularVelocity());
-    m_indexerMotor.simPeriodic(m_indexerModel.getAngularVelocity());
+    m_beltMotor.simPeriodic(m_indexerModel.getAngularVelocity());
   }
 
   @Override
-  public void brakeIndexers()
-  {
-    m_indexerMotor.setVelocity(RotationsPerSecond.of(0.0));
-    m_indexerModel.setInputVoltage(m_indexerMotor.getAppliedVoltage().in(Volts));
-    m_indexerModel.update(0.02);
-    m_indexerMotor.simPeriodic(m_indexerModel.getAngularVelocity());
+  public void setKicker(AngularVelocity kickerVelocity) {
 
-    m_kickerMotor.setVelocity(RotationsPerSecond.of(0.0));
+    m_kickerMotor.setVelocity(kickerVelocity);
     m_kickerModel.setInputVoltage(m_kickerMotor.getAppliedVoltage().in(Volts));
     m_kickerModel.update(0.02);
     m_kickerMotor.simPeriodic(m_kickerModel.getAngularVelocity());
   }
 
   @Override
-  public Pair<AngularVelocity, AngularVelocity> getVelocities()
-  {
-    return new Pair<AngularVelocity, AngularVelocity>(m_indexerMotor.getVelocity(), m_kickerMotor.getVelocity());
+  public void brakeMotors() {
+    setBelts(RotationsPerSecond.of(0.0));
+    setKicker(RotationsPerSecond.of(0.0));
+  }
+
+  @Override
+  public AngularVelocity getIndexerVelocity() {
+    return m_beltMotor.getVelocity();
+  }
+
+  @Override
+  public AngularVelocity getKickerVelocity() {
+    return m_kickerMotor.getVelocity();
+
   }
 }

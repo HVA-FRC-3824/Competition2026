@@ -5,57 +5,54 @@ import static edu.wpi.first.units.Units.DegreesPerSecond;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
-import frc.robot.lib.Logged;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.lib.Module;
+import frc.robot.lib.Module.Logged;
 
-public abstract class Gyro extends Module<Gyro.Inputs, Gyro.Outputs>
+public class Gyro extends Module<Gyro.Outputs>
 {
-  public class Inputs
-  {
-    public Inputs()
-    {
 
-    }
+  GyroIO m_io;
+
+  public Gyro(GyroIO io) {
+
+    m_io = io;
+
+    m_outputs = Outputs.zeroed();
   }
 
-  public class Outputs extends Logged
+  @Override
+  public void updateOutputs() {
+    m_outputs = new Outputs(m_io.getGyroRotation().getMeasure(), m_io.getGyroAngularVelocity());
+  }
+
+  public Command reset() {
+
+    return runOnce(m_io::reset);
+  }
+
+  public static class Inputs
   {
-    public AngularVelocity m_headingVelocity;
-    public Angle       m_heading;
+    public Inputs() {}
+  }
 
-    public Outputs()
-    {
-      m_heading     = Degrees.of(0.0);
-      m_headingVelocity = DegreesPerSecond.of(0.0);
+  public static record Outputs(
+    Angle heading, AngularVelocity headingVelocity
+  ) implements Logged {
+
+    public static Outputs zeroed() {
+      return new Outputs(
+        Degrees.of(0.0),
+        DegreesPerSecond.of(0.0));
     }
 
-    public Outputs(Angle heading, AngularVelocity headingVelocity)
-    {
-      m_heading     = heading;
-      m_headingVelocity = headingVelocity;
-    }
-
+    @Override
     public void log() 
     {
-      Logger.recordOutput("Gyro/Heading", m_heading);
-      Logger.recordOutput("Gyro/Angular Velocity",  m_headingVelocity);
+      Logger.recordOutput("Gyro/Heading", heading);
+      Logger.recordOutput("Gyro/Angular Velocity", headingVelocity);
     }
   }
-
-  @Override
-  protected void updateOutputs() {
-    m_outputs = new Outputs(getGyroRotation().getMeasure(), getGyroAngularVelocity());
-  }
-
-  @Override
-  protected void updateHardwareInputs() {}
-
-  abstract protected Rotation2d getGyroRotation();
-  abstract protected AngularVelocity getGyroAngularVelocity();  
-  
-  // This one is kinda an outlier to the architecture
-  abstract public void resetGyroAngle();
 }

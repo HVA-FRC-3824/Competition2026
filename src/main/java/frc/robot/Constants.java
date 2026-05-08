@@ -4,11 +4,16 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.FeetPerSecond;
 import static edu.wpi.first.units.Units.FeetPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import com.pathplanner.lib.path.PathConstraints;
 
@@ -32,14 +37,14 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
 import frc.robot.lib.motor.MotorConfig;
 
-public final class Constants 
-{
-  public static final class Field
-  {
+public final class Constants {
+
+  public static final class Field {
     /// *** Field Dimensions *** ///
     public static final double FieldLengthMeters  = Units.inchesToMeters(652.11); // 16.56 meters
     public static final double FieldWidthMeters   = Units.inchesToMeters(317.69); //  8.07 meters
@@ -50,7 +55,7 @@ public final class Constants
 
     /// *** Field Locations *** ///
 
-    public static final Pose3d BlueHub = new Pose3d(AllianceWallToAllianceZoneMeters,           FieldWidthMeters / 2, HubHeightMeters, new Rotation3d());
+    public static final Pose3d BlueHub = new Pose3d(AllianceWallToAllianceZoneMeters, FieldWidthMeters / 2, HubHeightMeters, new Rotation3d());
     public static final Pose3d RedHub  = new Pose3d(FieldLengthMeters - AllianceWallToAllianceZoneMeters, FieldWidthMeters / 2, HubHeightMeters, new Rotation3d());
 
     // For passing we want to aim towards the inside of our alliance zone or towards the neutral zone whichever is closer
@@ -65,33 +70,38 @@ public final class Constants
   }
 
   public static final class MotorConfigs {
-    public static final Current MaxCurrent = Amps.of(100.0);
+    public static final Current MaxStator = Amps.of(200.0);
+    public static final Current MaxSupply = Amps.of(40.0);
   }
   
-  public static final class Vision
-  {
-    public static final String kCameraName1 = "LeftCam";
+  public static final class Vision {
+
+    public static final String kCameraName1 = "SigmaKamera";
     public static final String kCameraName2 = "RightCam";
     
     public static final Transform3d RobotToCam1 = new Transform3d(
-      new Translation3d(Units.inchesToMeters(-12.0), Units.inchesToMeters(-6.0), Units.inchesToMeters(12.5)), 
-      new Rotation3d(0.0, Units.degreesToRadians(10), Units.degreesToRadians(180)));
-    public static final Transform3d CamToRobot1 = RobotToCam1.inverse();
+      new Translation3d(
+        Inches.of(-15.0), // forwards
+        Inches.of(0.0), // right
+        Inches.of(0.0)), // up
+      new Rotation3d(
+        Degrees.of(0.0), // roll
+        Degrees.of(0.0), // pitch
+        Degrees.of(180.0))); // yaw
 
     // some of these probably need to be flipped
     public static final Transform3d kRobotToCam2 = new Transform3d(new Translation3d(Units.inchesToMeters(0.0), Units.inchesToMeters(0.0), Units.inchesToMeters(0.0)), new Rotation3d());
-    public static final Transform3d kCamToRobot2 = kRobotToCam2.inverse();
 
     public static AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
 
     // The standard deviations of our vision estimated poses, which affect correction rate
     // (Fake values. Experiment and determine estimation noise on an actual robot.)
-    public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(0.2, 0.2, 0.5);
-    public static final Matrix<N3, N1> kMultiTagStdDevs  = VecBuilder.fill(0.05, 0.05, 0.1);
+    public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(4, 4, Double.MAX_VALUE);
+    public static final Matrix<N3, N1> kMultiTagStdDevs  = VecBuilder.fill(0.5, 0.5, Double.MAX_VALUE);
   }
 
-  public static final class Intake
-  {
+  public static final class Intake {
+
     public static final MotorConfig PivotConfig = new MotorConfig();
     static {
       PivotConfig
@@ -109,6 +119,7 @@ public final class Constants
   }
 
   public static final class Roller {
+
     public static final MotorConfig RollerConfig = new MotorConfig();
     static {
       RollerConfig
@@ -122,8 +133,8 @@ public final class Constants
     public static final AngularVelocity IntakeDriveTurnsPerSec = RotationsPerSecond.of(600.0);
   }
 
-  public static final class Indexer
-  {
+  public static final class Indexer {
+
     public static final AngularVelocity BeltTurnsPerSec    = RotationsPerSecond.of(120);
     public static final AngularVelocity KickerWheelTurnsPerSec = RotationsPerSecond.of(120);
 
@@ -152,8 +163,8 @@ public final class Constants
     }
   }
 
-  public static final class Flywheel
-  {
+  public static final class Flywheel {
+
     public static final MotorConfig Config = new MotorConfig();
     static {
       Config
@@ -175,17 +186,17 @@ public final class Constants
     public static final double SpunUpTolerance = 3.0;
   }
 
-  public static final class Chassis
-  {
+  public static final class Chassis {
+
     public static final MotorConfig DriveConfig = new MotorConfig();
     static {
       DriveConfig
+        .withSupplyLimit(Amps.of(40.0))
         .withStatorLimit(Amps.of(100.0))
         .withBrakeMode(true)
         .withInverted(false)
         .withContinuousWrap(false)
         .withP(0.05)
-        .withI(1.5)
         .withV(0.12877)
         .withVelocityLimit(RotationsPerSecond.of(100)) // Max free speed
         .withAccelerationLimit(RotationsPerSecondPerSecond.of(200)); // reach in 0.5 sec
@@ -201,90 +212,125 @@ public final class Constants
         .withContinuousWrap(true)
         .withP(12.0)
         .withD(0.2)
-        .withSensorToMechanismRatio(150 / 70)
+        .withSensorToMechanismRatio(150.0 / 7.0)
         .withVelocityLimit(RotationsPerSecond.of(400))
         .withAccelerationLimit(RotationsPerSecondPerSecond.of(4000));
+    }
+
+    // SUMMER!!!
+
+    public static final MotorConfig SummerDriveConfig = new MotorConfig();
+    static {
+      SummerDriveConfig
+        // .withSupplyLimit(Amps.of(40.0))
+        // .withStatorLimit(Amps.of(100.0))
+        .withBrakeMode(true)
+        .withInverted(false)
+        .withContinuousWrap(false)
+        .withP(0.1)
+        // .withV(0.12)
+        .withA(0.0)
+        .withVelocityLimit(RotationsPerSecond.of(100)) // Max free speed
+        .withAccelerationLimit(RotationsPerSecondPerSecond.of(200)); // reach in 0.5 sec
+    }
+
+    public static final MotorConfig SummerTurnConfig = new MotorConfig();
+    static {
+      SummerTurnConfig
+        .withStatorLimit(Amps.of(20.0))
+        .withSupplyLimit(Amps.of(40.0))
+        .withInverted(true)
+        .withBrakeMode(true)
+        .withContinuousWrap(true)
+        .withP(0.01)
+        .withD(0.0002)
+        .withSensorToMechanismRatio(21.5)
+        .withVelocityLimit(RotationsPerSecond.of(20))
+        .withAccelerationLimit(RotationsPerSecondPerSecond.of(200));
     }
     
     // NOTE: The absolute encoder range is 0.5 to -0.5
     // These are the absolute encoder values that correspond to the wheels facing "forward"
-    public static final Angle FrontLeftForwardsAngle  = Degrees.of( 0.3824 - 0.5); // WE ARE SO COOKED
-    public static final Angle FrontRightForwardsAngle = Degrees.of( 0.408691);
-    public static final Angle BackRightForwardsAngle  = Degrees.of(-0.11377);
-    public static final Angle BackLeftForwardsAngle   = Degrees.of(-0.025146);
+    public static final Angle FrontRightForwardsAngle = Rotations.of(-0.1796); //Degrees.of( 0.3824 - 0.5); // WE ARE SO COOKED
+    public static final Angle FrontLeftForwardsAngle  = Rotations.of(-0.4775); //Degrees.of( 0.408691);
+    public static final Angle BackRightForwardsAngle  = Rotations.of(0.05908); //Degrees.of(-0.11377);
+    public static final Angle BackLeftForwardsAngle   = Rotations.of(0.07); //Degrees.of(-0.025146);
 
-    public static final LinearVelocity    MaximumLinear        = FeetPerSecond.of(12.0);
+    public static final LinearVelocity      MaximumLinear              = FeetPerSecond.of(12.0);
     public static final LinearAcceleration  MaximumLinearAcceleration  = FeetPerSecondPerSecond.of(12.0);
-    public static final AngularVelocity   MaximumAngularVelocity   = RadiansPerSecond.of(4 * Math.PI);
+
+    public static final AngularVelocity     MaximumAngularVelocity     = RadiansPerSecond.of(4 * Math.PI);
     public static final AngularAcceleration MaximumAngularAcceleration = RadiansPerSecondPerSecond.of(4 * Math.PI);
+
     public static final double TranslateExponentialPower = 3.0;
     public static final double AngularExponentialPower   = 4.0;
 
-    public static final double WheelBaseMeters  = Units.inchesToMeters(30.0); // These are lowk swapped, help
-    public static final double TrackWidthMeters = Units.inchesToMeters(24.0);
+    public static final Distance WheelBaseMeters  = Inches.of(30.0);
+    public static final Distance TrackWidthMeters = Inches.of(30.0);
 
     public static final double DriveMotorReduction  = 6.75;
-    public static final double WheelDiameter    = 0.098022; // meters
-    public static final double WheelCircumference   = WheelDiameter * Math.PI;
-    public static final double DriveMotorConversion = WheelCircumference / DriveMotorReduction;  // Meters per motor turn
+    public static final Distance WheelDiameter      = Meters.of(0.098022); // meters
+    public static final Distance WheelCircumference = WheelDiameter.times(Math.PI);
+    public static final double DriveMotorConversion = WheelCircumference.div(DriveMotorReduction).in(Meters);  // Meters per motor turn
 
-    public static final SwerveModuleState[] XishStates = {
-      new SwerveModuleState(0.0, new Rotation2d(315.0)),  // FL
-      new SwerveModuleState(0.0, new Rotation2d( 225.0)),  // FR
-      new SwerveModuleState(0.0, new Rotation2d( 225.0)),  // BL
-      new SwerveModuleState(0.0, new Rotation2d(315.0))  // BR
-    };
+    public static final ArrayList<SwerveModuleState> XishStates = new ArrayList<>(List.of(
+      new SwerveModuleState(0.0, Rotation2d.fromDegrees(315.0)),  // FL
+      new SwerveModuleState(0.0, Rotation2d.fromDegrees( 225.0)),  // FR
+      new SwerveModuleState(0.0, Rotation2d.fromDegrees( 225.0)),  // BL
+      new SwerveModuleState(0.0, Rotation2d.fromDegrees(315.0))  // BR
+    ));
 
     public static final Translation2d[] ModulePositions = {
-      new Translation2d( Constants.Chassis.WheelBaseMeters / 2,  Constants.Chassis.TrackWidthMeters / 2), // Front Left
-      new Translation2d( Constants.Chassis.WheelBaseMeters / 2, -Constants.Chassis.TrackWidthMeters / 2), // Front Right
-      new Translation2d(-Constants.Chassis.WheelBaseMeters / 2,  Constants.Chassis.TrackWidthMeters / 2), // Back Left
-      new Translation2d(-Constants.Chassis.WheelBaseMeters / 2, -Constants.Chassis.TrackWidthMeters / 2)  // Back Right
+      new Translation2d(WheelBaseMeters.div(2.0),             TrackWidthMeters.div(2.0)), // Front Left
+      new Translation2d(WheelBaseMeters.div(2.0),             TrackWidthMeters.div(2.0).times(-1.0)), // Front Right
+      new Translation2d(WheelBaseMeters.div(2.0).times(-1.0), TrackWidthMeters.div(2.0)), // Back Left
+      new Translation2d(WheelBaseMeters.div(2.0).times(-1.0), TrackWidthMeters.div(2.0).times(-1.0))  // Back Right
     };
 
-    public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(ModulePositions);
+    public static final SwerveDriveKinematics Kinematics = new SwerveDriveKinematics(ModulePositions);
 
-    public static final PathConstraints constraints = new PathConstraints(Constants.Chassis.MaximumLinear, 
-                                        Constants.Chassis.MaximumLinearAcceleration, 
-                                        Constants.Chassis.MaximumAngularVelocity, 
-                                        Constants.Chassis.MaximumAngularAcceleration);
+    public static final PathConstraints constraints = new PathConstraints(
+      Constants.Chassis.MaximumLinear,
+      Constants.Chassis.MaximumLinearAcceleration,
+      Constants.Chassis.MaximumAngularVelocity,
+      Constants.Chassis.MaximumAngularAcceleration
+    );
   }
 
-  public static final class CanIds
-  {
-    public static final int FrontLeftDriveId    = 31; // Kraken X60
-    public static final int FrontLeftTurnId     = 32; // Kraken X44
-    public static final int FrontLeftEncoderId    = 33; // CANCoder
+  public static final class CanIds {
 
-    public static final int FrontRightDriveId     = 21; // Kraken X60
-    public static final int FrontRightTurnId    = 22; // Kraken X44
-    public static final int FrontRightEncoderId   = 23; // CANCoder
+    public static final int FrontLeftDriveId   = 31; // Kraken X60
+    public static final int FrontLeftTurnId    = 32; // Kraken X44 / NEO v1.2
+    public static final int FrontLeftEncoderId = 33; // CANCoder
 
-    public static final int BackLeftDriveId     = 11; // Kraken X60
-    public static final int BackLeftTurnId      = 12; // Kraken X44
-    public static final int BackLeftEncoderId     = 13; // CANCoder
+    public static final int FrontRightDriveId   = 21; // Kraken X60
+    public static final int FrontRightTurnId    = 22; // Kraken X44 / NEO v1.2
+    public static final int FrontRightEncoderId = 23; // CANCoder
+
+    public static final int BackLeftDriveId   = 11; // Kraken X60
+    public static final int BackLeftTurnId    = 12; // Kraken X44 / NEO v1.2
+    public static final int BackLeftEncoderId = 13; // CANCoder
     
     public static final int BackRightDriveId    = 04; // Kraken X60
-    public static final int BackRightTurnId     = 02; // Kraken X44
-    public static final int BackRightEncoderId    = 03; // CANCoder
+    public static final int BackRightTurnId     = 02; // Kraken X44 / NEO v1.2
+    public static final int BackRightEncoderId  = 03; // CANCoder
 
     public static final int PigeonGyroId = 05; // CTR Pigeon 2.0
 
     public static final int IntakePositionFollowerMotorId = 42; // Kraken X44
     public static final int IntakePositionLeaderMotorId   = 41; // Kraken X44
-    public static final int FuelIntakeMotorId       = 40; // Kraken X60
+    public static final int FuelIntakeMotorId = 40;             // Kraken X60
 
-    public static final int IndexerMotorId      = 50; // Kraken X60
-    public static final int KickerMotorId       = 51; // Kraken X44
+    public static final int IndexerMotorId = 50; // Kraken X60
+    public static final int KickerMotorId  = 51; // Kraken X44
 
-    public static final int FlywheelMotorId     = 52; // Kraken X60
+    public static final int FlywheelMotorId         = 52; // Kraken X60
     public static final int FlywheelFollowerMotorId = 53; // Kraken X60
 
-    public static final int PdhId           = 60; // PDH
+    public static final int PdhId = 60; // PDH
   }
 
-  public static final class Pwm
-  {
+  public static final class Pwm {
     // PWM Ports
     public static final int ActuatorPort   = 1;
 
@@ -292,8 +338,7 @@ public final class Constants
     public static final int LedTurretPort  = 7;
   }
 
-  public static final class Usb
-  {   
+  public static final class Usb {   
     // drive Input Configurations
     public static final int DrivePort  = 0;
     public static final int OperatorPort = 1;

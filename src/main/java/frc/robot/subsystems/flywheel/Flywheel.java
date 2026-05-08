@@ -7,144 +7,134 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import org.littletonrobotics.junction.Logger;
 
 import frc.robot.Constants;
-import frc.robot.lib.Logged;
 import frc.robot.lib.Module;
-
+import frc.robot.lib.Module.Logged;
+import frc.robot.subsystems.swerve.Swerve;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj2.command.Command;
 
-public abstract class Flywheel extends Module<Flywheel.Inputs, Flywheel.Outputs>
+public class Flywheel extends Module<Flywheel.Outputs>
 {
-  public enum State {
-    Backwards,
-    Off,
-    Low,
-    Mid,
-    Neutral,
-    Field,
-    Auto,
-    Manual
-  }
+  private AngularVelocity m_lastInput = RotationsPerSecond.of(0.0);
+  
+  private int m_offsetIndex = 0;
 
-  public AngularVelocity stateToSpeeds() {
-    switch (m_inputs.m_state)
-    {
-      case Backwards:
-        return Constants.Flywheel.CloseSpeed.times(-1.0);
-      case Low:
-        return Constants.Flywheel.CloseSpeed;
-      case Mid:
-        return Constants.Flywheel.MiddleSpeed;
-      case Neutral:
-        return Constants.Flywheel.NeutralPassSpeed;
-      case Field:
-        return Constants.Flywheel.FieldPassSpeed;
-      case Auto:
-        return RotationsPerSecond.of(0.166667 * m_inputs.m_distance.in(Inches) + 30.33333);
-      case Manual:
-        return m_inputs.m_manualVelocity;
-      default:
-        return RotationsPerSecond.of(0.0);
-    }
-  }
+  FlywheelIO m_io;
 
-  public static class Inputs
-  {
-    public AngularVelocity m_manualVelocity = RotationsPerSecond.of(0.0);
-    public State       m_state = State.Off;
-    public Distance    m_distance = Meters.of(0.0);
-    public double      m_simIntakeSpeed = 0.0; // Balls per sec from intake to flywheel
-    public boolean     m_isIndexing = false;
+  SensorData m_data = new SensorData(Inches.of(0.0));
 
-    public Inputs(State state, AngularVelocity manualVelocity, boolean m_canShoot)
-    {
-      m_state      = state;
-      m_manualVelocity = manualVelocity;
-    }
+  Swerve.AimTarget m_target = Swerve.AimTarget.Score;
 
-    public Inputs(State state, AngularVelocity manualVelocity, double simIntakeSpeed, boolean isIndexing) {
-      m_state = state;
-      m_manualVelocity = manualVelocity;
-      m_simIntakeSpeed = simIntakeSpeed;
-      m_isIndexing     = isIndexing;
-    }
-
-    public Inputs()
-    {
-
-    }
-  }
-
-  public static class Outputs extends Logged
-  {
-    public AngularVelocity m_desiredTPS;
-    public AngularVelocity m_measuredTPS;
-    public boolean     m_isSpunUp;
-    public State       m_state;
-
-    public Outputs()
-    {
-      m_desiredTPS  = RotationsPerSecond.of(0.0);
-      m_measuredTPS = RotationsPerSecond.of(0.0);
-      m_isSpunUp  = false;
-      m_state     = State.Off;
-    }
-
-    public Outputs(AngularVelocity desiredTPS, AngularVelocity measuredTPS, boolean isSpunUp, State state)
-    {
-      m_desiredTPS  = desiredTPS;
-      m_measuredTPS = measuredTPS;
-      m_isSpunUp  = isSpunUp;
-      m_state     = state;
-    }
+  public Flywheel(FlywheelIO io) {
     
-    public void log() {
-      Logger.recordOutput("Flywheel/Desired turns per sec",  m_desiredTPS);
-      Logger.recordOutput("Flywheel/Measured turns per sec", m_measuredTPS);
-      Logger.recordOutput("Flywheel/Is Spun Up",       m_isSpunUp);
-      Logger.recordOutput("Flywheel/State",          m_state);
-    }
+    m_io = io;
+
+    m_outputs = Outputs.zeroed();
+  }
+  
+	public void updateSensorData(SensorData data) {
+		
+		m_data = data;
+	}
+
+  public Swerve.AimTarget getTarget() {
+    return m_target;
   }
 
-  // Handle logic between subsystems inputs and hardware inputs
-  @Override
-  protected void updateHardwareInputs() {
-    // I'm really not sure why it would ever be null
-    if (m_inputs.m_state == null)
-      m_inputs.m_state = State.Off;
+  public Command off() {
     
-    if (m_inputs.m_state == State.Off) {
-      stopFlywheel();
-    }
+    return runOnce(() -> {
+      m_io.stopFlywheel();
+      m_lastInput = RotationsPerSecond.of(0.0);
+    });
+  }
 
-    setFlywheel(stateToSpeeds());
+  public Command auto(Swerve.AimTarget target) {
+
+    return run(() -> {
+      m_target = target;
+
+      AngularVelocity velocityFromDist = RotationsPerSecond.of(0.166667 * m_data.distFromTarget().in(Meters) + 30.33333);
+      m_io.setFlywheel(velocityFromDist);
+      m_lastInput = velocityFromDist;
+    });
+  }
+
+  public Command manual(AngularVelocity velocity) {
+
+    return runOnce(() -> {
+      m_io.setFlywheel(velocity);
+      m_lastInput = velocity;
+    });
+  }
+
+  public Command set(Setpoints setpoint) {
+
+    return runOnce(() -> {
+      m_io.setFlywheel(setpoint.m_velocity);
+      m_lastInput = setpoint.m_velocity;
+    });
   }
 
   // Update logging struct (m_outputs)
   @Override
-  protected void updateOutputs()
+  public void updateOutputs()
   {
     m_outputs = new Outputs(
       getReference(),
-      getMeasured(),
-      isSpunUp(),
-      m_inputs.m_state
+      m_io.getMeasured(),
+      isSpunUp()
     );
   }
 
   protected boolean isSpunUp() {
-    return getReference().isNear(getMeasured(), Constants.Flywheel.SpunUpTolerance);
-        //  && 
-        //  getReference().in(RotationsPerSecond) != 0.0;
+    return getReference().isNear(m_io.getMeasured(), Constants.Flywheel.SpunUpTolerance)
+           && 
+           getReference().in(RotationsPerSecond) != 0.0;
   }
-
-  protected abstract void setFlywheel(AngularVelocity velocity);
-
-  protected abstract void stopFlywheel();
 
   protected AngularVelocity getReference() {
-    return stateToSpeeds();
+    return m_lastInput;
   }
 
-  protected abstract AngularVelocity getMeasured();
+  public record SensorData(
+    Distance distFromTarget
+  ) {
+
+  }
+
+  public enum Setpoints {
+    Backwards(Constants.Flywheel.CloseSpeed.times(-1.0)),
+    Low(Constants.Flywheel.CloseSpeed),
+    Mid(Constants.Flywheel.MiddleSpeed),
+    Neutral(Constants.Flywheel.NeutralPassSpeed),
+    Field(Constants.Flywheel.FieldPassSpeed);
+
+    AngularVelocity m_velocity; 
+
+    private Setpoints(AngularVelocity vel) {
+      m_velocity = vel;
+    }
+  }
+
+  public static record Outputs(
+    AngularVelocity desiredTPS, AngularVelocity measuredTPS, boolean isSpunUp
+  ) implements Logged {
+
+    public static Outputs zeroed()
+    {
+      return new Outputs(
+        RotationsPerSecond.of(0.0),
+        RotationsPerSecond.of(0.0),
+        false);
+    }
+
+    @Override
+    public void log() {
+      Logger.recordOutput("Flywheel/Desired turns per sec",  desiredTPS);
+      Logger.recordOutput("Flywheel/Measured turns per sec", measuredTPS);
+      Logger.recordOutput("Flywheel/Is Spun Up",             isSpunUp);
+    }
+  }
 }

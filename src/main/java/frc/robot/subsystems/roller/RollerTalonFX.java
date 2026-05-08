@@ -2,33 +2,31 @@ package frc.robot.subsystems.roller;
 
 import edu.wpi.first.units.measure.AngularVelocity;
 import frc.robot.Constants;
-import frc.robot.lib.motor.talonFX.SimpleTalon;
+import frc.robot.lib.motor.io.TalonIO;
 
-public class RollerTalonFX extends Roller
+public class RollerTalonFX implements RollerIO
 {
-  public SimpleTalon m_motor;
+  public TalonIO m_motor;
 
   public RollerTalonFX() {
-    m_inputs = new Inputs();
-    m_outputs = new Outputs();
 
-    m_motor = new SimpleTalon(Constants.CanIds.FuelIntakeMotorId, Constants.Roller.RollerConfig);
+    m_motor = new TalonIO(Constants.CanIds.FuelIntakeMotorId, Constants.Roller.RollerConfig);
   }
 
   @Override
-  protected void setRoller(AngularVelocity velocity)
+  public void setRoller(AngularVelocity velocity)
   {
     m_motor.setVelocity(velocity);
   }
 
   @Override
-  protected void brakeRoller()
+  public void brakeRoller()
   {
     m_motor.brake();
   }
 
   @Override
-  protected AngularVelocity getVelocity()
+  public AngularVelocity getVelocity()
   {
     return m_motor.getVelocity();
   }

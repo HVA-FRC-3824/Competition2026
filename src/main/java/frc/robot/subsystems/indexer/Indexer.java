@@ -4,121 +4,85 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.Pair;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
-import frc.robot.lib.Logged;
 import frc.robot.lib.Module;
+import frc.robot.lib.Module.Logged;
 
-public abstract class Indexer extends Module<Indexer.Inputs, Indexer.Outputs>
+public class Indexer extends Module<Indexer.Outputs>
 {
-  public enum State
-  {
-    On,
-    Off,
-    Backwards
-  }
+  IndexerIO m_io;
 
-  public static class Inputs
-  {
-    public State m_state = State.Off;
-
-    public Inputs(State state)
-    {
-      m_state = state;
-    }
-
-    public Inputs() {
-      
-    }
-  }
-
-  public static class Outputs extends Logged
-  {
-    public State       m_state;
-    public AngularVelocity m_desiredIndexerVelocity;
-    public AngularVelocity m_desiredKickerVelocity;
-    public AngularVelocity m_measuredIndexerVelocity;
-    public AngularVelocity m_measuredKickerVelocity;
-
-    public Outputs()
-    {
-      m_state = State.Off;
-      m_desiredIndexerVelocity  = RotationsPerSecond.of(0.0);
-      m_desiredKickerVelocity   = RotationsPerSecond.of(0.0);
-      m_measuredIndexerVelocity = RotationsPerSecond.of(0.0);
-      m_measuredKickerVelocity  = RotationsPerSecond.of(0.0);
-    }
-
-    public Outputs(State state, 
-             AngularVelocity desiredIndexerVelocity, 
-             AngularVelocity desiredKickerVelocity, 
-             AngularVelocity measuredIndexerVelocity, 
-             AngularVelocity measuredKickerVelocity)
-    {
-      m_state = state;
-      m_desiredIndexerVelocity  = desiredIndexerVelocity;
-      m_desiredKickerVelocity   = desiredKickerVelocity;
-      m_measuredIndexerVelocity = measuredIndexerVelocity;
-      m_measuredKickerVelocity  = measuredKickerVelocity;
-      
-    }
-
-    public void log() {
-      Logger.recordOutput("Indexer/State", m_state);
-      Logger.recordOutput("Indexer/Desired Indexer Velocity",  m_desiredIndexerVelocity);
-      Logger.recordOutput("Indexer/Desired Kicker Velocity",   m_desiredKickerVelocity);
-      Logger.recordOutput("Indexer/Measured Indexer Velocity", m_measuredIndexerVelocity);
-      Logger.recordOutput("Indexer/Measured Kicker Velocity",  m_measuredKickerVelocity);
-    }
-  }
-
-  Pair<AngularVelocity, AngularVelocity> m_desiredVelocities 
-    = new Pair<>(RotationsPerSecond.of(0.0), RotationsPerSecond.of(0.0));
-
-  @Override
-  protected void updateHardwareInputs() {
-    switch (m_inputs.m_state) {
-      case Off:
-        brakeIndexers();
-        m_desiredVelocities = new Pair<>(
-          RotationsPerSecond.of(0.0), 
-          RotationsPerSecond.of(0.0));
-        break;
-        
-      case On:
-        setIndexers(Constants.Indexer.BeltTurnsPerSec, Constants.Indexer.KickerWheelTurnsPerSec);
-        m_desiredVelocities = new Pair<>(
-          Constants.Indexer.BeltTurnsPerSec, 
-          Constants.Indexer.KickerWheelTurnsPerSec);
-        break;
-
-      case Backwards:
-        setIndexers(Constants.Indexer.BeltTurnsPerSec.times(-1), Constants.Indexer.KickerWheelTurnsPerSec.times(-1));
-        m_desiredVelocities = new Pair<>(
-          Constants.Indexer.BeltTurnsPerSec.times(-1), 
-          Constants.Indexer.KickerWheelTurnsPerSec.times(-1));
-        break;
-
-      default:
-        break;
-    }
-  }
-
-  @Override
-  protected void updateOutputs() {
-    Pair<AngularVelocity, AngularVelocity> velocities = getVelocities();
+  public Indexer(IndexerIO io) {
     
-    m_outputs = new Outputs(m_inputs.m_state, 
-                m_desiredVelocities.getFirst(), 
-                m_desiredVelocities.getSecond(), 
-                velocities.getFirst(), 
-                velocities.getSecond());
+    m_io = io;
+
+    m_outputs = Outputs.zeroed();
+  }
+  
+  private AngularVelocity m_desiredKicker = RotationsPerSecond.of(0.0);
+  private AngularVelocity m_desiredIndexer = RotationsPerSecond.of(0.0);
+
+  public Command off() {
+    
+    return runOnce(() -> {
+      m_io.brakeMotors();
+      m_desiredIndexer = RotationsPerSecond.of(0.0); 
+      m_desiredKicker = RotationsPerSecond.of(0.0);
+    });
   }
 
-  protected abstract void setIndexers(AngularVelocity indexerVelocity, AngularVelocity kickerVelocity); 
+  public Command on() {
 
-  protected abstract void brakeIndexers();
+    return runOnce(() -> {
+      m_io.setBelts(Constants.Indexer.BeltTurnsPerSec);
+      m_io.setKicker(Constants.Indexer.KickerWheelTurnsPerSec);
+      m_desiredIndexer = Constants.Indexer.BeltTurnsPerSec;
+      m_desiredKicker = Constants.Indexer.KickerWheelTurnsPerSec;
+    });
+  }
 
-  protected abstract Pair<AngularVelocity, AngularVelocity> getVelocities();
+  public Command backwards() {
+
+    return runOnce(() -> {
+      m_io.setBelts(Constants.Indexer.BeltTurnsPerSec.times(-1.0));
+      m_io.setKicker( Constants.Indexer.KickerWheelTurnsPerSec.times(-1.0));
+      m_desiredIndexer = Constants.Indexer.BeltTurnsPerSec.times(-1.0);
+      m_desiredKicker  = Constants.Indexer.KickerWheelTurnsPerSec.times(-1.0);
+    });
+  }
+
+  @Override
+  public void updateOutputs() {    
+    m_outputs = new Outputs( 
+                m_desiredIndexer, 
+                m_desiredKicker, 
+                m_io.getIndexerVelocity(), 
+                m_io.getKickerVelocity());
+  }
+
+  public static record Outputs(
+    AngularVelocity desiredIndexerVelocity,
+    AngularVelocity desiredKickerVelocity,
+    AngularVelocity measuredIndexerVelocity,
+    AngularVelocity measuredKickerVelocity
+  ) implements Logged {
+
+    public static Outputs zeroed() {
+      return new Outputs(
+        RotationsPerSecond.of(0.0),
+        RotationsPerSecond.of(0.0),
+        RotationsPerSecond.of(0.0),
+        RotationsPerSecond.of(0.0));
+    }
+
+    @Override
+    public void log() {
+      Logger.recordOutput("Indexer/Desired Indexer Velocity",  desiredIndexerVelocity);
+      Logger.recordOutput("Indexer/Desired Kicker Velocity",   desiredKickerVelocity);
+      Logger.recordOutput("Indexer/Measured Indexer Velocity", measuredIndexerVelocity);
+      Logger.recordOutput("Indexer/Measured Kicker Velocity",  measuredKickerVelocity);
+    }
+  }
 }

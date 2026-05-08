@@ -1,37 +1,39 @@
 package frc.robot.lib;
 
-public abstract class Module<SubsystemInputs, SubsystemOutputs extends Logged>
-{
-  protected SubsystemInputs  m_inputs;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+public abstract class Module<SubsystemOutputs extends Module.Logged> extends SubsystemBase {
+
+  private boolean m_hasSetup = false;
+
   protected SubsystemOutputs m_outputs;
-  
-  // Handle logic between subsystems inputs and hardware inputs
-  abstract protected void updateHardwareInputs();
 
-  // Update logging struct (m_outputs)
-  abstract protected void updateOutputs();
+  public abstract void updateOutputs();
+    
+  @Override
+  public void periodic() {
+    
+    // basically a constructor, but I don't want to add one to avoid downstream complexity
+    if (!m_hasSetup) {
+      SmartDashboard.putData(this);
+      m_hasSetup  = true;
+    }
 
-  // Update hardware inputs and subsystem outputs
-  public void modulePeriodic()
-  {
-    updateHardwareInputs();
-    updateOutputs();
     log();
-  }
-  
-  public void setInputs(SubsystemInputs desired)
-  {
-    m_inputs = desired;
+    updateOutputs();
   }
 
-  public SubsystemOutputs getOutputs()
-  {
+  public SubsystemOutputs getOutputs() {
     return m_outputs;
   }
 
   // This should be fine and you shouldn't need to override this
-  private void log()
-  {
+  private void log() {
+
     m_outputs.log();
   }
+
+  // Use Logger.recordOutput to output all members of the class
+  public static interface Logged { public void log(); }
 }
